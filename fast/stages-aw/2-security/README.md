@@ -95,6 +95,19 @@ terraform output security
 
 And make sure it has the "Service Usage Consumer" role in the project that you are using to bootstrap.
 
+### Setting default project for manual run
+**Important**: Before running this, make sure that if you are running these stages manually from the command line, that your default project is set to the 'automation' project created in 0-bootstrap.
+To find the 'automation' project,
+```bash
+pushd ../0-bootstrap
+terraform output project_ids
+popd
+```
+And to set the gcloud project default in your CLI
+```bash
+gcloud config set project <prefix>-prod-iac-core-0
+```
+
 
 ### Variable configuration
 
