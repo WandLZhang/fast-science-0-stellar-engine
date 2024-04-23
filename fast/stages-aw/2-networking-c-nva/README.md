@@ -291,6 +291,16 @@ gcloud alpha storage cp gs://xxx-prod-iac-core-outputs-0/tfvars/1-resman.auto.tf
 
 The preconfigured provider file uses impersonation to run with this stage's automation service account's credentials. The `gcp-devops` and `organization-admins` groups have the necessary IAM bindings in place to do that, so make sure the current user is a member of one of those groups.
 
+Make sure the `network` service account has the `Service Usage Consumer` role.
+
+Find the network service account
+```bash
+cd ../1-resman/
+terraform output network
+```
+
+And make sure it has the "Service Usage Consumer" role in the project that you are using to bootstrap.
+
 ### Variable configuration
 
 Variables in this stage -- like most other FAST stages -- are broadly divided into three separate sets:
