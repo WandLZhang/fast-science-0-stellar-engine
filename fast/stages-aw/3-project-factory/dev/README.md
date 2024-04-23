@@ -28,19 +28,6 @@ As all other FAST stages, the [mechanism used to pass variable values and pre-bu
 The commands to link or copy the provider and terraform variable files can be easily derived from the `stage-links.sh` script in the FAST root folder, passing it a single argument with the local output files folder (if configured) or the GCS output bucket in the automation project (derived from stage 0 outputs). The following examples demonstrate both cases, and the resulting commands that then need to be copy/pasted and run.
 
 ```bash
-../../../stage-links.sh ~/fast-config
-
-# copy and paste the following commands for '3-project-factory'
-
-ln -s ~/fast-config/providers/3-project-factory-providers.tf ./
-ln -s ~/fast-config/tfvars/0-globals.auto.tfvars.json ./
-ln -s ~/fast-config/tfvars/0-bootstrap.auto.tfvars.json ./
-ln -s ~/fast-config/tfvars/1-resman.auto.tfvars.json ./
-ln -s ~/fast-config/tfvars/2-networking.auto.tfvars.json ./
-ln -s ~/fast-config/tfvars/2-security.auto.tfvars.json ./
-```
-
-```bash
 ../../../stage-links.sh gs://xxx-prod-iac-core-outputs-0
 
 # copy and paste the following commands for '3-project-factory'
