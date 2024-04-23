@@ -222,8 +222,30 @@ The roles that the Organization Admin used in the first `apply` needs to self-gr
 - Owner (`roles/owner`)
 
 To quickly self-grant the above roles, run the following code snippet as the initial Organization Admin:
+- Login into the GCP Account with credentials
+```bash
+gcloud auth login 
+```
+- It is recommended to create a new Google Profile associated to the GCP account. 
+- It will open a Google Chrome Window and select the right GCP account
+- If Prompted for Password enter the password and continue
+- It will prompt to Sign in to Google Cloud SDK, click on Continue
+- It will prompt to allow and enable the permission for 'Allow Google Cloud SDK' by clicking on Allow 
+- Once completed it will display "You are now authenticated with the gcloud CLI! "
+- It is recommended to set the GCP account in the config.
 
 ```bash
+gcloud auth list
+```
+- This will display the Account Number, obtain the Account-Number and put in the next command the config.
+```bash
+gcloud config set account `Account-Number`
+```
+
+```bash
+
+gcloud auth login 
+
 # set variable for current logged in user
 export FAST_BU=$(gcloud config list --format 'value(core.account)')
 
