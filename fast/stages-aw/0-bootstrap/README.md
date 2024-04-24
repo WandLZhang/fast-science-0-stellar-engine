@@ -265,12 +265,10 @@ for role in $FAST_ROLES; do
 done
 ```
 
-Before starting, make sure you are running a very new version of Terraform
+Before starting, make sure you are running Terraform version >= 1.8.1
 
 ```bash
-admin@cloudshell:~$ terraform version
-Terraform v1.8.1
-on linux_amd64
+terraform version
 ```
 
 Then make sure the same user is also part of the `gcp-organization-admins` group so that impersonating the automation service account later on will be possible.
