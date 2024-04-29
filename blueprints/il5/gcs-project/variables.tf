@@ -52,7 +52,7 @@ variable "public_access_prevention" {
 variable "location" {
   description = "Bucket location."
   type        = string
-  default     = "US"
+  default     = "us-east4"
 }
 
 
