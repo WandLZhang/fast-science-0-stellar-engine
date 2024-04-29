@@ -18,18 +18,6 @@ autoclass { enabled = true }
 
 ## Deployment Steps
 
-1. Clone the repo to your local machine or Cloud Shell:
-
-```bash
-git clone https://github.com/DarkWolf-Labs/dino-runner.git
-```
-
-2. Change to the directory of the blueprint:
-
-```bash
-cd dino-runner/blueprints/serverless/cloud-run-explore
-```
-
 You should see this README and some terraform files.
 
 1. To deploy a specific use case, you will need to create a file in this directory called `terraform.tfvars` and follow the corresponding instructions to set variables. Values that are meant to be substituted will be shown inside brackets but you need to omit these brackets. E.g.:
