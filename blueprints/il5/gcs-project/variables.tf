@@ -15,9 +15,9 @@
  */
 
 variable "name" {
-  description = "Bucket name suffix."
+  description = "Bucket name."
   type        = string
-  default     = "Name-ofBucket"
+  default     = "Name-of-the-Bucket"
 }
 
 

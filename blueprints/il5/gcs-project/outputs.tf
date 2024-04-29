@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 
 # We add `id` as an alias to `name` to simplify log sink handling.
 # Since all other log destinations (pubsub, logging-bucket, bigquery)
