@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "key_ring_name" {
-  description = "Key ring name."
+
+ variable "project_id" {
+  description = "Project ID"
   type        = string
-  default     = "wkeyringname"
+  default     = "tapan-dev"
+  # TODO: Update the Project ID , example project-abc-123
 }
 
 
@@ -27,16 +29,51 @@ variable "keyring" {
     name     = string
   })
   default = {
-    location = "us-east4"
-    name     = "w-keyring"
+    location = "us-east4"    
+    name = "xy-keyring"
+    # TODO: Update the name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
   }
 }
 
+variable "prefix" {
+  description = "Optional prefix used to generate the bucket name."
+  type        = string
+  default     = "xy"
+  # TODO: Update the name of the prefix
+  validation {
+    condition     = var.prefix != ""
+    error_message = "Prefix cannot be empty, please use null instead."
+  }
+}
+
+variable "name" {
+  description = "Bucket name suffix."
+  type        = string
+  default     = "abcde"
+  # TODO: Update the name of the bucket suffix
+}
+
+variable "location" {
+  description = "Bucket location."
+  type        = string
+  default     = "us-east4"
+  # Location for IL5 can be us-east4 or us-cental1
+}
+
+
+variable "email" {
+  default = "admin.tapan@dino-runner.darkwolfsolutions.com"
+  # Example default = "admin.user-anme@example.google.com"
+  description = "Email address of the user."
+  type        = string
+}
+
+
+
 variable "autoclass" {
-  description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request. Defaults to set to True"
+  description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
   type        = bool
-  #default     = false
-  default = true
+  default     = true
 }
 
 variable "public_access_prevention" {
@@ -44,43 +81,6 @@ variable "public_access_prevention" {
   type        = string
   default     = "enforced"
 }
-
-
-variable "location" {
-  description = "Bucket location."
-  type        = string
-  default     = "us-east4"
-  # Set to us-east4 or us-cental1
-}
-
-variable "name" {
-  description = "Bucket name suffix."
-  type        = string
-  default     = "apr3"
-}
-
-variable "prefix" {
-  description = "Optional prefix used to generate the bucket name."
-  type        = string
-  default     = "dinr"
-  validation {
-    condition     = var.prefix != ""
-    error_message = "Prefix cannot be empty, please use null instead."
-  }
-}
-
-variable "suffix" {
-  description = "Optional suffix used to generate the bucket name."
-  type        = string
-  default     = "s"
-}
-
-variable "project_id" {
-  description = "Bucket project id."
-  type        = string
-  default     = "tapan-dev"
-}
-
 
 variable "storage_class" {
   description = "Bucket storage class."
@@ -91,7 +91,6 @@ variable "storage_class" {
     error_message = "Storage class must be one of STANDARD, MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE."
   }
 }
-
 
 
 variable "keys" {
@@ -146,16 +145,3 @@ variable "keys" {
   }
   nullable = false
 }
-
-variable "region" {
-  default = "us-east4"
-  description = "Region of the bucket."
-  type = string
-}
-
-variable "email" {
-  default = "admin.tapan@dino-runner.darkwolfsolutions.com"
-  description = "Email address of the user."
-  type = string
-}   
- 
