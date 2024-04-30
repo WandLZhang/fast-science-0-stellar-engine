@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
- variable "project_id" {
+variable "project_id" {
   description = "Project ID"
   type        = string
-  default     = "tapan-dev"
+  default     = "todo-project-id"
   # TODO: Update the Project ID , example project-abc-123
 }
-
 
 variable "keyring" {
   description = "Keyring attributes."
@@ -29,8 +28,8 @@ variable "keyring" {
     name     = string
   })
   default = {
-    location = "us-east4"    
-    name = "xy-keyring"
+    location = "us-east4"
+    name     = "todo-keyring"
     # TODO: Update the name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
   }
 }
@@ -38,7 +37,7 @@ variable "keyring" {
 variable "prefix" {
   description = "Optional prefix used to generate the bucket name."
   type        = string
-  default     = "xy"
+  default     = "todo-prefix"
   # TODO: Update the name of the prefix
   validation {
     condition     = var.prefix != ""
@@ -49,7 +48,7 @@ variable "prefix" {
 variable "name" {
   description = "Bucket name suffix."
   type        = string
-  default     = "abcde"
+  default     = "bucket-name-here"
   # TODO: Update the name of the bucket suffix
 }
 
@@ -57,18 +56,16 @@ variable "location" {
   description = "Bucket location."
   type        = string
   default     = "us-east4"
-  # Location for IL5 can be us-east4 or us-cental1
+  # TODO: Update the Bucket Location. The Location for IL5 can be us-east4 or us-cental1
 }
 
-
 variable "email" {
-  default = "admin.tapan@dino-runner.darkwolfsolutions.com"
+  default = "todo-update-email@example.google.com"
   # Example default = "admin.user-anme@example.google.com"
   description = "Email address of the user."
   type        = string
+  # TODO: Update the email address
 }
-
-
 
 variable "autoclass" {
   description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
@@ -91,7 +88,6 @@ variable "storage_class" {
     error_message = "Storage class must be one of STANDARD, MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE."
   }
 }
-
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
