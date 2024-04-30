@@ -22,7 +22,6 @@ keys = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "SOFTWARE"
       }
-
       iam                   = {}
       iam_bindings          = {}
       iam_bindings_additive = {}
