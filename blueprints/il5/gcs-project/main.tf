@@ -45,6 +45,7 @@ module "gcs" {
   storage_class  = var.storage_class
   encryption_key = module.kms.keys.default.id
   name           = var.name
+  depends_on     = [module.kms]
 }
 
 # Google KMS Module
