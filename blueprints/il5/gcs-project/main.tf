@@ -21,7 +21,7 @@ provider "google" {
 # Work on the Current Project
 data "google_project" "current" {}
 
-# Obtain the Cloud Storage Service Account 
+# Obtain the Cloud Storage Service Account
 locals {
   cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }

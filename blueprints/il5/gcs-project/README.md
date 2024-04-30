@@ -52,7 +52,7 @@ terraform plan
 terraform apply
 ```
 
-It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources, and some output variables with information to access your services.
+It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 
 ```
 module.kms.google_kms_key_ring.default[0]: Creating...
