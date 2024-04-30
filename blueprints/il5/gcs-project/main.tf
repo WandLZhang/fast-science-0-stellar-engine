@@ -1,10 +1,45 @@
-# Google Project
-# Google Cloud Storage Module 
+/**
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+#Terraform Provider for Google Cloud Platform
 provider "google" {
   project = var.project_id
-  region  = var.region
-
+  region  = var.location
 }
+# Work on the Current Project
+data "google_project" "current" {
+}
+
+locals {
+  cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
+}
+
+# Google IAM Policy to the user as Admin
+data "google_iam_policy" "admin" {
+  binding {
+    role = "roles/storage.admin"
+    members = [
+      "user:${var.email}"
+    ]
+  }
+}
+
+# Google Cloud Storage Module 
 module "gcs" {
   source         = "../../../modules/gcs"
   prefix         = var.prefix
@@ -14,37 +49,14 @@ module "gcs" {
   encryption_key = module.kms.keys.default.id
   name           = var.name
 }
-/*
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.project_id
-  keyring    = var.keyring
-  keys       = var.keys
-}
-*/
-data "google_project" "current" {
-}
 
-locals {
-  cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
-}
-
+# Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}",  "serviceAccount:${local.cloud_storage_service_account}"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}", "serviceAccount:${local.cloud_storage_service_account}"]
   }
-  keyring = var.keyring  
-}
-    
-
-data "google_iam_policy" "admin" {
-  binding {
-    role = "roles/storage.admin"
-    members = [
-      "user:${var.email}"
-    ]
-  }
+  keyring = var.keyring
 }
