@@ -17,7 +17,6 @@
 variable "project_id" {
   description = "Project ID"
   type        = string
-  default     = ""
   # TODO: Update the Project ID , example project-abc-123
 }
 
