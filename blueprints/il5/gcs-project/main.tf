@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-#Terraform Provider for Google Cloud Platform
+# Terraform Provider for Google Cloud Platform
 provider "google" {
   project = var.project_id
   region  = var.location
 }
 # Work on the Current Project
-data "google_project" "current" {
-}
+data "google_project" "current" {}
 
+# Obtain the Cloud Storage Service Account 
 locals {
   cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
