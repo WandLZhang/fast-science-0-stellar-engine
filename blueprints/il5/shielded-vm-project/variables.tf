@@ -42,20 +42,20 @@ variable "keyring" {
 variable "location" {
   description = "Location of the Shielded Compute VM"
   type        = string
-  # Example default     = "us-east4"
+  default     = "us-east4"
 
 }
 
 variable "zone" {
   description = "Zone of the Shielded Compute VM us-east4-c , us-east4-a, us-east4-b"
   type        = string
-  #Example  default     = "us-east4-c" the Zone value to us-east4-c , us-east4-a, us-east4-b
+  default     = "us-east4-c"
 }
 
 variable "instance_name" {
   description = "Provide the name of the Compute Instance"
   type        = string
-  #Example  default     = "shieled-vm-inst"
+  default     = "shieled-vm-inst"
 }
 
 variable "shielded_config" {
@@ -72,31 +72,26 @@ variable "shielded_config" {
   }
 }
 
-
 variable "ip_cidr_range" {
   description = "The IP CIDR range for the VPC"
   type        = string
-  #Example  default     = "10.0.1.0/24"
+  default     = "10.0.1.0/24"
+  #TODO Update the VPC CIDR IP Range
 }
 
-
-variable "instance_type" {
-  description = "The Machine Type for the Shielded Compute VM"
-  type        = string
-  default     = "e2-micro"
-  #Example  default     = "e2-micro"
-}
 variable "source_ranges_allowed" {
   description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM"
   type        = list(any)
-  # #Example   default     = ["10.0.1.0/24"]
+  default     = ["10.0.1.0/24"]
+  #TODO Update the List of the source IP CIDR range allowed to connect
 }
 
 
-variable "allowed_firewall_ports" {
+variable "allowd_firewall_ports" {
   description = "The list of the Allowed Ports"
   type        = list(any)
-  #Example  default     = ["22", "443"]
+  default     = ["22", "443"]
+  #TODO Update the The list of the Allowed Ports
 }
 
 variable "keys" {
