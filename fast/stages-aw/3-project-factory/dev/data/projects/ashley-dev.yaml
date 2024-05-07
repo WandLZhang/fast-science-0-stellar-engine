@@ -13,10 +13,10 @@
 # limitations under the License.
 
 labels:
- team: team-0
-parent: folders/736253310515
-name: potato
-descriptive_name: potato
+ team: dino-runner
+parent: folders/173507323014
+name: ashley
+descriptive_name: Ashley 
 services:
 - compute.googleapis.com
 - storage.googleapis.com
