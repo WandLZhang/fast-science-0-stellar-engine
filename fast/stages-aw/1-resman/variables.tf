@@ -219,11 +219,13 @@ variable "locations" {
     gcs     = string
     logging = string
     pubsub  = list(string)
+    kms     = string
   })
   default = {
-    bq      = "EU"
-    gcs     = "EU"
-    logging = "global"
+    bq      = "US"
+    gcs     = "US"
+    kms     = "nam9"
+    logging = "us"
     pubsub  = []
   }
   nullable = false
@@ -314,6 +316,14 @@ variable "tenants" {
     admin_principal  = string
     descriptive_name = string
     billing_account  = optional(string)
+    compliance = optional(object({
+      regime   = string
+      location = string
+    }))
+    locations = optional(object({
+      gcs = string
+      kms = string
+    }))
     organization = optional(object({
       customer_id = string
       domain      = string

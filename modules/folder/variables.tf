@@ -110,6 +110,24 @@ variable "name" {
   default     = null
 }
 
+variable "compliance" {
+  description = "This variable enables Assured Workloads to be applied to the folder created. Must be set with `folder_create = true`"
+  type = object({
+    regime       = string
+    location     = string
+    organization = string
+  })
+  validation {
+    condition     = contains(["", "IL4", "CJIS", "FEDRAMP_HIGH", "FEDRAMP_MODERATE", "US_REGIONAL_ACCESS", "HIPAA", "HITRUST", "EU_REGIONS_AND_SUPPORT", "CA_REGIONS_AND_SUPPORT", "ITAR", "AU_REGIONS_AND_US_SUPPORT", "ASSURED_WORKLOADS_FOR_PARTNERS", "ISR_REGIONS", "ISR_REGIONS_AND_SUPPORT", "CA_PROTECTED_B", "IL5", "IL2", "JP_REGIONS_AND_SUPPORT"], var.compliance.regime)
+    error_message = "The   regime  must be specific."
+  }
+  default = {
+    regime       = ""
+    location     = ""
+    organization = ""
+  }
+}
+
 variable "org_policies" {
   description = "Organization policies applied to this folder keyed by policy name."
   type = map(object({

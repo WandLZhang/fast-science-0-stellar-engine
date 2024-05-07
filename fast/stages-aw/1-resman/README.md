@@ -300,6 +300,22 @@ team_folders = {
     }
     impersonation_principals = ["group:team-a-admins@gcp-pso-italy.net"]
   }
+  team-b = {
+    descriptive_name = "Team B"
+    iam_by_principals = {
+      "group:team-a@gcp-pso-us.net" = [
+        "roles/viewer"
+      ]
+    }
+    compliance = {
+      regime   = "IL5"
+      location = "us"
+    }
+    locations = {
+      gcs = "us-east4"
+      kms = "us-east4"
+    }
+  }
 }
 ```
 
@@ -310,6 +326,12 @@ This will result in
 - one service account in the automation project with the correct IAM policies on the folder and bucket
 - a IAM policy on the folder that assigns `roles/viewer` to the `team-a` group
 - a IAM policy on the service account that allows `team-a` to impersonate it
+- a Assured Workloads configured with "us" location and an IL4 controlset
+- a folder named "Team B-IL5" under that Assured Workload
+- one GCS bucket with KMS CMEK encryption to meet the IL5 requirements
+- one service account in the automation project with the correct IAM policies on the folder and bucket
+- a IAM policy on the folder that assigns `roles/viewer` to the `team-b` group
+- a IAM policy on the service account that allows `team-b` to impersonate it
 
 This allows to centralize the minimum set of resources to delegate control of each team's folder to a pipeline, and/or to the team group. This can be used as a starting point for scenarios that implement more complex requirements (e.g. environment folders per team, etc.).
 

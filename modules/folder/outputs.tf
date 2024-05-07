@@ -42,3 +42,8 @@ output "sink_writer_identities" {
     name => sink.writer_identity
   }
 }
+
+output "assured_workload" {
+  description = "(optional) Assured Workload ID if enabled"
+  value       = try(google_assured_workloads_workload.assured_workload_folder[0].id, null)
+}
