@@ -25,6 +25,7 @@ locals {
       module.tenant-self-iac-sa[k].iam_email
     ]
   }
+  gcs_locations = { for k, v in var.tenants : k => try(v.locations.gcs != "", false) ? v.locations.gcs : var.locations.gcs }
 }
 
 # top-level "Tenants" folder
@@ -40,14 +41,18 @@ module "tenant-tenants-folder" {
 }
 
 # Tenant folders (top, core, self)
-
 module "tenant-top-folder" {
   source   = "../../../modules/folder"
   for_each = var.tenants
   parent   = module.tenant-tenants-folder.id
-  name     = each.value.descriptive_name
+  name     = try(each.value.compliance.regime != "", false) ? "${each.value.descriptive_name}-${each.value.compliance.regime}" : each.value.descriptive_name
   iam_by_principals = {
     (each.value.admin_principal) = ["roles/browser"]
+  }
+  compliance = {
+    regime       = try(each.value.compliance.regime, "")
+    location     = try(each.value.compliance.location, "")
+    organization = var.organization.id
   }
 }
 
@@ -144,21 +149,26 @@ module "tenant-core-sa" {
 }
 
 module "tenant-core-gcs" {
-  source        = "../../../modules/gcs"
-  for_each      = var.tenants
-  project_id    = var.automation.project_id
-  name          = "tn-${each.key}-0"
-  prefix        = var.prefix
-  versioning    = true
-  location      = var.locations.gcs
-  storage_class = local.gcs_storage_class
+  source     = "../../../modules/gcs"
+  for_each   = var.tenants
+  project_id = var.automation.project_id
+  name       = "tn-${each.key}-0"
+  prefix     = var.prefix
+  versioning = true
+  location   = local.gcs_locations[each.key]
+  storage_class = (
+    length(split("-", local.gcs_locations[each.key])) < 2
+    ? "MULTI_REGIONAL"
+    : "REGIONAL"
+  )
+  encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
+  depends_on     = [module.tenant-project-key]
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
 }
 
 # Tenant IaC project and resources (self)
-
 module "tenant-self-iac-project" {
   source   = "../../../modules/project"
   for_each = var.tenants
@@ -168,7 +178,7 @@ module "tenant-self-iac-project" {
     : var.billing_account.id
   )
   name   = "${each.key}-iac-core-0"
-  parent = module.tenant-self-folder[each.key].id
+  parent = module.tenant-core-folder[each.key].id
   prefix = var.prefix
   iam_by_principals = {
     (each.value.admin_principal) = [
@@ -214,28 +224,65 @@ module "tenant-self-iac-project" {
 }
 
 module "tenant-self-iac-gcs-outputs" {
-  source        = "../../../modules/gcs"
-  for_each      = var.tenants
-  project_id    = module.tenant-self-iac-project[each.key].project_id
-  location      = var.locations.gcs
-  storage_class = local.gcs_storage_class
-  name          = "${each.key}-iac-outputs-0"
-  prefix        = var.prefix
-  versioning    = true
+  source     = "../../../modules/gcs"
+  for_each   = var.tenants
+  project_id = module.tenant-self-iac-project[each.key].project_id
+  location   = local.gcs_locations[each.key]
+  storage_class = (
+    length(split("-", local.gcs_locations[each.key])) < 2
+    ? "MULTI_REGIONAL"
+    : "REGIONAL"
+  )
+  name       = "${each.key}-iac-outputs-0"
+  prefix     = var.prefix
+  versioning = true
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
+  }
+  encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
+  depends_on     = [module.tenant-project-key]
+
+}
+
+module "tenant-project-key" {
+  source     = "../../../modules/kms"
+  project_id = module.tenant-self-iac-project[each.key].project_id
+  for_each   = var.tenants
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      module.tenant-core-sa[each.key].iam_email,
+      "serviceAccount:service-${module.tenant-self-iac-project[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
+    ]
+  }
+  keyring = {
+    name     = "${each.key}-keyring"
+    location = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
+  }
+  keys = {
+    gcs = {
+      purpose         = "ENCRYPT_DECRYPT"
+      labels          = { service = "gcs" }
+      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
+      rotation_period = "7776000s"
+    }
   }
 }
 
 module "tenant-self-iac-gcs-state" {
-  source        = "../../../modules/gcs"
-  for_each      = var.tenants
-  project_id    = module.tenant-self-iac-project[each.key].project_id
-  location      = var.locations.gcs
-  storage_class = local.gcs_storage_class
-  name          = "${each.key}-iac-0"
-  prefix        = var.prefix
-  versioning    = true
+  source     = "../../../modules/gcs"
+  for_each   = var.tenants
+  project_id = module.tenant-self-iac-project[each.key].project_id
+  location   = local.gcs_locations[each.key]
+  storage_class = (
+    length(split("-", local.gcs_locations[each.key])) < 2
+    ? "MULTI_REGIONAL"
+    : "REGIONAL"
+  )
+  name           = "${each.key}-iac-0"
+  prefix         = var.prefix
+  versioning     = true
+  encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
+  depends_on     = [module.tenant-project-key]
 }
 
 module "tenant-self-iac-sa" {

@@ -17,10 +17,47 @@
 locals {
   folder = (
     var.folder_create
-    ? try(google_folder.folder[0], null)
+    ? var.compliance.regime != ""
+    ? try(data.google_folder.aw_folder[0], null)
+    : try(google_folder.folder[0], null)
     : try(data.google_folder.folder[0], null)
   )
 }
+
+
+resource "google_assured_workloads_workload" "assured_workload_folder" {
+  count             = var.compliance.regime != "" ? 1 : 0
+  compliance_regime = var.compliance.regime
+  display_name      = var.name
+  location          = var.compliance.location
+  organization      = var.compliance.organization
+
+  provisioned_resources_parent = var.parent
+
+  resource_settings {
+    resource_type = "CONSUMER_FOLDER"
+  }
+
+  violation_notifications_enabled = true
+  labels = {
+  }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "time_sleep" "wait_30_seconds" {
+  depends_on      = [google_assured_workloads_workload.assured_workload_folder]
+  create_duration = "30s"
+}
+
+data "google_folder" "aw_folder" {
+  depends_on = [google_assured_workloads_workload.assured_workload_folder]
+  count      = var.compliance.regime != "" ? 1 : 0
+  folder     = "folders/${google_assured_workloads_workload.assured_workload_folder[0].resources[0].resource_id}"
+}
+
+
 
 data "google_folder" "folder" {
   count  = var.folder_create ? 0 : 1
@@ -28,7 +65,7 @@ data "google_folder" "folder" {
 }
 
 resource "google_folder" "folder" {
-  count        = var.folder_create ? 1 : 0
+  count        = (var.folder_create && var.compliance.regime == "") ? 1 : 0
   display_name = var.name
   parent       = var.parent
 }
