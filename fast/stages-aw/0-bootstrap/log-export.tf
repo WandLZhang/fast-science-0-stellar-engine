@@ -72,6 +72,8 @@ module "log-export-dataset" {
   id            = "logs"
   friendly_name = "Audit logs export."
   location      = local.locations.bq
+  encryption_key = try(var.logging_kms_key, null)
+
 }
 
 module "log-export-gcs" {
@@ -82,6 +84,7 @@ module "log-export-gcs" {
   prefix        = local.prefix
   location      = local.locations.gcs
   storage_class = local.gcs_storage_class
+  encryption_key = try(var.logging_kms_key, null)
 }
 
 module "log-export-logbucket" {
@@ -92,7 +95,7 @@ module "log-export-logbucket" {
   id            = each.key
   location      = local.locations.logging
   log_analytics = { enable = true }
-
+  kms_key_name = try(var.logging_kms_key, null)
   # org-level logging settings ready before we create any logging buckets
   depends_on = [module.organization-logging]
 }
@@ -103,4 +106,5 @@ module "log-export-pubsub" {
   project_id = module.log-export-project.project_id
   name       = each.key
   regions    = local.locations.pubsub
+  kms_key = try(var.logging_kms_key, null)
 }
