@@ -5,8 +5,8 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 ## Introduction Google Cloud Key Management Service (Cloud KMS)
 Google Cloud Key Management Service (Cloud KMS) lets you create and manage encryption keys for use in compatible Google Cloud services and in your own applications. Using Cloud KMS, you can Generate software or hardware keys, import existing keys into Cloud KMS, or link external keys in your compatible external key management (EKM) system. Allows managing a keyring, zero or more keys in the keyring, and IAM role bindings on individual keys.
 
-1. The Rotation Period ``` rotation_period ``` is set to  
-2. The Destory Schedulded Duration is ``` rotation_period ``` is set to  
+1. The Rotation Period ``` rotation_period ``` is set to 90 days, 
+2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days 
 3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` of is assigned  
 
 ## Pre-requisite for Google Cloud Key Management Service (Cloud KMS)
