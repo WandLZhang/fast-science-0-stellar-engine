@@ -7,7 +7,7 @@ Google Cloud Key Management Service (Cloud KMS) lets you create and manage encry
 
 1. The Rotation Period ``` rotation_period ``` is set to 90 days, 
 2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days 
-3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` of is assigned  
+3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
 
 ## Pre-requisite for Google Cloud Key Management Service (Cloud KMS)
 1. The Principal (user or group) must have Google Cloud Key Management Service (Cloud KMS) Admin permission at the GCP Level.
