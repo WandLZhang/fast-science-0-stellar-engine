@@ -16,12 +16,14 @@
 variable "project_id" {
   description = "Project ID"
   type        = string
+  default     = "tnbsea-dev-tapan-dev"
   # Example default = project-id-123
 }
 
 variable "email" {
   description = "Email address of the user."
   type        = string
+  default     = "admin.tapan@dino-runner.darkwolfsolutions.com"
   # Example default = "admin.user-anme@example.google.com"
 
 }
@@ -30,6 +32,7 @@ variable "email" {
 variable "location" {
   description = "Location of the Shielded Compute VM"
   type        = string
+  default     = "us-east4"
   # Example default     = "us-east4"
 
 }
@@ -40,7 +43,10 @@ variable "keyring" {
     location = string
     name     = string
   })
-
+  default = {
+    location = "us-east4"
+    name     = "may7-keyring"
+  }
   # Example  
   # default = {
   #  location = "us-east4"
@@ -84,18 +90,18 @@ variable "keys" {
     })), {})
   }))
   default = {
-    "updated-the-runner-key-name" = {
+    "may7-runner-tb" = {
       rotation_period            = "7776000s"
       destroy_scheduled_duration = "2592000s"
       labels = {
-        "team" = "update-the-team-label-here"
+        "team" = "tapan-test-may7"
       }
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "SOFTWARE"
       }
       iam = {
-        "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-the-email-address-here"]
+        "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:admin.tapan@dino-runner.darkwolfsolutions.com"]
       }
       lifecycle = {
         prevent_destroy = true
