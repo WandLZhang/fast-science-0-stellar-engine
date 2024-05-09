@@ -26,7 +26,7 @@ module "kms" {
   project_id = var.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}", "group:${var.group_email}"]
   }
   keyring = var.keyring
 }

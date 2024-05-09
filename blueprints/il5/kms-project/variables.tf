@@ -23,9 +23,13 @@ variable "email" {
   description = "Email address of the user."
   type        = string
   # Example default = "admin.user-anme@example.google.com"
-
 }
 
+variable "group_email" {
+  description = "An email address that represents a Google group. For example, admins@example.com."
+  type        = string
+  # Example default = "admins@example.com"
+}
 
 variable "location" {
   description = "Location of the Shielded Compute VM"
@@ -84,7 +88,7 @@ variable "keys" {
     })), {})
   }))
   default = {
-    "updated-the-name" = {
+    "uupdate-the-keys-name" = {
       rotation_period            = "7776000s"
       destroy_scheduled_duration = "2592000s"
       labels = {
@@ -95,7 +99,7 @@ variable "keys" {
         protection_level = "SOFTWARE"
       }
       iam = {
-        "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-the-email-address-here"]
+        "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-the-email-address-here", "group:update-group-email-address-here"]
       }
       lifecycle = {
         prevent_destroy = true
