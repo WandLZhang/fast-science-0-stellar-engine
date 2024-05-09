@@ -84,7 +84,7 @@ variable "keys" {
     })), {})
   }))
   default = {
-    "updated-the-key-runner-name" = {
+    "updated-the-name" = {
       rotation_period            = "7776000s"
       destroy_scheduled_duration = "2592000s"
       labels = {
