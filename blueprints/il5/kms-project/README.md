@@ -78,7 +78,7 @@ keyring-resource = {
   "timeouts" = null /* object */
 }
 keyrings-keys = {
-  "keryrings-runner-key" = {
+  "keryrings-key" = {
     "crypto_key_backend" = ""
     "destroy_scheduled_duration" = "2592000s"
     "effective_labels" = tomap({
