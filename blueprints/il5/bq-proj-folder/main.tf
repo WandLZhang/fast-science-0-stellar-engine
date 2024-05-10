@@ -31,7 +31,7 @@ module "kms" {
 }
 module "bigquery" {
   project_id                 = var.project_id
-  source                     = "../../../modules/kms"
+  source                     = "../../../modules/bigquery"
   dataset_id                 = var.dataset_id
   dataset_name               = var.dataset_name
   description                = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
