@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 output "dataset_id" {
-  value = dataset_id.dataset_01
+  value = module.bigquery.dataset_01
 }
 output "google_kms_key_ring" {
-  value = google_kms_key_ring.may-big-query-key-ring
+  value = module.kms.crypto_bq_keyring
 }
