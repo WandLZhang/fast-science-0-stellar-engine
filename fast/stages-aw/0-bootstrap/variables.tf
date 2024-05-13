@@ -293,10 +293,10 @@ variable "workload_identity_providers" {
 
 variable "logging_kms_key" {
   description = "value of the KMS key used for logging"
-  type = string
-  default = null
+  type        = string
+  default     = null
   validation {
-    condition = can(regex("projects/*/locations/*/keyRings/*/cryptoKeys/*", var.logging_kms_key ))
+    condition     = can(regex("projects/*/locations/*/keyRings/*/cryptoKeys/*", var.logging_kms_key))
     error_message = "pattern must be: projects/*/locations/*/keyRings/*/cryptoKeys/* "
   }
 }
