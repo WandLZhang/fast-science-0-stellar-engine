@@ -17,16 +17,17 @@
 variable "project_id" {
   type    = string
 }
+variable "bq_project_id" {
+  type    = string
+}
 variable "region" {
   default = "us-east4"
   type    = string
 }
 variable "dataset_id" {
-  default = "dataset_01"
   type    = string
 }
 variable "dataset_name" {
-  default = "named_bq_dataset"
   type    = string
 }
 #CFF module utilization
