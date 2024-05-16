@@ -27,17 +27,21 @@ resource "google_kms_key_ring" "crypto_bq_keyring" {
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
+  keyring    = {
+    location = var.keyring.location
+    name     = var.keyring.name 
+  }
   keys       = var.keys
 }
 module "bigquery" {
   project_id                 = var.project_id
-  source                     = "../../../modules/bigquery"
-  dataset_id                 = var.dataset_id
-  dataset_name               = var.dataset_name
+  source                     = "../../../modules/bigquery-dataset"
+  dataset_id                   = var.dataset_id
+  dataset_name                    = var.dataset_name
   description                = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
   delete_contents_on_destroy = var.delete_contents_on_destroy
   access                     = var.bigquery_access
-  keyring                    = var.keyring
+  keyring                     = var.keyring
 }
 
 
