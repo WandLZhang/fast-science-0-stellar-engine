@@ -132,11 +132,6 @@ output "vpn_gateway_endpoints" {
   }
 }
 
-output "ssh-pubkey" {
-  description = "public key used for enabling ngfw access"
-  value       = "admin:ssh-rsa ${tls_private_key.ngfw-ssh.public_key_openssh}"
-
-}
 resource "local_file" "rsa-out" {
   content  = nonsensitive(tls_private_key.ngfw-ssh.private_key_openssh)
   filename = "${path.module}/id_rsa"
