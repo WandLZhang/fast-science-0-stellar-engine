@@ -39,7 +39,7 @@ locals {
     },
   ]
   nva_locality = {
-    for v in setproduct(["primary",], local.nva_zones) :
+    for v in setproduct(["primary", ], local.nva_zones) :
     join("-", v) => {
       name   = v[0]
       region = var.regions[v[0]]
@@ -56,7 +56,31 @@ module "nva-cloud-config" {
   network_interfaces   = local.routing_config
 }
 
-module "nva-template" {
+data "google_compute_image" "vmseries" {
+  family  = var.vmseries_image
+  project = "paloaltonetworksgcp-public"
+}
+
+resource "tls_private_key" "ngfw-ssh" {
+  algorithm = "RSA"
+  rsa_bits  = "4096"
+}
+
+module "ngfw-service-account" {
+  name       = "ngfw-service-account"
+  source     = "../../../modules/iam-service-account"
+  project_id = module.landing-project.project_id
+  iam_project_roles = {
+    "${module.landing-project.project_id}" = [
+      "roles/logging.bucketWriter",
+      "roles/opsconfigmonitoring.resourceMetadata.writer",
+      "roles/autoscaling.metricsWriter",
+      "roles/monitoring.metricWriter",
+    ]
+  }
+}
+
+module "ngfw-template" {
   for_each        = local.nva_locality
   source          = "../../../modules/compute-vm"
   project_id      = module.landing-project.project_id
@@ -94,8 +118,9 @@ module "nva-template" {
   ]
   boot_disk = {
     initialize_params = {
-      image = "projects/cos-cloud/global/images/family/cos-stable"
-    }
+      image = data.google_compute_image.vmseries.self_link
+      size  = 60
+    type = "pd-ssd" }
   }
   options = {
     allow_stopping_for_update = true
@@ -110,6 +135,9 @@ module "nva-template" {
     ssh-keys                    = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
     serial-port-enable          = "true"
   }
+  service_account = {
+    email = module.ngfw-service-account.email
+  }
 }
 
 module "nva-mig" {
@@ -118,7 +146,7 @@ module "nva-mig" {
   project_id        = module.landing-project.project_id
   location          = each.value.region
   name              = "nva-cos-${each.key}"
-  instance_template = module.nva-template[each.key].template.self_link
+  instance_template = module.ngfw-template[each.key].template.self_link
   target_size       = 1
   auto_healing_policies = {
     initial_delay_sec = 30

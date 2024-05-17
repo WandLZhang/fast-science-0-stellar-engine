@@ -17,6 +17,7 @@ venv/*
 backend.tf
 backend-config.hcl
 credentials.json
+id_rsa
 key.json
 terraform-ls.tf
 bundle.zip
