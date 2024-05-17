@@ -17,19 +17,15 @@
 variable "project_id" {
   type    = string
 }
-variable "bq_project_id" {
+variable "id" {
+  description = "This is the dataset id"
   type    = string
 }
 variable "region" {
   default = "us-east4"
   type    = string
 }
-variable "dataset_id" {
-  type    = string
-}
-variable "dataset_name" {
-  type    = string
-}
+
 #CFF module utilization
 variable "keyring" {
   description = "Keyring attributes."
@@ -48,19 +44,8 @@ variable "keyring" {
     skip_initial_version_creation = optional(bool, false)
     version_template = optional(object({
       algorithm        = string
-      protection_level = optional(string, "SOFTWARE")
+      protection_level = optional(string,  "SOFTWARE")
     }))
   }))
 }
-variable "bigquery_access" {
-  type = list(object({
-    role          = string
-    user_by_email = string
-  }))
-  default = []
-}
-variable "delete_contents_on_destroy" {
-  description = "This will delete dataset contents after destroying resource."
-  type        = bool
-  default     = false
-}
+

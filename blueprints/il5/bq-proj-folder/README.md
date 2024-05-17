@@ -8,8 +8,8 @@ BigQuery
 2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days 
 3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
 
-## Pre-requisite for Google Cloud Key Management Service (Cloud KMS)
-1. The Principal (user or group) must have Google Cloud Key Management Service (Cloud KMS) Admin permission at the GCP Level.
+## Pre-requisite for Google BigQuery (BigQuery)
+1. The Principal (user or group) must enablw BigQuery API in their Google Cloud Project 
 2. Have access to the GCP Project ID
 3.  You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
 4.  __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.

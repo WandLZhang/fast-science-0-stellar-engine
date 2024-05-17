@@ -13,9 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-output "dataset_id" {
-  value = module.bigquery.dataset_01
-}
-output "google_kms_key_ring" {
-  value = module.kms.crypto_bq_keyring
-}
+
