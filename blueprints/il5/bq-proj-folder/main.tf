@@ -26,6 +26,7 @@ module "kms" {
   }
 module "bigquery-dataset" {
   source                     = "../../../modules/bigquery-dataset"
+  location                     = "us-east4"
   project_id                 = var.project_id
   id                         = var.id
   description                = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
