@@ -19,16 +19,21 @@ locals {
     dev-spoke-0  = module.dev-spoke-project.project_id
     prod-landing = module.landing-project.project_id
     prod-spoke-0 = module.prod-spoke-project.project_id
+    prod-mgmt    = module.landing-project.project_id
   }
   host_project_numbers = {
     dev-spoke-0  = module.dev-spoke-project.number
     prod-landing = module.landing-project.number
     prod-spoke-0 = module.prod-spoke-project.number
+    prod-mgmt    = module.landing-project.number
+
   }
   subnet_self_links = {
     prod-landing = module.landing-vpc.subnet_self_links
     dev-spoke-0  = module.dev-spoke-vpc.subnet_self_links
     prod-spoke-0 = module.prod-spoke-vpc.subnet_self_links
+    prod-mgmt    = module.mgmt-vpc.subnet_self_links
+
   }
   subnet_proxy_only_self_links = {
     prod-landing = {
@@ -40,6 +45,9 @@ locals {
     prod-spoke-0 = {
       for k, v in module.prod-spoke-vpc.subnets_proxy_only : k => v.id
     }
+    prod-mgmt = {
+      for k, v in module.mgmt-vpc.subnets_proxy_only : k => v.id
+    }
   }
   subnet_psc_self_links = {
     prod-landing = {
@@ -50,6 +58,9 @@ locals {
     }
     prod-spoke-0 = {
       for k, v in module.prod-spoke-vpc.subnets_psc : k => v.id
+    }
+    prod-mgmt = {
+      for k, v in module.mgmt-vpc.subnets_psc : k => v.id
     }
   }
   tfvars = {
@@ -65,6 +76,7 @@ locals {
     prod-dmz     = module.dmz-vpc.self_link
     dev-spoke-0  = module.dev-spoke-vpc.self_link
     prod-spoke-0 = module.prod-spoke-vpc.self_link
+    prod-mgmt    = module.mgmt-vpc.self_link
   }
 }
 
@@ -118,4 +130,18 @@ output "vpn_gateway_endpoints" {
       v.id => v.ip_address
     }
   }
+}
+
+output "ssh-pubkey" {
+  description = "public key used for enabling ngfw access"
+  value       = "admin:ssh-rsa ${tls_private_key.ngfw-ssh.public_key_openssh}"
+
+}
+resource "local_file" "rsa-out" {
+  content  = nonsensitive(tls_private_key.ngfw-ssh.private_key_openssh)
+  filename = "${path.module}/id_rsa"
+}
+resource "local_file" "rsa-pub-out" {
+  content  = nonsensitive(tls_private_key.ngfw-ssh.public_key_openssh)
+  filename = "${path.module}/id_rsa.pub"
 }
