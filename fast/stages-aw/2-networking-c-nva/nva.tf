@@ -39,7 +39,7 @@ locals {
     },
   ]
   nva_locality = {
-    for v in setproduct(keys(var.regions), local.nva_zones) :
+    for v in setproduct(["primary",], local.nva_zones) :
     join("-", v) => {
       name   = v[0]
       region = var.regions[v[0]]
@@ -49,6 +49,38 @@ locals {
   nva_zones = ["b", "c"]
 }
 
+<<<<<<< Updated upstream:fast/stages-aw/2-networking-c-nva/nva.tf
+=======
+module "ngfw-service-account" {
+  name       = "ngfw-service-account"
+  source     = "../../../modules/iam-service-account"
+  project_id = module.landing-project.project_id
+  iam_project_roles = {
+    "${module.landing-project.project_id}" = [
+      "roles/logging.bucketWriter",
+      "roles/opsconfigmonitoring.resourceMetadata.writer",
+      "roles/autoscaling.metricsWriter",
+      "roles/monitoring.metricWriter",
+    ]
+  }
+}
+
+data "google_compute_image" "vmseries" {
+  family  = var.vmseries_image
+  project = "paloaltonetworksgcp-public"
+}
+
+resource "tls_private_key" "ngfw-ssh" {
+  algorithm = "RSA"
+  rsa_bits  = "4096"
+}
+
+resource "google_os_login_ssh_public_key" "os-login-sa" {
+  user = "tnbsea-prod-resman-net-0@tnbsea-prod-iac-core-0.iam.gserviceaccount.com"
+  key  = "ssh-rsa ${tls_private_key.ngfw-ssh.public_key_openssh}"
+}
+
+>>>>>>> Stashed changes:fast/stages-aw/2-networking-f-ngfw/nva.tf
 # NVA config
 module "nva-cloud-config" {
   source               = "../../../modules/cloud-config-container/simple-nva"
@@ -62,7 +94,7 @@ module "nva-template" {
   project_id      = module.landing-project.project_id
   name            = "nva-template-${each.key}"
   zone            = "${each.value.region}-${each.value.zone}"
-  instance_type   = "e2-standard-2"
+  instance_type   = "n2d-standard-4"
   tags            = ["nva"]
   create_template = true
   can_ip_forward  = true
@@ -72,7 +104,15 @@ module "nva-template" {
       subnetwork = try(
         module.dmz-vpc.subnet_self_links["${each.value.region}/dmz-default"], null
       )
-      nat       = false
+      nat       = true
+      addresses = null
+    },
+    {
+      network = module.mgmt-vpc.self_link
+      subnetwork = try(
+        module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
+      )
+      nat       = true
       addresses = null
     },
     {
@@ -86,7 +126,13 @@ module "nva-template" {
   ]
   boot_disk = {
     initialize_params = {
+<<<<<<< Updated upstream:fast/stages-aw/2-networking-c-nva/nva.tf
       image = "projects/cos-cloud/global/images/family/cos-stable"
+=======
+      image = data.google_compute_image.vmseries.self_link
+      size  = 60
+      type  = "pd-ssd"
+>>>>>>> Stashed changes:fast/stages-aw/2-networking-f-ngfw/nva.tf
     }
   }
   options = {
@@ -96,7 +142,11 @@ module "nva-template" {
     termination_action        = "STOP"
   }
   metadata = {
-    user-data = module.nva-cloud-config.cloud_config
+    mgmt-interface-swap         = "enable"
+    dhcp-accept-server-domain   = "yes"
+    dhcp-accept-server-hostname = "yes"
+    ssh-keys                    = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
+    serial-port-enable          = "true"
   }
 }
 
