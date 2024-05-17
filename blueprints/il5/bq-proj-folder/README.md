@@ -3,7 +3,7 @@ This blueprint contains all the necessary Terraform modules to build and deploy 
 
 
 ## Introduction Google BigQuery (BigQuery)
-BigQuery
+Google BigQuery is a fully-managed, serverless data system in which querying data is made possible. Database does not need to be constantly monitored, and users can levarage data and analyze the data.
 1. The Rotation Period ``` rotation_period ``` is set to 90 days, 
 2. The Destory Schedulded Duration is ``` destroy_scheduled_duration ``` is set to 30 days 
 3. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
@@ -43,7 +43,7 @@ keyring, for example <br />
 ```bash 
   default = {
     location = "us-east4"
-    name     = "may6v3-keyring"
+    name     = "may-bq-keyring"
   }
 ```
 - ```keys```  with the right properties, update the ```updated-the-runner-key-name``` , ```labels = { "team" = ``` , 
@@ -61,59 +61,43 @@ It will take a few minutes. When complete, you should see an output stating the 
 
 The Output will look like following
 ```
+module.kms.google_kms_key_ring.default[0]: Refreshing state... [id=projects/project_id/locations/us-east4/keyRings/may-bq-keyring]
 
-Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
+Terraform used the selected providers to generate the following
+execution plan. Resource actions are indicated with the
+following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # module.bigquery-dataset.google_bigquery_dataset.default will be created
+  + resource "google_bigquery_dataset" "default" {
+      + creation_time              = (known after apply)
+      + dataset_id                 = "dataset_01"
+      + default_collation          = (known after apply)
+      + delete_contents_on_destroy = false
+      + description                = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
+      + effective_labels           = (known after apply)
+      + etag                       = (known after apply)
+      + id                         = (known after apply)
+      + is_case_insensitive        = (known after apply)
+      + last_modified_time         = (known after apply)
+      + location                   = "US-east4"
+      + max_time_travel_hours      = "168"
+      + project                    = "project"
+      + self_link                  = (known after apply)
+      + storage_billing_model      = (known after apply)
+      + terraform_labels           = (known after apply)
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.
+
+
+Changes to Outputs:
+  + id      = (known after apply)
+
+plan complete! Resources: 2 added, 0 changed, 0 destroyed.
 
 Outputs:
 
-keyring-id = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring"
-keyring-location = "us-east4"
-keyring-name = "name-of-the-keyring"
-keyring-resource = {
-  "id" = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring"
-  "location" = "us-east4"
-  "name" = "name-of-the-keyring"
-  "project" = "project-id-123"
-  "timeouts" = null /* object */
-}
-keyrings-keys = {
-  "keryrings-key" = {
-    "crypto_key_backend" = ""
-    "destroy_scheduled_duration" = "2592000s"
-    "effective_labels" = tomap({
-      "team" = "dino-runner"
-    })
-    "id" = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring/cryptoKeys/keryrings-runner-key"
-    "import_only" = false
-    "key_ring" = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring"
-    "labels" = tomap({
-      "team" = "dino-runner"
-    })
-    "name" = "keryrings-runner-key"
-    "primary" = tolist([
-      {
-        "name" = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring/cryptoKeys/keryrings-runner-key/cryptoKeyVersions/1"
-        "state" = "ENABLED"
-      },
-    ])
-    "purpose" = "ENCRYPT_DECRYPT"
-    "rotation_period" = "7776000s"
-    "skip_initial_version_creation" = false
-    "terraform_labels" = tomap({
-      "team" = "dino-runner"
-    })
-    "timeouts" = null /* object */
-    "version_template" = tolist([
-      {
-        "algorithm" = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        "protection_level" = "SOFTWARE"
-      },
-    ])
-  }
-}
-qualified_key_ids = {
-  "keryrings-runner-key" = "projects/project-id-123/locations/us-east4/keyRings/name-of-the-keyring/cryptoKeys/keryrings-runner-key"
-}
-
-    
 ```
