@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 variable "project_id" {
-  type    = string
+  type = string
 }
 variable "id" {
   description = "This is the dataset id"
-  type    = string
+  type        = string
 }
 variable "region" {
   default = "us-east4"
@@ -35,7 +35,7 @@ variable "keyring" {
     name     = string
   })
 }
-  variable "keys" {
+variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -89,5 +89,5 @@ variable "keyring" {
 }
 variable "email" {
   type = string
-  
+
 }
