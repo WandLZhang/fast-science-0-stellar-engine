@@ -76,13 +76,14 @@ module "ngfw-service-account" {
 }
 # Google Cloud Storage Module 
 module "ngfw-bootstrap-bucket" {
+  for_each       = var.regions
   source         = "../../../modules/gcs"
   prefix         = var.prefix
   project_id     = module.landing-project.project_id
-  location       = local.regions[0]
+  location       = each.value
   storage_class  = "REGIONAL"
   encryption_key = module.kms.keys.default.id
-  name           = "ngfw-bootstrap"
+  name           = "ngfw-bootstrap-${each.value}"
   depends_on     = [module.kms]
 }
 
@@ -95,16 +96,47 @@ module "kms" {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${local.cloud_storage_service_account}"]
   }
   keyring = {
-    location = local.regions[0]
+    location = var.locations.kms
     name     = "landing-zone-keyring"
   }
 }
 
-resource "google_storage_bucket_object" "config_folders" {
-  for_each = toset(local.ngfw_bootstrap_folders)
-  name     = join("/", [local.regions[0], each.value])
-  bucket   = module.ngfw-bootstrap-bucket.name
+resource "google_storage_bucket_object" "config_folder" {
+  for_each = var.regions
+  name     = "config/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
   content  = " "
+}
+
+resource "google_storage_bucket_object" "content_folder" {
+  for_each = var.regions
+  name     = "content/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  content  = " "
+}
+
+resource "google_storage_bucket_object" "license_folder" {
+  for_each = var.regions
+  name     = "license/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  content  = " "
+}
+
+resource "google_storage_bucket_object" "software_folder" {
+  for_each = var.regions
+  name     = "software/"
+  bucket   = module.ngfw-bootstrap-bucket[each.key].name
+  content  = " "
+}
+
+resource "google_storage_bucket_object" "bootstrap-xml" {
+  for_each = var.regions
+  name     = "config/bootstrap.xml"
+  content = templatefile("./templates/bootstrap.xml.tpl", {
+    ssh-pubkey = tls_private_key.ngfw-ssh.private_key_openssh,
+    public-gw  = module.dmz-vpc.subnets["${each.value}/dmz-default"].gateway_address
+  })
+  bucket = module.ngfw-bootstrap-bucket[each.key].name
 }
 
 module "ngfw-template" {
@@ -156,11 +188,12 @@ module "ngfw-template" {
     termination_action        = "STOP"
   }
   metadata = {
-    mgmt-interface-swap         = "enable"
-    dhcp-accept-server-domain   = "yes"
-    dhcp-accept-server-hostname = "yes"
-    ssh-keys                    = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
-    serial-port-enable          = "true"
+    mgmt-interface-swap                  = "enable"
+    dhcp-accept-server-domain            = "yes"
+    dhcp-accept-server-hostname          = "yes"
+    ssh-keys                             = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
+    serial-port-enable                   = "true"
+    vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket[each.value.region].name
   }
   service_account = {
     email = module.ngfw-service-account.email

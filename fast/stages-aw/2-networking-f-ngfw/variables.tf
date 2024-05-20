@@ -369,3 +369,23 @@ variable "keys" {
   }
   nullable = false
 }
+
+variable "locations" {
+  # tfdoc:variable:source 0-bootstrap
+  description = "Optional locations for GCS, BigQuery, and logging buckets created here."
+  type = object({
+    bq      = string
+    gcs     = string
+    logging = string
+    pubsub  = list(string)
+    kms     = string
+  })
+  default = {
+    bq      = "US"
+    gcs     = "US"
+    kms     = "nam9"
+    logging = "us"
+    pubsub  = []
+  }
+  nullable = false
+}

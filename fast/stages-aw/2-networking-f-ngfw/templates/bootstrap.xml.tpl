@@ -3,7 +3,7 @@
   <mgt-config>
     <users>
       <entry name="admin">
-        <phash>$5$ajblpsms$YEJDp3AVoNSWJce.JfaJWMvdd5qbA2huAIvsAwQaZPD</phash>
+        <phash>*</phash>
         <permissions>
           <role-based>
             <superuser>yes</superuser>
@@ -124,7 +124,9 @@
                 <lldp>
                   <enable>no</enable>
                 </lldp>
-                <dhcp-client/>
+                <dhcp-client>
+                  <create-default-route>no</create-default-route>
+                </dhcp-client>
                 <interface-management-profile>ssh-https-ping</interface-management-profile>
               </layer3>
             </entry>
@@ -327,26 +329,6 @@
               <member>ethernet1/1</member>
               <member>ethernet1/2</member>
             </interface>
-            <routing-table>
-              <ip>
-                <static-route>
-                  <entry name="internet">
-                    <nexthop>
-                      <ip-address>{{ public-gw }}</ip-address>
-                    </nexthop>
-                    <bfd>
-                      <profile>None</profile>
-                    </bfd>
-                    <interface>ethernet1/1</interface>
-                    <metric>10</metric>
-                    <destination>0.0.0.0/0</destination>
-                    <route-table>
-                      <unicast/>
-                    </route-table>
-                  </entry>
-                </static-route>
-              </ip>
-            </routing-table>
           </entry>
         </virtual-router>
       </network>
