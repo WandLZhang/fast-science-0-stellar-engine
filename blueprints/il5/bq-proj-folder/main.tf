@@ -18,18 +18,18 @@
 provider "google" {
   project = var.project_id
   region  = var.region
-} 
+}
 
 data "google_project" "current" {}
 data "google_bigquery_default_service_account" "bq_sa" {}
 
 module "bigquery-dataset" {
-  source                     = "../../../modules/bigquery-dataset"
-  location                   = "us-east4"
-  project_id                 = var.project_id
-  id                         = var.id
-  description                = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
-  encryption_key             = module.kms.keys.default.id
+  source         = "../../../modules/bigquery-dataset"
+  location       = "us-east4"
+  project_id     = var.project_id
+  id             = var.id
+  description    = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
+  encryption_key = module.kms.keys.default.id
 
   depends_on = [module.kms]
 }
@@ -38,12 +38,12 @@ module "bigquery-dataset" {
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
-  keys       = var.keys 
+  keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"]
   }
-  keyring    = var.keyring
-  }
+  keyring = var.keyring
+}
 
 
 
