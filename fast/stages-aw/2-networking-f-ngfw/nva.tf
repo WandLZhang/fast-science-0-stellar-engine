@@ -46,14 +46,9 @@ locals {
       zone   = v[1]
     }
   }
-  nva_zones = ["b", "c"]
-}
-
-# NVA config
-module "nva-cloud-config" {
-  source               = "../../../modules/cloud-config-container/simple-nva"
-  enable_health_checks = true
-  network_interfaces   = local.routing_config
+  nva_zones                     = ["b", "c"]
+  cloud_storage_service_account = "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com"
+  ngfw_bootstrap_folders        = ["config/", "content/", "license/", "software/"]
 }
 
 data "google_compute_image" "vmseries" {
@@ -78,6 +73,38 @@ module "ngfw-service-account" {
       "roles/monitoring.metricWriter",
     ]
   }
+}
+# Google Cloud Storage Module 
+module "ngfw-bootstrap-bucket" {
+  source         = "../../../modules/gcs"
+  prefix         = var.prefix
+  project_id     = module.landing-project.project_id
+  location       = local.regions[0]
+  storage_class  = "REGIONAL"
+  encryption_key = module.kms.keys.default.id
+  name           = "ngfw-bootstrap"
+  depends_on     = [module.kms]
+}
+
+# Google KMS Module
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = module.landing-project.project_id
+  keys       = var.keys
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${local.cloud_storage_service_account}"]
+  }
+  keyring = {
+    location = local.regions[0]
+    name     = "landing-zone-keyring"
+  }
+}
+
+resource "google_storage_bucket_object" "config_folders" {
+  for_each = toset(local.ngfw_bootstrap_folders)
+  name     = join("/", [local.regions[0], each.value])
+  bucket   = module.ngfw-bootstrap-bucket.name
+  content  = " "
 }
 
 module "ngfw-template" {
@@ -104,7 +131,7 @@ module "ngfw-template" {
       subnetwork = try(
         module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
       )
-      nat       = true
+      nat       = false
       addresses = null
     },
     {
@@ -145,7 +172,7 @@ module "nva-mig" {
   source            = "../../../modules/compute-mig"
   project_id        = module.landing-project.project_id
   location          = each.value.region
-  name              = "nva-cos-${each.key}"
+  name              = "nva-ngfw-${each.key}"
   instance_template = module.ngfw-template[each.key].template.self_link
   target_size       = 1
   auto_healing_policies = {
