@@ -49,6 +49,7 @@ locals {
   nva_zones                     = ["b", "c"]
   cloud_storage_service_account = "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com"
   ngfw_bootstrap_folders        = ["config/", "content/", "license/", "software/"]
+  cidr_ranges                   = yamldecode(file("${path.module}/data/cidrs.yaml"))
 }
 
 data "google_compute_image" "vmseries" {
@@ -58,7 +59,10 @@ data "google_compute_image" "vmseries" {
 
 data "google_storage_project_service_account" "gcs_account" {
   project = module.landing-project.project_id
+}
 
+data "google_compute_default_service_account" "gce_account" {
+  project = module.landing-project.project_id
 }
 
 resource "tls_private_key" "ngfw-ssh" {
@@ -66,19 +70,6 @@ resource "tls_private_key" "ngfw-ssh" {
   rsa_bits  = "4096"
 }
 
-module "ngfw-service-account" {
-  name       = "ngfw-service-account"
-  source     = "../../../modules/iam-service-account"
-  project_id = module.landing-project.project_id
-  iam_project_roles = {
-    "${module.landing-project.project_id}" = [
-      "roles/logging.bucketWriter",
-      "roles/opsconfigmonitoring.resourceMetadata.writer",
-      "roles/autoscaling.metricsWriter",
-      "roles/monitoring.metricWriter",
-    ]
-  }
-}
 # Google Cloud Storage Module 
 module "ngfw-bootstrap-bucket" {
   source         = "../../../modules/gcs"
@@ -94,7 +85,7 @@ resource "google_storage_bucket_iam_binding" "binding" {
   bucket = module.ngfw-bootstrap-bucket.name
   role   = "roles/storage.objectUser"
   members = [
-    "serviceAccount:${module.ngfw-service-account.email}",
+    data.google_compute_default_service_account.gce_account.member,
   ]
 }
 
@@ -105,8 +96,8 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}",
-      "serviceAccount:${module.ngfw-service-account.email}"
+      data.google_storage_project_service_account.gcs_account.member,
+      data.google_compute_default_service_account.gce_account.member
     ]
   }
   keyring = {
@@ -125,7 +116,9 @@ resource "google_storage_bucket_object" "config_folders" {
 resource "google_storage_bucket_object" "bootstrap-xml" {
   name = "config/bootstrap.xml"
   content = templatefile("./templates/bootstrap.xml.tpl", {
-    ssh-pubkey = tls_private_key.ngfw-ssh.private_key_openssh,
+    ssh-pubkey        = tls_private_key.ngfw-ssh.private_key_openssh,
+    healthcheck_cidrs = local.cidr_ranges["healthchecks"]
+    iap_cidrs         = local.cidr_ranges["iap"]
   })
   bucket = module.ngfw-bootstrap-bucket.name
 }
@@ -197,7 +190,6 @@ module "ngfw-template" {
     vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket.name
   }
   service_account = {
-    # email = module.ngfw-service-account.email
     scopes = [
       "https://www.googleapis.com/auth/compute.readonly",
       "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
@@ -217,7 +209,7 @@ module "nva-mig" {
   instance_template = module.ngfw-template[each.key].template.self_link
   target_size       = 1
   auto_healing_policies = {
-    initial_delay_sec = 1800
+    initial_delay_sec = 600
   }
   health_check_config = {
     enable_logging = true
@@ -296,9 +288,9 @@ module "ilb-nva-landing" {
 }
 
 resource "google_compute_route" "primary-landing-default" {
-  name        = "default-route-primary-ngfw-lb"
-  project     = module.landing-project.project_id
-  description = "Primary route to the internet through NGFWs"
+  name         = "default-route-primary-ngfw-lb"
+  project      = module.landing-project.project_id
+  description  = "Primary route to the internet through NGFWs"
   dest_range   = "0.0.0.0/0"
   network      = module.landing-vpc.name
   next_hop_ilb = module.ilb-nva-landing.primary.forwarding_rules[""].self_link
