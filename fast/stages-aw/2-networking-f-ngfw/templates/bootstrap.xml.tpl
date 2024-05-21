@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<config version="11.1.0" urldb="paloaltonetworks" detail-version="11.1.2">
+<config detail-version="11.1.2" urldb="paloaltonetworks" version="11.1.0">
   <mgt-config>
     <users>
       <entry name="admin">
@@ -12,7 +12,7 @@
         <public-key>{{ ssh-pubkey }}</public-key>
       </entry>
       <entry name="__openconfig">
-        <phash>*</phash>
+        <phash>*/</phash>
         <permissions>
           <role-based>
             <deviceadmin>
@@ -106,6 +106,7 @@
                   <enable>no</enable>
                 </lldp>
                 <dhcp-client/>
+                <interface-management-profile>ssh-healthcheck</interface-management-profile>
               </layer3>
             </entry>
             <entry name="ethernet1/2">
@@ -146,6 +147,17 @@
               <https>yes</https>
               <ssh>yes</ssh>
               <ping>yes</ping>
+            </entry>
+            <entry name="ssh-healthcheck">
+              <permitted-ip>
+                %{ for cidr in healthcheck_cidrs ~}
+                <entry name="${cidr}"/>
+                %{ endfor ~}
+                %{ for cidr in iap_cidrs ~}
+                <entry name="${cidr}"/>
+                %{ endfor ~}
+              </permitted-ip>
+              <ssh>yes</ssh>
             </entry>
           </interface-management-profile>
         </profiles>
@@ -337,7 +349,7 @@
           <type>
             <dhcp-client>
               <send-hostname>yes</send-hostname>
-              <send-client-id>no</send-client-id>
+              <send-client-id>yes</send-client-id>
               <accept-dhcp-hostname>yes</accept-dhcp-hostname>
               <accept-dhcp-domain>yes</accept-dhcp-domain>
             </dhcp-client>
@@ -374,16 +386,17 @@
           <management>
             <hostname-type-in-syslog>FQDN</hostname-type-in-syslog>
             <initcfg>
+              <op-command-modes>mgmt-interface-swap,jumbo-frame</op-command-modes>
               <type>
                 <dhcp-client>
                   <send-hostname>yes</send-hostname>
-                  <send-client-id>no</send-client-id>
+                  <send-client-id>yes</send-client-id>
                   <accept-dhcp-hostname>yes</accept-dhcp-hostname>
                   <accept-dhcp-domain>yes</accept-dhcp-domain>
                 </dhcp-client>
               </type>
               <public-key>{{ ssh-pubkey }}</public-key>
-            </initcfg>
+           </initcfg>
           </management>
         </setting>
         <plugins>
@@ -490,6 +503,8 @@
               </interface>
             </network>
           </import>
+          <address/>
+          <address-group/>
         </entry>
       </vsys>
     </entry>

@@ -1,11 +1,12 @@
 {
-  "dashboardFilters": [],
   "displayName": "VPC & VPC Peering Group Quotas",
-  "labels": {},
+  "dashboardFilters": [],
   "mosaicLayout": {
     "columns": 12,
     "tiles": [
       {
+        "xPos": 6,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Internal network (L4) Load Balancers per VPC Peering Group",
@@ -33,11 +34,10 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "xPos": 6
+        }
       },
       {
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Internal network (L4) Load Balancers per VPC",
@@ -47,6 +47,9 @@
             },
             "dataSets": [
               {
+                "breakdowns": [],
+                "dimensions": [],
+                "measures": [],
                 "plotType": "LINE",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
@@ -62,10 +65,11 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6
+        }
       },
       {
+        "yPos": 4,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Internal application (L7) Load Balancers per VPC",
@@ -93,11 +97,12 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "yPos": 4
+        }
       },
       {
+        "xPos": 6,
+        "yPos": 4,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Internal application (L7) Load Balancers per VPC Peering Group",
@@ -125,12 +130,11 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "xPos": 6,
-        "yPos": 4
+        }
       },
       {
+        "yPos": 8,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Instances per VPC",
@@ -140,6 +144,9 @@
             },
             "dataSets": [
               {
+                "breakdowns": [],
+                "dimensions": [],
+                "measures": [],
                 "plotType": "LINE",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
@@ -155,11 +162,12 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "yPos": 8
+        }
       },
       {
+        "xPos": 6,
+        "yPos": 8,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Instances per VPC Peering Group",
@@ -169,6 +177,9 @@
             },
             "dataSets": [
               {
+                "breakdowns": [],
+                "dimensions": [],
+                "measures": [],
                 "plotType": "LINE",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
@@ -184,12 +195,11 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "xPos": 6,
-        "yPos": 8
+        }
       },
       {
+        "yPos": 12,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Subnet ranges per VPC",
@@ -199,6 +209,9 @@
             },
             "dataSets": [
               {
+                "breakdowns": [],
+                "dimensions": [],
+                "measures": [],
                 "plotType": "LINE",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
@@ -214,11 +227,12 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "yPos": 12
+        }
       },
       {
+        "xPos": 6,
+        "yPos": 12,
+        "width": 6,
         "height": 4,
         "widget": {
           "title": "Subnet ranges per VPC Peering Group",
@@ -228,6 +242,9 @@
             },
             "dataSets": [
               {
+                "breakdowns": [],
+                "dimensions": [],
+                "measures": [],
                 "plotType": "LINE",
                 "targetAxis": "Y1",
                 "timeSeriesQuery": {
@@ -243,11 +260,9 @@
               "scale": "LINEAR"
             }
           }
-        },
-        "width": 6,
-        "xPos": 6,
-        "yPos": 12
+        }
       }
     ]
-  }
+  },
+  "labels": {}
 }
