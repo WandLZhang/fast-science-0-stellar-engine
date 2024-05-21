@@ -4,11 +4,12 @@
 # You can retain `---` (start of the document) to indicate an empty document.
 
 ingress:
-  allow-hc-nva-ssh-landing:
+  allow-hc-nva-ssh-mgmt:
     description: "Allow traffic from Google healthchecks to NVA appliances"
     source_ranges:
       - healthchecks
       - 35.235.240.0/20 # IAP
+      - 10.69.0.0/24
     rules:
       - protocol: tcp
         ports:

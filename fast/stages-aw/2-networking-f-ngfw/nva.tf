@@ -81,13 +81,21 @@ module "ngfw-service-account" {
 }
 # Google Cloud Storage Module 
 module "ngfw-bootstrap-bucket" {
-  source                  = "../../../modules/gcs"
-  prefix                  = var.prefix
-  project_id              = module.landing-project.project_id
-  encryption_key          = module.kms.keys.default.id
-  name                    = "ngfw-bootstrap"
-  location                = "NAM4" # This is the only allowed dual-region for GCS right now
-  depends_on              = [module.kms]
+  source         = "../../../modules/gcs"
+  prefix         = var.prefix
+  project_id     = module.landing-project.project_id
+  encryption_key = module.kms.keys.default.id
+  name           = "ngfw-bootstrap"
+  location       = "NAM4" # This is the only allowed dual-region for GCS right now
+  depends_on     = [module.kms]
+}
+
+resource "google_storage_bucket_iam_binding" "binding" {
+  bucket = module.ngfw-bootstrap-bucket.name
+  role   = "roles/storage.objectUser"
+  members = [
+    "serviceAccount:${module.ngfw-service-account.email}",
+  ]
 }
 
 # Google KMS Module
@@ -96,7 +104,10 @@ module "kms" {
   project_id = module.landing-project.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      "serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}",
+      "serviceAccount:${module.ngfw-service-account.email}"
+    ]
   }
   keyring = {
     location = "nam4" # This is the only allowed dual-region for GCS right now
@@ -118,6 +129,15 @@ resource "google_storage_bucket_object" "bootstrap-xml" {
   })
   bucket = module.ngfw-bootstrap-bucket.name
 }
+
+resource "google_storage_bucket_object" "init-cfg" {
+  name = "config/init-cfg.txt"
+  content = templatefile("./templates/init-cfg.txt.tpl", {
+    op-command-modes = "mgmt-interface-swap,jumbo-frame"
+  })
+  bucket = module.ngfw-bootstrap-bucket.name
+}
+
 
 module "ngfw-template" {
   for_each        = local.nva_locality
@@ -143,7 +163,7 @@ module "ngfw-template" {
       subnetwork = try(
         module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
       )
-      nat       = false
+      nat       = true
       addresses = null
     },
     {
@@ -169,6 +189,7 @@ module "ngfw-template" {
   }
   metadata = {
     mgmt-interface-swap                  = "enable"
+    op-command-modes                     = "jumbo-frame"
     dhcp-accept-server-domain            = "yes"
     dhcp-accept-server-hostname          = "yes"
     ssh-keys                             = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"
@@ -176,7 +197,14 @@ module "ngfw-template" {
     vmseries-bootstrap-gce-storagebucket = module.ngfw-bootstrap-bucket.name
   }
   service_account = {
-    email = module.ngfw-service-account.email
+    # email = module.ngfw-service-account.email
+    scopes = [
+      "https://www.googleapis.com/auth/compute.readonly",
+      "https://www.googleapis.com/auth/cloud.useraccounts.readonly",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring.write",
+    ]
   }
 }
 
@@ -189,7 +217,7 @@ module "nva-mig" {
   instance_template = module.ngfw-template[each.key].template.self_link
   target_size       = 1
   auto_healing_policies = {
-    initial_delay_sec = 30
+    initial_delay_sec = 1800
   }
   health_check_config = {
     enable_logging = true
