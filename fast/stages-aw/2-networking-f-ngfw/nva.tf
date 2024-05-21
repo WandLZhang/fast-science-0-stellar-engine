@@ -294,3 +294,23 @@ module "ilb-nva-landing" {
     }
   }
 }
+
+resource "google_compute_route" "primary-landing-default" {
+  name        = "default-route-primary-ngfw-lb"
+  project     = module.landing-project.project_id
+  description = "Primary route to the internet through NGFWs"
+  dest_range   = "0.0.0.0/0"
+  network      = module.landing-vpc.name
+  next_hop_ilb = module.ilb-nva-landing.primary.forwarding_rules[""].self_link
+  priority     = 100
+}
+
+resource "google_compute_route" "secondary-landing-default" {
+  name         = "default-route-secondary-ngfw-lb"
+  project      = module.landing-project.project_id
+  description  = "Secondary route to the internet through backup NGFWs"
+  dest_range   = "0.0.0.0/0"
+  network      = module.landing-vpc.name
+  next_hop_ilb = module.ilb-nva-landing.secondary.forwarding_rules[""].self_link
+  priority     = 200
+}
