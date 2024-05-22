@@ -13,9 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-output "id" {
-  value = module.bigquery-dataset.id
-}
+
+
 output "keyring" {
   value = module.kms.keyring
+}
+
+output "dataset_name" {
+  value = module.bigquery-dataset.id
+}
+
+output "materialized_views" {
+  value = module.bigquery-dataset.materialized_views
+}
+
+output "materialized_view_ids" {
+  value = module.bigquery-dataset.materialized_view_ids
+}
+
+output "self_link" {
+  value = module.bigquery-dataset.self_link
+}
+
+output "table_ids" {
+  value = module.bigquery-dataset.table_ids
+}
+
+output "tables" {
+  value = module.bigquery-dataset.tables
+}
+
+output "view_ids" {
+  value = module.bigquery-dataset.view_ids
+}
+
+output "views" {
+  value = module.bigquery-dataset.views
 }

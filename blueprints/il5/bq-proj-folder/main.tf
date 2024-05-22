@@ -25,7 +25,7 @@ data "google_bigquery_default_service_account" "bq_sa" {}
 
 module "bigquery-dataset" {
   source         = "../../../modules/bigquery-dataset"
-  location       = "us-east4"
+  location       = var.location
   project_id     = var.project_id
   id             = var.id
   description    = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
