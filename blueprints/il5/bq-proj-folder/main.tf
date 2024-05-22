@@ -17,7 +17,7 @@
 #Terraform Provider for Google Cloud Platform
 provider "google" {
   project = var.project_id
-  region  = var.region
+  region  = var.location
 }
 
 data "google_project" "current" {}
@@ -27,11 +27,10 @@ module "bigquery-dataset" {
   source         = "../../../modules/bigquery-dataset"
   location       = var.location
   project_id     = var.project_id
-  id             = var.id
+  id             = var.dataset_id
   description    = "This dataset has customer managed encrytped keys, is updated in real-time, and accessed by restricted roles."
   encryption_key = module.kms.keys.default.id
-
-  depends_on = [module.kms]
+  depends_on     = [module.kms]
 }
 
 #Google KMS Module
