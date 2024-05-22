@@ -26,6 +26,7 @@ The final number of subnets, and their IP addressing will depend on the user-spe
 - [Networking with Network Virtual Appliance](#networking-with-network-virtual-appliance)
   - [Table of contents](#table-of-contents)
   - [Design overview and choices](#design-overview-and-choices)
+    - [Palo Alto NGFW](#palo-alto-ngfw)
     - [Multi-regional deployment](#multi-regional-deployment)
     - [VPC design](#vpc-design)
     - [External connectivity](#external-connectivity)
@@ -62,10 +63,14 @@ The final number of subnets, and their IP addressing will depend on the user-spe
 
 ## Design overview and choices
 
+### Palo Alto NGFW
+
+In order to support full NGFW capabilities, including IDS/IPS and TLS break-and-inspect, the team has chosen to implement Palo Alto NGFWs. While there are other vendor products that can support these requirements, our team has the most experience getting accreditations using Palo Alto NGFW. In future iterations of this codebase, we intend on expanding this capability to include: GCP Cloud NGFW, Barracuda, and Cisco.
+
 ### Multi-regional deployment
 
-The stage deploys the the infrastructure in two regions. By default, us-east4 and us-central1. Regional resources include NVAs (templates, MIGs, LBs) and test VMs.
-This provides enough redundancy to be resilient to regional failures.
+The stage can optinoally deploy the the infrastructure into one or two regions. By default just us-east4. Regional resources include NVAs (templates, MIGs, LBs) and test VMs.
+As part of your design, you should weigh the additional maintenance cost of operating in two regions against your availability requirements to decide what is best for your deployment.
 
 ### VPC design
 
@@ -74,7 +79,7 @@ The "landing zone" is divided into two VPC networks:
 - the landing VPC: the connectivity hub towards other landing networks
 - the dmz VPC: the connectivity hub towards any other dmz network
 
-The VPCs are connected with two sets of sample NVA machines, grouped in regional (multi-zone) [Managed Instance Groups (MIGs)](https://cloud.google.com/compute/docs/instance-groups). The appliances are plain Linux machines, performing simple routing/natting, leveraging some standard Linux features, such as *ip route* or *iptables*. The appliances are suited for demo purposes only and they should be replaced with enterprise-grade solutions before moving to production.
+The VPCs are connected with two sets of sample NVA machines, grouped in regional (multi-zone) [Managed Instance Groups (MIGs)](https://cloud.google.com/compute/docs/instance-groups). The appliances are currently unlicensed Palo Alto NGFWs. In their unlicensed state, they are capable of basic routing and NAT functionality, as well as a subset of the traffic identification and security policies. They are not intended to be used in this way long term, but instead as a way to get the network bootstrapped while the security configurations are further developed.
 The traffic destined to the VMs in each MIG is mediated through regional internal load balancers, both in the landing and in the dmz networks.
 
 By default, the design assumes the following:
@@ -128,30 +133,25 @@ The /11 block is evenly split in eight, smaller /16 blocks, assigned to differen
 
 The first /24 range in every area is allocated for a default subnet, which can be removed or modified as needed. The last three /24 ranges can be used for [PSA (Private Service Access)](https://cloud.google.com/vpc/docs/private-services-access)via the `psa_ranges` variable, or for [Internal Application Load Balancers (L7 LBs)](https://cloud.google.com/load-balancing/docs/l7-internal) subnets via the factory.
 
+This is a summary of the VPC Networks deployed by this stage:
+
+| name | description | 
+| ---- | ------------|
+| prod-mgmt-0 | Management network for the Palo Alto deployments. |
+| prod-dmz-0 | The Internet facing network for the DMZ |
+| prod-landing-0 | The landing network on the "trust" side of the Palo Alto NGFW deployments |
+
+
 This is a summary of the subnets allocated by default in this setup:
 
-| name | description | CIDR |
-|---|---|---|
-| landing-default-ew1 | landing landing subnet - us-east4 | 10.128.64.0/24 |
-| landing-default-ew4 | landing landing subnet - us-central1 | 10.128.96.0/24 |
-| dmz-default-ew1 | dmz landing subnet - us-east4 | 10.128.0.0/24 |
-| dmz-default-ew4 | dmz landing subnet - us-central1 | 10.128.32.0/24 |
-| dev-default-ew1 | Dev spoke subnet - us-east4 | 10.68.0.0/24 |
-| dev-default-ew1 | Free (PSA) - us-east4 | 10.68.253.0/24 |
-| dev-default-ew1 | Free (PSA) - us-east4 | 10.68.254.0/24 |
-| dev-default-ew1 | Free (L7 ILB) - us-east4 | 10.68.255.0/24 |
-| dev-default-ew4 | Dev spoke subnet - us-central1 | 10.84.0.0/24 |
-| dev-default-ew4 | Free (PSA) - us-central1 | 10.84.253.0/24 |
-| dev-default-ew4 | Free (PSA) - us-central1 | 10.84.254.0/24 |
-| dev-default-ew4 | Free (L7 ILB) - us-central1 | 10.84.255.0/24 |
-| prod-default-ew1 | Prod spoke subnet - us-east4 | 10.72.0.0/24 |
-| prod-default-ew1 | Free (PSA) - us-east4 | 10.72.253.0/24 |
-| prod-default-ew1 | Free (PSA) - us-east4 | 10.72.254.0/24 |
-| prod-default-ew1 | Free (L7 ILB) - us-east4 | 10.72.255.0/24 |
-| prod-default-ew4 | Prod spoke subnet - us-central1 | 10.88.0.0/24 |
-| prod-default-ew4 | Free (PSA) - us-central1 | 10.88.253.0/24 |
-| prod-default-ew4 | Free (PSA) - us-central1 | 10.88.254.0/24 |
-| prod-default-ew4 | Free (L7 ILB) - us-central1 | 10.88.255.0/24 |
+| name | region | VPC network | description | CIDR |
+|---|---|---|---|---|
+| mgmt-default | us-central1 | prod-mgmt-0 | 10.80.1.0/24 |
+| mgmt-default | us-east4 | prod-mgmt-0 | 10.69.0.0/24 |
+| dmz-default  | us-central1 | prod-dmz-0 | 10.80.128.0/24 |
+| dmz-default  | us-east4 | prod-dmz-0 | 10.64.128.0/24 | 
+| landing-default | us-central1 | prod-landing-0 | 10.80.0.0/24|
+| landing-default | us-east4 | prod-landing-0 | 10.64.0.0/24 |
 
 These subnets can be advertised to on-premises as an aggregate /11 range (10.64.0.0/11). Refer to the `var.vpn_onprem_primary_config.router_config` and `var.vpn_onprem_secondary_config.router_config` variables to configure it.
 
@@ -170,7 +170,7 @@ The Cloud Routers (connected to the VPN gateways in the landing VPC) are configu
 
 ### Internet egress
 
-In this setup, Internet egress is realized through [Cloud NAT](https://cloud.google.com/nat/docs/overview), deployed in the dmz landing VPC. This allows instances in all other VPCs to reach the Internet, passing through the NVAs (being the public Internet considered dmz). Cloud NAT is disabled by default; enable it by setting the `enable_cloud_nat` variable
+In this setup, Internet egress is realized through a NAT policy between landing->DMZ on the Palo Alto NGFW. There is also an option to implement the [Cloud NAT](https://cloud.google.com/nat/docs/overview), deployed in the dmz landing VPC. This allows instances in all other VPCs to reach the Internet, passing through the NVAs (being the public Internet considered dmz). Cloud NAT is disabled by default; enable it by setting the `enable_cloud_nat` variable
 
 Several other scenarios are possible, with various degrees of complexity:
 

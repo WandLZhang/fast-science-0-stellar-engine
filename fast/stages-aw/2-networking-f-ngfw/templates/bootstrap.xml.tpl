@@ -12,7 +12,7 @@
         <public-key>{{ ssh-pubkey }}</public-key>
       </entry>
       <entry name="__openconfig">
-        <phash>*/</phash>
+        <phash>*</phash>
         <permissions>
           <role-based>
             <deviceadmin>
