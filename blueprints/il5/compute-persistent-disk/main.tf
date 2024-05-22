@@ -23,10 +23,8 @@ provider "google" {
 # Work on the Current Project
 data "google_project" "current" {}
 
-# Custom service account with compute engine role  
-resource "google_service_account" "compute" {
-  account_id = "compute"
-  project    = var.project_id
+#  Obtain the Default service account for the compute engine role  
+data "google_compute_default_service_account" "default" {
 }
 
 # Give the service account the roles needed to encrypt/decrypt
@@ -34,7 +32,7 @@ resource "google_project_iam_binding" "compute" {
   project = var.project_id
   role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   members = [
-    "serviceAccount:${google_service_account.compute.email}",
+    "serviceAccount:${data.google_compute_default_service_account.default.email}",
     "user:${var.email}"
   ]
   depends_on = [module.kms]
@@ -70,7 +68,7 @@ module "compute-engine-vm" {
     kms_key_self_link = module.kms.keys.default.id
   }
   service_account = {
-    email = google_service_account.compute.email
+    email = data.google_compute_default_service_account.default.email
   }
   # Persistent Disk Attached to the Compute Engine with KMS
   attached_disks = [
@@ -85,7 +83,7 @@ module "compute-engine-vm" {
       kms_key_service_account = "service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     }
   ]
-  depends_on = [module.kms, google_service_account.compute, google_kms_crypto_key_iam_policy.crypto_key]
+  depends_on = [module.kms, google_kms_crypto_key_iam_policy.crypto_key]
 }
 
 # Google KMS Module
