@@ -172,7 +172,9 @@ module "ngfw-template" {
     initialize_params = {
       image = data.google_compute_image.vmseries.self_link
       size  = 60
-    type = "pd-ssd" }
+      type  = "pd-ssd"
+    }
+    kms_key_self_link       = module.kms.keys.default.id
   }
   options = {
     allow_stopping_for_update = true

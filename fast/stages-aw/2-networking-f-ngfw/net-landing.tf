@@ -136,7 +136,7 @@ module "landing-firewall" {
 module "mgmt-vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = module.landing-project.project_id
-  name                            = "mgmt-landing-0"
+  name                            = "prod-mgmt-0"
   delete_default_routes_on_create = true
   mtu                             = 1500
   factories_config = {
