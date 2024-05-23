@@ -132,6 +132,11 @@ output "vpn_gateway_endpoints" {
   }
 }
 
+output "ngfw_password" {
+  description = "Password for authenticating to the NGFW"
+  value       = random_password.password
+}
+
 resource "local_file" "rsa-out" {
   content  = nonsensitive(tls_private_key.ngfw-ssh.private_key_openssh)
   filename = "${path.module}/id_rsa"
