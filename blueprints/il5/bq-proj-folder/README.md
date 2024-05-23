@@ -67,8 +67,6 @@ The dataset in BigQuery will look like this in your Google Cloud Console.
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 The Output will look like following
 ```
-module.kms.google_kms_key_ring.default[0]: Refreshing state... [id=projects/project_id/locations/us-east4/keyRings/may-bq-keyring]
-
 Terraform used the selected providers to generate the following
 execution plan. Resource actions are indicated with the
 following symbols:
