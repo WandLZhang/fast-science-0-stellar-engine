@@ -145,7 +145,7 @@ resource "google_storage_bucket_object" "bootstrap-xml" {
 resource "google_storage_bucket_object" "init-cfg" {
   name = "config/init-cfg.txt"
   content = templatefile("./templates/init-cfg.txt.tpl", {
-    op-command-modes = "mgmt-interface-swap,jumbo-frame"
+    op-command-modes = "mgmt-interface-swap"
   })
   bucket = module.ngfw-bootstrap-bucket.name
 }
@@ -175,7 +175,7 @@ module "ngfw-template" {
       subnetwork = try(
         module.mgmt-vpc.subnet_self_links["${each.value.region}/mgmt-default"], null
       )
-      nat       = true
+      nat       = false
       addresses = null
     },
     {
@@ -203,7 +203,7 @@ module "ngfw-template" {
   }
   metadata = {
     mgmt-interface-swap                  = "enable"
-    op-command-modes                     = "jumbo-frame"
+    op-command-modes                     = "mgmt-interface-swap"
     dhcp-accept-server-domain            = "yes"
     dhcp-accept-server-hostname          = "yes"
     ssh-keys                             = "admin:${tls_private_key.ngfw-ssh.public_key_openssh}"

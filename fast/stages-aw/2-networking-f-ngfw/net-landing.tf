@@ -132,13 +132,13 @@ module "landing-firewall" {
 }
 
 # Management (mgmt) VPC
-
 module "mgmt-vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = module.landing-project.project_id
   name                            = "prod-mgmt-0"
   delete_default_routes_on_create = true
   mtu                             = 1500
+
   factories_config = {
     subnets_folder = "${var.factories_config.data_dir}/subnets/mgmt"
   }
@@ -150,6 +150,16 @@ module "mgmt-vpc" {
     private    = true
     restricted = true
   }
+}
+
+module "mgmt-nat" {
+  source         = "../../../modules/net-cloudnat"
+  project_id     = module.landing-project.project_id
+  region         = var.regions.primary
+  name           = local.region_shortnames[var.regions.primary]
+  router_create  = true
+  router_name    = "prod-nat-${local.region_shortnames[var.regions.primary]}"
+  router_network = module.mgmt-vpc.name
 }
 
 module "mgmt-firewall" {
