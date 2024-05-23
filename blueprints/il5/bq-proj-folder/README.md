@@ -60,10 +60,10 @@ keyring, for example <br />
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` to destroy the built infrastructure<br />
 
-It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
+It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.![Deployment of BigQuery Dataset](https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/c34d61ae-6fdb-4b62-a33e-f441b84f94ed)
 
 Verification of a successful deployment?
-![BigQuery Dataset Creation in Google Cloud](/Users/ashley.siddiqui/Downloads/Deployment of BigQuery Dataset.jpeg)
+
 The Output will look like following
 ```
 module.kms.google_kms_key_ring.default[0]: Refreshing state... [id=projects/project_id/locations/us-east4/keyRings/may-bq-keyring]
