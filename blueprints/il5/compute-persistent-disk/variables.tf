@@ -25,6 +25,11 @@ variable "email" {
   # Example default = "admin.user-anme@example.google.com"
 }
 
+variable "compute_service_account_id" {
+  description = "The Service Account for Compute Engine"
+  type        = string
+  # Example default = "computeblue"
+}
 variable "keyring" {
   description = "Keyring attributes."
   type = object({

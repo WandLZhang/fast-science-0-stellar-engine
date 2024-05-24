@@ -23,8 +23,10 @@ provider "google" {
 # Work on the Current Project
 data "google_project" "current" {}
 
-#  Obtain the Default service account for the compute engine role  
-data "google_compute_default_service_account" "default" {
+# Custom service account with compute engine role  
+resource "google_service_account" "compute" {
+  account_id = var.compute_service_account_id
+  project    = var.project_id
 }
 
 # Give the service account the roles needed to encrypt/decrypt
@@ -32,7 +34,7 @@ resource "google_project_iam_binding" "compute" {
   project = var.project_id
   role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   members = [
-    "serviceAccount:${data.google_compute_default_service_account.default.email}",
+    "serviceAccount:${google_service_account.compute.email}",
     "user:${var.email}"
   ]
   depends_on = [module.kms]
@@ -68,7 +70,7 @@ module "compute-engine-vm" {
     kms_key_self_link = module.kms.keys.default.id
   }
   service_account = {
-    email = data.google_compute_default_service_account.default.email
+    email = google_service_account.compute.email
   }
   # Persistent Disk Attached to the Compute Engine with KMS
   attached_disks = [
@@ -83,7 +85,7 @@ module "compute-engine-vm" {
       kms_key_service_account = "service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     }
   ]
-  depends_on = [module.kms, google_kms_crypto_key_iam_policy.crypto_key]
+  depends_on = [module.kms, google_service_account.compute, google_kms_crypto_key_iam_policy.crypto_key]
 }
 
 # Google KMS Module
@@ -92,7 +94,9 @@ module "kms" {
   project_id = var.project_id
   keys       = var.keys
   iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}", "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"]
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      "user:${var.email}",
+    "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"]
   }
   keyring = var.keyring
 }

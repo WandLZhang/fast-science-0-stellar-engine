@@ -1,5 +1,6 @@
 project_id = "the-project-id" 
 email      = "the-email-address"
+compute_service_account_id = "computeblue"
 keyring = {
   location = "us-east4"
   name     = "Name-of-keyring"
