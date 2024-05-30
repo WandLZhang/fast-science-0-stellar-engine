@@ -84,18 +84,34 @@ resource "random_password" "salt" {
   special = false
 }
 
+resource "google_project_iam_custom_role" "ngfw-custom-role" {
+  role_id = "ngfw.appliance"
+  title   = "NGFW Appliance"
+  project = module.landing-project.project_id
+
+  description = "All of the permissions required for the Palo Alto NGFW"
+  permissions = [
+    "storage.buckets.get",
+    "logging.buckets.write",
+    "opsconfigmonitoring.resourceMetadata.write",
+    "autoscaling.sites.writeMetrics",
+    "monitoring.metricDescriptors.create",
+    "monitoring.metricDescriptors.get",
+    "monitoring.metricDescriptors.list",
+    "monitoring.monitoredResourceDescriptors.get",
+    "monitoring.monitoredResourceDescriptors.list",
+    "monitoring.timeSeries.create",
+  ]
+}
+
 module "ngfw-service-account" {
   name       = "ngfw-compute"
   source     = "../../../modules/iam-service-account"
   project_id = module.landing-project.project_id
   iam_project_roles = {
     "${module.landing-project.project_id}" = [
-      "roles/logging.bucketWriter",
-      "roles/opsconfigmonitoring.resourceMetadata.writer",
-      "roles/autoscaling.metricsWriter",
-      "roles/monitoring.metricWriter",
-      "roles/storage.objectViewer",
-      "roles/viewer"
+      google_project_iam_custom_role.ngfw-custom-role.id,
+      "roles/compute.viewer"
     ]
   }
 }
