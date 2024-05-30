@@ -8,7 +8,7 @@ ingress:
     description: "Allow traffic from Google healthchecks to NVA appliances"
     source_ranges:
       - healthchecks
-      - 35.235.240.0/20 # IAP
+      # - 35.235.240.0/20 # IAP
     rules:
       - protocol: tcp
         ports:

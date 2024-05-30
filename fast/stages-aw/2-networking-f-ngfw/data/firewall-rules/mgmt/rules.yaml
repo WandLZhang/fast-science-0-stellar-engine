@@ -9,7 +9,6 @@ ingress:
     source_ranges:
       - 10.80.1.0/24
       - 10.69.0.0/24
-      - iap
     rules:
       - protocol: tcp
         ports:
