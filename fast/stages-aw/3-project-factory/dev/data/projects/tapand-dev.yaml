@@ -15,8 +15,8 @@
 labels:
  team: dino-runner
 parent: folders/173507323014
-name: tapan
-descriptive_name: Tapan 
+name: tapand
+descriptive_name: Tapand
 services:
 - compute.googleapis.com
 - storage.googleapis.com
