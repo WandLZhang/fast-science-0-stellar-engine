@@ -42,7 +42,7 @@ module "projects" {
 
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
-  project_id                      = "tnbsea-dev-tapanb-dev"
+  project_id                      = var.project_id
   name                            = "vpc-app"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
@@ -54,14 +54,14 @@ module "vpc" {
       ip_cidr_range = var.ip_cidr_range
     }
   ]
-  
-} 
 
-/*
-module "peering-dev" {
-  source        = "../../../../modules/net-vpc-peering"
-  local_network = module.vpc.self_link
-  peer_network  = "tnbsea-prod-net-landing-0"
-  peer_network  = "tnbsea-prod-net-spoke-0"
 }
-*/
+
+module "peering" {
+  source        = "../../../..//modules/net-vpc-peering"
+  prefix        = "app-prod-peer"
+  local_network = module.vpc.self_link
+  peer_network  = var.peer_network
+
+}
+ 

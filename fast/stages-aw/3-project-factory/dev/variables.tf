@@ -29,6 +29,35 @@ variable "billing_account" {
   }
 }
 
+
+variable "location" {
+  description = "Location of the Compute Engine VM"
+  type        = string
+  default     = "us-east4"
+}
+
+variable "peer_network" {
+  description = "The Peer Network Project and and global Network Name"
+  type        = string
+  #Example 
+  default = "projects/tnbsea-prod-net-landing-0/global/networks/prod-landing-0"
+}
+
+
+
+variable "ip_cidr_range" {
+  description = "The IP CIDR range for the VPC"
+  type        = string
+  #Example 
+  default = "10.0.1.0/24"
+}
+
+variable "project_id" {
+  description = "This is the project ID. Please set using a terraform.tfvars file."
+  type        = string
+  default     = "tnbsea-dev-tapand-dev"
+}
+
 variable "factories_config" {
   description = "Path to folder with YAML resource description data files."
   type = object({
@@ -39,6 +68,9 @@ variable "factories_config" {
       notification_channels = optional(map(any), {})
     }))
   })
+  default = {
+    projects_data_path = "data/projects"
+  }
   nullable = false
 }
 
