@@ -57,12 +57,14 @@ resource "google_pubsub_subscription" "subscription" {
     push_endpoint = var.push_endpoint
   }
 }
+
 # IAM role bindings for the service account
 resource "google_pubsub_topic_iam_member" "publisher" {
   topic      = google_pubsub_topic.pubsub_topic.name
   role       = "roles/pubsub.publisher"
   member     = "serviceAccount:${google_service_account.pubsub_sa.email}"
 }
+
 resource "google_pubsub_subscription_iam_member" "subscriber" {
   subscription = google_pubsub_subscription.subscription.name
   role         = "roles/pubsub.subscriber"
