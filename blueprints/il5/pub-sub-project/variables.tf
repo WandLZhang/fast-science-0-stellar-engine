@@ -16,28 +16,43 @@
 variable "project_id" {
   type = string
 }
+
 variable "location" {
   type    = string
   default = "us-east4"
 }
-variable "email" {
-    type = string
-}
 
-variable "pubsub_service_account_id" {
-    type = string
+variable "email" {
+  type = string
 }
 
 variable "pubsub_subscription_name" {
-    type = string
+  type = string
 }
 
 variable "pubsub_topic_name" {
-  type    = string  
+  type = string
 }
 
 variable "push_endpoint" {
-    type = string
+  type = string
+}
+variable "publisher_name" {
+  type = string
+}
+
+variable "subscriber_name" {
+  type = string
+}
+
+variable "publisher_account_id" {
+  type = string
+
+}
+
+variable "subscriber_account_id" {
+  type = string
+
 }
 
 variable "keyring" {
@@ -59,7 +74,7 @@ variable "keys" {
     skip_initial_version_creation = optional(bool, false)
     version_template = optional(object({
       algorithm        = string
-      protection_level = optional(string, "SOFTWARE")
+      protection_level = optional(string, "HSM")
     }))
 
     iam = optional(map(list(string)), {})
@@ -93,7 +108,7 @@ variable "keys" {
       skip_initial_version_creation = false
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        protection_level = "SOFTWARE"
+        protection_level = "HSM"
       }
 
       iam                   = {}

@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#Terraform Provider for Google Cloud Platform
-output "key_ring_id" {
-  value = google_kms_key_ring.key_ring.id
+
+output "publisher_service_account_email" {
+  value = google_service_account.publisher.email
+}
+
+output "subscriber_service_account_email" {
+  value = google_service_account.subscriber.email
+}
+
+output "pubsub_topic_name" {
+  value = google_pubsub_topic.pubsub_topic.name
+}
+
+
+output "pubsub_subscription_name" {
+  value = google_pubsub_subscription.pubsub_subscription.name
 }
