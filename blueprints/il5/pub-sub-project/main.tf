@@ -19,10 +19,6 @@ provider "google" {
   region  = var.location
 }
 
-data "google_project" "pubsub_sa"{
-
-}
-
 resource "google_service_account" "pubsub_sa" {
   account_id = var.pubsub_service_account_id
   project    = var.project_id
