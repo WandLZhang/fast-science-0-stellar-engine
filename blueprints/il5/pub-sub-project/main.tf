@@ -52,8 +52,8 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.publisher.email,
-      google_service_account.subscriber.email
+      google_service_account.publisher.member,
+      google_service_account.subscriber.member
     ]
   }
   keyring = var.keyring
