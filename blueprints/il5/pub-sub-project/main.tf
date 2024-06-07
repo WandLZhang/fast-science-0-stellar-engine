@@ -19,6 +19,9 @@ provider "google" {
   region  = var.location
 }
 
+# Work on the Current Project
+data "google_project" "current" {}
+
 #Create publisher account 
 resource "google_service_account" "publisher" {
   account_id   = var.publisher_account_id
@@ -53,7 +56,8 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.publisher.member,
-      google_service_account.subscriber.member
+      google_service_account.subscriber.member,
+      "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
     ]
   }
   keyring = var.keyring
@@ -65,4 +69,6 @@ module "pubsub" {
   project_id = var.project_id
   name       = var.pubsub_topic
   regions    = var.allowed_persistence_regions
+  kms_key    = module.kms.keys.default.id
+  depends_on = [module.kms]
 }
