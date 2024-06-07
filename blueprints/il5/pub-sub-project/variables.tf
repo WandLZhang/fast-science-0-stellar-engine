@@ -44,12 +44,10 @@ variable "subscriber_name" {
 
 variable "publisher_account_id" {
   type = string
-
 }
 
 variable "subscriber_account_id" {
   type = string
-
 }
 
 variable "keyring" {
@@ -58,7 +56,6 @@ variable "keyring" {
     location = string
     name     = string
   })
-
 }
 
 variable "allowed_persistence_regions" {
