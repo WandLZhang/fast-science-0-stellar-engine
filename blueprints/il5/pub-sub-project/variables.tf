@@ -34,9 +34,6 @@ variable "pubsub_topic" {
   type = string
 }
 
-variable "push_endpoint" {
-  type = string
-}
 variable "publisher_name" {
   type = string
 }
@@ -85,10 +82,12 @@ variable "subscriptions" {
       topic                 = string
       max_delivery_attempts = number
     })
+
     retry_policy = object({
       maximum_backoff = string
       minimum_backoff = string
     })
+
     push = object({
       endpoint   = string
       attributes = map(string)
@@ -97,12 +96,14 @@ variable "subscriptions" {
         audience              = string
       })
     })
+
     bigquery = object({
       table               = string
       use_topic_schema    = bool
       write_metadata      = bool
       drop_unknown_fields = bool
     })
+
     cloud_storage = object({
       bucket          = string
       filename_prefix = string
