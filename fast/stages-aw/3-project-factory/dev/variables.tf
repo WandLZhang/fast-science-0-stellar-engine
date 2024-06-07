@@ -39,6 +39,9 @@ variable "factories_config" {
       notification_channels = optional(map(any), {})
     }))
   })
+  default = {
+    projects_data_path = "data/projects"
+  }
   nullable = false
 }
 
@@ -52,28 +55,24 @@ variable "prefix" {
   }
 }
 
-variable "host_project_ids" {
-  # tfdoc:variable:source 3-network
-  description = "Map of host projects from the networks stages"
-  type        = map(string)
-  default     = {}
-  nullable    = false
-}
 
 variable "location" {
   description = "Location of the Compute Engine VM"
   type        = string
-  #Example default     = "us-east4"
+  #Example
+  default = "us-east4"
 }
 
 variable "host_project_name" {
   description = "The name of the Host Project"
   type        = string
-   #Example   default     = "abc-host-dev-net-spoke-0"
+  #Example   default     = "abc-host-dev-net-spoke-0"
+  default = "tnbsea-prod-net-landing-0"
 }
 
 variable "peer_network_name" {
   description = "The Peer Network Project and and global Network Name"
   type        = string
-  #Example  default = "dev-spoke-0"
+  #Example  
+  default = "prod-landing-0"
 }
