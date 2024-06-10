@@ -13,3 +13,13 @@ ingress:
       - protocol: tcp
         ports:
           - 22
+  allow-hc-nva-all-tenants:
+    description: "Allow all traffic from the tenant subnets"
+    source_ranges:
+      - tenants
+    targets:
+      - nva
+    rules:
+      - protocol: tcp
+        ports:
+          - 443

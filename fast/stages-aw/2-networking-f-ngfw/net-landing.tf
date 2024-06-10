@@ -24,7 +24,7 @@ module "landing-project" {
   prefix          = var.prefix
   services = [
     "compute.googleapis.com",
-    "dns.googleapis.com",
+    # "dns.googleapis.com",
     "iap.googleapis.com",
     "networkmanagement.googleapis.com",
     "stackdriver.googleapis.com",
@@ -50,10 +50,10 @@ module "dmz-vpc" {
   project_id = module.landing-project.project_id
   name       = "prod-dmz-0"
   mtu        = 1500
-  dns_policy = {
-    inbound = true
-    logging = var.dns.enable_logging
-  }
+  # dns_policy = {
+  #   inbound = true
+  #   logging = var.dns.enable_logging
+  # }
   create_googleapis_routes = null
   factories_config = {
     subnets_folder = "${var.factories_config.data_dir}/subnets/dmz"

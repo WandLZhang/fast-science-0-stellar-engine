@@ -14,3 +14,13 @@ ingress:
         ports:
           - 22
           - 443
+  allow-bastion-ssh-mgmt:
+    description: "Allow ssh traffic to the bastion host"
+    targets:
+      - bastion
+    source_ranges:
+      - 0.0.0.0/0
+    rules:
+      - protocol: tcp
+        ports:
+          - 22
