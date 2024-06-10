@@ -15,13 +15,42 @@
  */
 
 # tfdoc:file:description Project factory.
+
+# List all YAML files in the data/projects directory
+locals {
+  network_json_data = jsondecode(file("./2-networking.auto.tfvars.json"))
+  yaml_files        = fileset("${path.module}/data/projects", "*.yaml")
+
+  # Extract the specific value 'prod-landing-0' from the URL
+  prod_landing_url = local.network_json_data.vpc_self_links["prod-landing"]
+  prod_landing_id = regex("networks/([^/]+)$", local.prod_landing_url)[0]
+
+  file_contents = {
+    for file in data.local_file.yaml_files : file.filename => yamldecode(file.content)
+  }
+  file_names = {
+    for file, content in local.file_contents : file => content.name
+  }
+  project_contents = {
+    for file, content in local.file_contents : content.name => content
+  }
+  project_names = keys(local.file_names)
+  projects = {
+    for idx in range(length(local.project_names)) :
+    local.project_names[idx] => {
+      name = local.file_names[local.project_names[idx]]
+    }
+  }
+}
+
+
 module "projects" {
   source = "../../../../modules/project-factory"
   data_defaults = {
     billing_account = var.billing_account.id
     # more defaults are available, check the project factory variables
     shared_vpc_service_config = {
-      host_project = var.host_project_name
+      host_project = local.network_json_data.host_project_ids["prod-landing"]
     }
   }
   data_merges = {
@@ -41,9 +70,11 @@ module "projects" {
 
 # Get existing vpc from existing project (Main project)
 data "google_compute_network" "vpc" {
-  project = var.host_project_name
-  name    = var.peer_network_name
+  # project = var.host_project_name
+  name    = local.prod_landing_id
+  project = local.network_json_data.host_project_ids["prod-landing"]
 }
+
 
 # Read the content of the YAML files
 data "local_file" "yaml_files" {
@@ -51,29 +82,8 @@ data "local_file" "yaml_files" {
   filename = "${path.module}/data/projects/${each.value}"
 }
 
-# List all YAML files in the data/projects directory
-locals {
-  yaml_files = fileset("${path.module}/data/projects", "*.yaml")
-  file_contents = {
-    for file in data.local_file.yaml_files : file.filename => yamldecode(file.content)
-  }
-  file_names = {
-    for file, content in local.file_contents : file => content.name
-  }
-  project_contents = {
-    for file, content in local.file_contents : content.name => content
-  }
-  project_names = keys(local.file_names)
-  projects = {
-    for idx in range(length(local.project_names)) :
-    local.project_names[idx] => {
-      name = local.file_names[local.project_names[idx]]
 
-    }
-  }
-}
-
-
+# Create Google VPC using modules
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
   for_each                        = local.projects
@@ -91,6 +101,9 @@ module "vpc" {
   ]
 }
 
+
+# Create VPC peering using Google Module 
+# Google Cloud Platform (GCP) VPC peering has a maximum of 25 connections per project to a single VPC network. 
 module "peering" {
   source        = "../../../../modules/net-vpc-peering"
   for_each      = module.vpc

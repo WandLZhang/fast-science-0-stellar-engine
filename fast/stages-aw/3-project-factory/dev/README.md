@@ -15,6 +15,20 @@ Projects for each environment across different teams are created by dedicated se
 
 The project factory stage lightly wraps the underlying [project-factory module](../../../../modules/project-factory/), including Shared VPC service project attachment, VPC SC perimeter membership, etc.
   
+## CIDR Table  
+The Distribution of the CIDR as per Organization, Tenants and Projects
+| Component  | CIDR | Notes |
+| ------------- | ------------- |------------- |
+| Organization (All Tenants)  | 10.200.0.0/16  | 8 Tenants per Organization|
+| Tenants 1  | 10.200.3.0/19  | 8 projects per tenant|
+| Project 1   | 10.200.2.0/23  | |
+| Project 2   | 10.200.4.0/23  | |
+| Project 3   | 10.200.6.0/23  | |
+| Project 4   | 10.200.8.0/23  | |
+| Project 5   | 10.200.10.0/23  | |
+
+Utilize the above table to create new project with CIDRs. The 10.200.0.0/16 is an tenant subnet.
+
 ## How to run this stage
 
 This stage is meant to be executed after "foundational stages" (i.e., stages [`00-bootstrap`](../../0-bootstrap), [`01-resman`](../../1-resman), 02-networking (either [VPN](../../2-networking-b-vpn), [NVA](../../2-networking-c-nva), [NVA with BGP support](../../2-networking-e-nva-bgp)) and [`02-security`](../../2-security)) have been run.
