@@ -23,7 +23,7 @@ locals {
 
   # Extract the specific value 'prod-landing-0' from the URL
   prod_landing_url = local.network_json_data.vpc_self_links["prod-landing"]
-  prod_landing_id = regex("networks/([^/]+)$", local.prod_landing_url)[0]
+  prod_landing_id  = regex("networks/([^/]+)$", local.prod_landing_url)[0]
 
   file_contents = {
     for file in data.local_file.yaml_files : file.filename => yamldecode(file.content)
@@ -41,6 +41,20 @@ locals {
       name = local.file_names[local.project_names[idx]]
     }
   }
+}
+
+# Get existing vpc from existing project (Main project)
+data "google_compute_network" "vpc" {
+  # project = var.host_project_name
+  name    = local.prod_landing_id
+  project = local.network_json_data.host_project_ids["prod-landing"]
+}
+
+
+# Read the content of the YAML files
+data "local_file" "yaml_files" {
+  for_each = toset(local.yaml_files)
+  filename = "${path.module}/data/projects/${each.value}"
 }
 
 
@@ -65,21 +79,6 @@ module "projects" {
     prefix = "${var.prefix}-dev"
   }
   factories_config = var.factories_config
-}
-
-
-# Get existing vpc from existing project (Main project)
-data "google_compute_network" "vpc" {
-  # project = var.host_project_name
-  name    = local.prod_landing_id
-  project = local.network_json_data.host_project_ids["prod-landing"]
-}
-
-
-# Read the content of the YAML files
-data "local_file" "yaml_files" {
-  for_each = toset(local.yaml_files)
-  filename = "${path.module}/data/projects/${each.value}"
 }
 
 
