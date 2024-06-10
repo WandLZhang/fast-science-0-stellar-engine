@@ -341,6 +341,26 @@
               <member>ethernet1/1</member>
               <member>ethernet1/2</member>
             </interface>
+            <routing-table>
+              <ip>
+                <static-route>
+                  <entry name="tenants">
+                    <nexthop>
+                      <ip-address>${lz_gateway_ip}</ip-address>
+                    </nexthop>
+                    <bfd>
+                      <profile>None</profile>
+                    </bfd>
+                    <interface>ethernet1/2</interface>
+                    <metric>10</metric>
+                    <destination>${tenants_subnet}</destination>
+                    <route-table>
+                      <unicast/>
+                    </route-table>
+                  </entry>
+                </static-route>
+              </ip>
+            </routing-table>
           </entry>
         </virtual-router>
       </network>

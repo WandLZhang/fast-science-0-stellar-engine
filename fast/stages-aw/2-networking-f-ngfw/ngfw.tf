@@ -205,6 +205,9 @@ resource "google_storage_bucket_object" "bootstrap-xml" {
     ssh_pubkey        = tls_private_key.ngfw-ssh.public_key_openssh
     healthcheck_cidrs = local.cidr_ranges["healthchecks"]
     iap_cidrs         = local.cidr_ranges["iap"]
+    tenants_subnet    = local.cidr_ranges["tenants"][0]
+    lz_gateway_ip     = module.landing-vpc.subnets["us-east4/landing-default"].gateway_address # This doesn't support dual region yet
+
   })
   bucket = module.ngfw-bootstrap-bucket[each.key].name
 }

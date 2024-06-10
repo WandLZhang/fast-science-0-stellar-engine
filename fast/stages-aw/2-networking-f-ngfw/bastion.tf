@@ -9,6 +9,7 @@ module "bastion-vm" {
     enable_vtpm                 = true
     enable_integrity_monitoring = true
   }
+  tags          = ["bastion"]
   instance_type = "e2-small"
   network_interfaces = [{
     network = module.mgmt-vpc.self_link
