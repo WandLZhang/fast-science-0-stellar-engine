@@ -100,7 +100,6 @@ services:
 
 - Update the variables using the variables.tf or terraform.tfvars the details about each required variables is listed in section "Variables"
 - There is a sample terraform.tfvars.sample available
-- It is important to update the Host project, Host VPC Network name, Location in the variables.
 
 Once the configuration is complete, run the project factory with:
 
@@ -127,8 +126,6 @@ terraform apply
 | [factories_config](variables.tf#L32) | Path to folder with YAML resource description data files. | <code title="object&#40;&#123;&#10;  projects_data_path &#61; string&#10;  budgets &#61; optional&#40;object&#40;&#123;&#10;    billing_account       &#61; string&#10;    budgets_data_path     &#61; string&#10;    notification_channels &#61; optional&#40;map&#40;any&#41;, &#123;&#125;&#41;&#10;  &#125;&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |  |
 | [prefix](variables.tf#L45) | Prefix used for resources that need unique names. Use 9 characters or less. | <code>string</code> | ✓ |  | <code>0-bootstrap</code> |
 | [location](variables.tf#L59) | The GCP Location of the project and the VPC For example us-east4. | <code>string</code> | ✓ |  |  |
-| [host_project_name](variables.tf#L66) | The Name of GCP Host Project that has the Host Main VPC (Mostly the Landing Main Networking Project) For example prefix-prod-net-landing-0. | <code>string</code> | ✓ |  |  |
-| [peer_network_name](variables.tf#L73) | The Name of  VPC Network where the Tenants VPC will be connected / Peered to.  (Mostly the Landing VPC) For example prod-landing-0. | <code>string</code> | ✓ |  |  |
 
 Please see the reference terraform.tfvars.sample file
 
