@@ -55,24 +55,9 @@ variable "prefix" {
   }
 }
 
-
 variable "location" {
   description = "Location of the Compute Engine VM"
   type        = string
   #Example
   default = "us-east4"
-}
-
-variable "host_project_name" {
-  description = "The name of the Host Project"
-  type        = string
-  #Example   default     = "abc-host-dev-net-spoke-0"
-  default = "tnbsea-prod-net-landing-0"
-}
-
-variable "peer_network_name" {
-  description = "The Peer Network Project and and global Network Name"
-  type        = string
-  #Example  
-  default = "prod-landing-0"
 }
