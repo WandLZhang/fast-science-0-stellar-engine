@@ -1,0 +1,119 @@
+# This list constraint defines the set of service accounts that can be granted OAuth 2.0 access tokens with a lifetime of up to 12 hours. By default, the maximum lifetime for these access tokens is 1 hour. The allowed/denied list of service accounts must specify one or more service account email addresses.
+# COULD HAVE
+# iam.allowServiceAccountCredentialLifetimeExtension:
+#   rules:
+#   - allow:
+#       all: true
+
+# This list constraint defines one or more Cloud Identity or Google Workspace
+# customer IDs whose principals can be added to IAM policies. By default, all
+# user identities are allowed to be added to IAM policies. Only allowed values
+# can be defined in this constraint, denied values are not supported. If this
+# constraint is active, only principals that belong to the allowed customer IDs
+# can be added to IAM policies.
+# MUST HAVE
+# Recommendation:
+#   This policy is strongly advised. Enforce at the organisation level but be
+# cautious of potential issues. When this policy is enforced, even if the user 
+# has setIamPolicy on the APIs of Google Cloud services, they won't be allowed 
+# to add users of non-authorized domains. This also blocks the exposure of 
+# data; for example, a user won't be able to set permission to allUsers or 
+# authentificatedUsers in Cloud Storage to make the buckets public.
+#  use `gcloud organizations list` to query the domain id and/or directory 
+# customer id.
+# iam.allowedPolicyMemberDomains:
+#   rules:
+#     - allow:
+#         values:
+#           - <domain_id>    # for GCP
+#           - <customer_id>  # for workspace 
+
+# This boolean constraint, when enforced, prevents the default App Engine and
+# Compute Engine service accounts that are created in your projects from being
+# automatically granted any IAM role on the project when the accounts are
+# created. By default, these service accounts automatically receive the Editor
+# role when they are created.
+# MUST HAVE
+iam.automaticIamGrantsForDefaultServiceAccounts:
+  rules:
+  - enforce: true
+
+
+# This boolean constraint disables the creation of service accounts where
+# this constraint is set to \`True\`. By default, service accounts can be
+# created by users based on their Cloud IAM roles and permissions.
+# COULD HAVE
+iam.disableServiceAccountCreation:
+  rules:
+  - enforce: false
+
+# This boolean constraint disables the creation of service account external
+# keys where this constraint is set to \`True\`. By default, service account
+# external keys can be created by users based on their Cloud IAM roles and
+# permissions.
+# SHOULD HAVE
+iam.disableServiceAccountKeyCreation:
+  rules:
+  - enforce: false
+
+# This boolean constraint disables the feature that allows uploading public
+# keys to service accounts where this constraint is set to \`True\`. By default,
+# users can upload public keys to service accounts based on their Cloud IAM
+# roles and permissions.
+# COULD HAVE
+iam.disableServiceAccountKeyUpload:
+  rules:
+  - enforce: false
+
+# This boolean constraint, when enforced, prevents you from exempting
+# additional principals from audit logging. This constraint does not affect
+# any audit-logging exemptions that existed before you enforced the constraint.
+# COULD HAVE
+# iam.disableAuditLoggingExemption:
+#   rules:
+#   - enforce: false
+
+
+# This boolean constraint, when ENFORCED, prevents users from removing a
+# Cross Project Service Account lien without organization-level permission.
+# By default, any user with the permission to update liens can remove a Cross
+# Project Service Account lien. Enforcing this constraint requires that
+# permission to be granted at the organization level.
+# COULD HAVE
+# iam.restrictCrossProjectServiceAccountLienRemoval:
+#   rules:
+#   - enforce: false
+
+
+# List of AWS account IDs that can be configured for workload identity
+# federation in Cloud IAM.
+# SHOULD HAVE
+# contraints/iam.workloadIdentityPoolAwsAccounts:
+#   rules:
+#   - deny:
+#       all: true
+
+# Identity Providers that can be configured for workload authentication within
+# Cloud IAM, specified by URI/URLs.
+# SHOULD HAVE
+# iam.workloadIdentityPoolProviders:
+#   rules:
+#   - allow:
+#       values:
+#         - <url>
+
+# This list constraint defines the maximum duration allowed for service account
+# key expiry. By default, created keys never expire. The allowed duration is
+# specified in hours, and must come from the list below. Only one allowed value
+# can be specified, and denied values are not supported. Specifying a duration
+# not in this list will result in an error. [1h, 8h, 24h, 168h, 336h, 720h,
+# 1440h, 2160h]. To enforce this constraint, you must set it to replace the
+# parent policy in the Cloud Console, or set inheritFromParent=false in the
+# policy file if using the gcloud CLI. This constraint can't be merged with a
+# parent policy. Enforcement of the constraint is not retroactive and will not
+# change pre-existing keys.
+# SHOULD HAVE
+# iam.serviceAccountKeyExpiryHours:
+#   rules:
+#   - allow:
+#       - 720h
