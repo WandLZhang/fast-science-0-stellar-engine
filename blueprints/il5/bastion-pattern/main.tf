@@ -1,0 +1,98 @@
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#Terraform Provider for Google Cloud Platform
+provider "google" {
+  project = var.project_id
+  region  = var.location
+}
+
+# Work on the Current Project
+data "google_project" "current" {}
+
+# Custom service account with compute engine role  
+resource "google_service_account" "compute" {
+  account_id = var.compute_service_account_id
+  project    = var.project_id
+}
+
+#Google KMS Module
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      google_service_account.compute.member,
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+      "user:${var.email}"
+    ]
+  }
+  keyring = var.keyring
+}
+
+module "mgmt-vpc" {
+  source                          = "../../../modules/net-vpc"
+  project_id                      = var.project_id
+  name                            = "prod-mgmt-0"
+  delete_default_routes_on_create = true
+  mtu                             = 1500
+}
+
+resource "google_compute_subnetwork" "subnet_one" {
+  name          = var.subnet_one
+  ip_cidr_range = var.ip_cidr_range
+  region        = var.location
+  network       = module.mgmt-vpc.self_link
+  project       = var.project_id
+}
+
+#Bastion compute instance 
+module "bastion-vm" {
+  source     = "../../../modules/compute-vm"
+  project_id = var.project_id
+  zone       = var.zone
+  name       = var.instance_name
+  shielded_config = {
+    enable_secure_boot          = true
+    enable_vtpm                 = true
+    enable_integrity_monitoring = true
+  }
+  instance_type = var.instance_type
+  network_interfaces = [{
+    network    = module.mgmt-vpc.self_link
+    subnetwork = google_compute_subnetwork.subnet_one.self_link
+  }]
+
+  service_account = {
+    email = google_service_account.compute.email
+  }
+
+  #Lockdown configuration
+  encryption = {
+    kms_key_self_link = module.kms.keys.default.id
+  }
+  attached_disks = [
+    {
+      auto_delete = true
+      size        = 10
+      name        = var.disk_name
+      initialize_params = {
+        image = var.image
+      }
+      kms_key_self_link = module.kms.keys.default.id
+    }
+  ]
+}
