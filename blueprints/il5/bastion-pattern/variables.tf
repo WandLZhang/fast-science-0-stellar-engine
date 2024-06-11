@@ -23,6 +23,19 @@ variable "location" {
   default = "us-east4"
 }
 
+variable "only_allowed_firewalls" {
+  type = string
+}
+
+variable "only_allowed_source_ranges" {
+  type = string
+}
+
+variable "my_vpc" {
+  type    = string
+  default = "us-east4"
+}
+
 variable "zone" {
   description = "This is the zone of the instance."
   type        = string
@@ -82,6 +95,7 @@ variable "keyring" {
   })
 
 }
+
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({

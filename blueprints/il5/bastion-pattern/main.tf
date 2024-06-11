@@ -22,6 +22,10 @@ provider "google" {
 # Work on the Current Project
 data "google_project" "current" {}
 
+data "google_compute_network" "my_vpc" {
+  name = var.my_vpc
+}
+
 # Custom service account with compute engine role  
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
@@ -57,6 +61,21 @@ resource "google_compute_subnetwork" "subnet_one" {
   region        = var.location
   network       = module.mgmt-vpc.self_link
   project       = var.project_id
+}
+
+resource "google_compute_firewall" "allow_from_iap_to_bastion" {
+  project = var.project_id
+  name    = var.only_allowed_firewalls
+  network = module.mgmt-vpc.self_link
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  # Allow access to the bastion instances from the Health Check endpoints
+  source_ranges           = var.allowed_source_ranges
+  target_service_accounts = [module.bastion-vm.service_account]
 }
 
 #Bastion compute instance 
