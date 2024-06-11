@@ -33,7 +33,7 @@ data "google_compute_network" "vpc" {
 module "vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = var.project_id
-  name                            = "vpc-project-${data.google_project.current.number}"
+  name                            = "vpc-pjt-${data.google_project.current.number}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
@@ -60,8 +60,8 @@ module "vpc" {
       ip_cidr_range = var.subnets_cidr_c
       description   = "Subnet c with secondary ranges"
       secondary_ip_ranges = {
-        a = "192.168.0.0/24"
-        b = "192.168.1.0/24"
+        a = var.secondary_ip_ranges_cidr_a
+        b = var.secondary_ip_ranges_cidr_b
       }
     }
   ]
