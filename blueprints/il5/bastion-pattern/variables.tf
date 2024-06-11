@@ -24,9 +24,8 @@ variable "location" {
 }
 
 variable "allowed_firewall_ports" {
-  description = "The list of the Allowed Ports"
-  type        = list(any)
-  #Example  default     = ["22", "443"]
+  description = "The allowed ports for the firewall"
+  type        = list(string)
 }
 
 variable "my_vpc" {

@@ -47,26 +47,18 @@ module "kms" {
   keyring = var.keyring
 }
 
-module "mgmt-vpc" {
-  source                          = "../../../modules/net-vpc"
-  project_id                      = var.project_id
-  name                            = "prod-mgmt-0"
-  delete_default_routes_on_create = true
-  mtu                             = 1500
-}
-
 resource "google_compute_subnetwork" "subnet_one" {
+  project       = var.project_id
   name          = var.subnet_one
   ip_cidr_range = var.ip_cidr_range
   region        = var.location
-  network       = module.mgmt-vpc.self_link
-  project       = var.project_id
+  network       = data.google_compute_network.my_vpc.self_link
 }
 
 # Google Computer Firewall
 resource "google_compute_firewall" "default" {
   name    = "allow-web"
-  network = module.mgmt-vpc.network.self_link
+  network = data.google_compute_network.my_vpc.self_link
   allow {
     protocol = "tcp"
     ports    = var.allowed_firewall_ports
@@ -88,7 +80,7 @@ module "bastion-vm" {
   }
   instance_type = var.instance_type
   network_interfaces = [{
-    network    = module.mgmt-vpc.self_link
+    network    = data.google_compute_network.my_vpc.self_link
     subnetwork = google_compute_subnetwork.subnet_one.self_link
   }]
 

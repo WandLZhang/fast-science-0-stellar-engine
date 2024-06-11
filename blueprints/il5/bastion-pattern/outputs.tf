@@ -20,7 +20,12 @@ output "kms_key_self_link" {
 
 output "vpc_self_link" {
   description = "The self link of the VPC"
-  value       = module.mgmt-vpc.self_link
+  value       = data.google_compute_network.my_vpc.self_link
+}
+
+output "firewall_self_link" {
+  description = "The self link of the firewall rule"
+  value       = data.google_compute_firewall.default.self_link
 }
 
 output "subnet_self_link" {
