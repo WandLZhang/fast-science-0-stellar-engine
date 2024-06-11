@@ -1,18 +1,18 @@
-project_id        = "my-repository-id"
+project_id             = "my-repository"
 
-image             = "projects/cos-cloud/global/images/family/cos-stable"
+image                  = "projects/cos-cloud/global/images/family/cos-stable"
 
 allowed_firewall_ports = ["80", "22", "443"]
 
-instance_name     = "sample-bastion"
+instance_name          = "sample-bastion"
 
-disk_name         = "data-disk"
+disk_name              = "data-disk"
 
-zone              = "us-east4-a"
+zone                   = "us-east4-a"
 
-my_vpc            = "my-vpc"
+my_vpc                 = "my-vpc"
 
-kms_key_self_link = "projects/my-project/locations/my-location/keyRings/my-keyring/cryptoKeys/my-key"
+kms_key_self_link      = "projects/my-project/locations/my-location/keyRings/my-keyring/cryptoKeys/my-key"
 
 keyring = {
   location = "us-east4"
@@ -41,6 +41,7 @@ email = "ashley.siddiqui@darkwolfsolutions.com"
 subnet_one = "subnet-one"
 
 ip_cidr_range              = "10.0.0.0/24"
+
 compute_service_account_id = "compute-one"
 
 allowed_source_ranges = [
