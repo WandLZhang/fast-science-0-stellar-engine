@@ -59,7 +59,9 @@ module "log-export-project" {
     # "serviceusage.googleapis.com",
     "bigquery.googleapis.com",
     "storage.googleapis.com",
-    "stackdriver.googleapis.com"
+    "stackdriver.googleapis.com",
+    "cloudkms.googleapis.com",
+    "pubsub.googleapis.com"
   ]
 }
 

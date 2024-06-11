@@ -53,6 +53,7 @@ compute.trustedImageProjects:
         - "is:projects/backupdr-images"
         - "is:projects/deeplearning-platform-release"
         - "is:projects/serverless-vpc-access-images"
+        - "is:projects/paloaltonetworksgcp-public"
 
 # compute.disableInternetNetworkEndpointGroup:
 #   rules:
