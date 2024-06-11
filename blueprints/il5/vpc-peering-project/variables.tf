@@ -60,3 +60,16 @@ variable "subnets_cidr_c" {
   type        = string
   #Example default ="10.200.12.0/25"
 }
+
+variable "secondary_ip_ranges_cidr_a" {
+  description = "The Secondary IP CIDR"
+  type        = string
+  #Example default ="192.168.0.0/24"
+}
+
+variable "secondary_ip_ranges_cidr_b" {
+  description = "The Secondary IP CIDR"
+  type        = string
+  #Example default ="192.168.1.0/24"
+}
+ 
