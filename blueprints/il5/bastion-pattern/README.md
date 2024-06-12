@@ -35,6 +35,7 @@ in the terraform output command. *Note*: You may need to change the zone in the 
 | kms_key_self_link |Self-link of kms key| `string` | n/a | yes |
 | compute_service_account_id |id of Compute Service account| `string` | n/a | yes | 
 | email | Email of user | `string` | n/a | yes |
+| group_email | Email of group | `string` | n/a | yes |
 | keyring | Keyring name | `string` | n/a | yes |
 | keys | Key names. | `list(string)` | `[]` | yes |
 | iam | Identity and Access Management. |`list(string)` |  `[]` | yes |

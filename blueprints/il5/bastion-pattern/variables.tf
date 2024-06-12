@@ -46,7 +46,7 @@ variable "email" {
 }
 
 variable "group_email" {
-  type = list(string)
+  type = string
 }
 
 variable "instance_type" {

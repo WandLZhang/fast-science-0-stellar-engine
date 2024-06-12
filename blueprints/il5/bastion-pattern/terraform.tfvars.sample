@@ -36,10 +36,9 @@ keys = {
   }
 }
 
-email = "ashley.siddiqui@darkwolfsolutions.com"
+email = "admin@email.com"
 
-group_email  =  ["email-name1@gmail.com",
-                "email-name2@gmail.com"]
+group_email = "gcp-devops@email.com"
 
 my_subnet     = "subnet-tnbsea-ashley"
 
