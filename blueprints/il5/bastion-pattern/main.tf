@@ -48,7 +48,6 @@ module "kms" {
         "serviceAccount:${google_service_account.compute.email}",
         "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
         "user:${var.email}",
-        "group:${var.group_email}"
     ])
   }
   keyring = var.keyring
