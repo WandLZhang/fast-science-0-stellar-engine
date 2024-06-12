@@ -1,3 +1,4 @@
+---
 # This list constraint defines the Cloud KMS key types which may be created
 # under a given hierarchy node. When this constraint is enforced, only KMS
 # key types specified within this org policy may be created within the
@@ -10,7 +11,7 @@
 cloudkms.allowedProtectionLevels:
   rules:
   - allow:
-      all: true 
+      HSM: true
 
 # This list constraint defines which projects may be used to supply
 # Customer-Managed Encryption Keys (CMEK) when creating resources. Setting this 

@@ -1,3 +1,4 @@
+---
 # This list constraint defines the set of domains that email addresses added to
 # Essential Contacts can have. By default, email addresses with any domain can
 # be added to Essential Contacts. The allowed/denied list must specify one or
@@ -6,11 +7,11 @@
 # one of the entries from the list of allowed domains can be added in Essential
 # Contacts.This constraint has no effect on updating or removing existing contacts.
 # MUST HAVE
-essentialcontacts.allowedContactDomains:
-  rules:
-  - allow:
-      values:
-        - ${domain_name}
+# essentialcontacts.allowedContactDomains:
+#   rules:
+#   - allow:
+#       values:
+#         - ${domain_name}
 
 # When Detailed Audit Logging Mode is enforced, both the request and response
 # are included in Cloud Audit Logs. Changes to this feature may take up to 10

@@ -1,3 +1,4 @@
+---
 # This boolean constraint restricts adding Authorized Networks for unproxied
 # database access to Cloud SQL instances where this constraint is set to True.
 # This constraint is not retroactive, Cloud SQL instances with existing
@@ -37,4 +38,3 @@ datastream.disablePublicConnectivity:
 firestore.requireP4SAforImportExport:
   rules:
   - enforce: false
-
