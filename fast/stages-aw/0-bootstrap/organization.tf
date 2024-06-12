@@ -94,6 +94,49 @@ locals {
     flatten(values(local._iam_principals)),
     keys(local._iam)
   ))
+
+  # Some of the org policies require templating to construct, they have been moved to data/custom-org-policies
+   # load org policy yaml files from a subdirectory
+  _org_policies_raw = merge([
+    for f in try(fileset("./data/custom-org-policies/", "*_policy.yml"), []) :
+    yamldecode(templatefile("./data/custom-org-policies/${f}", {
+      # NOTE:
+      # If there are more variables need to be substituted, put them
+      # into a separate yaml file or map, use the following line to
+      # loop throught them. For list values use yamlencode() function.
+      # for k, v in local.common_settings : k => v
+      organization_id: var.organization.id
+      domain_name: var.organization.domain
+      }
+  ))]...)
+  # formalize the policies
+  org_policies = {
+    for k, v in local._org_policies_raw :
+    k => {
+      inherit_from_parent = try(v.inherit_from_parent, null)
+      reset               = try(v.reset, null)
+      rules = [
+        for r in try(v.rules, []) : {
+          allow = can(r.allow) ? {
+            all    = try(r.allow.all, null)
+            values = try(r.allow.values, null)
+          } : null
+          deny = can(r.deny) ? {
+            all    = try(r.deny.all, null)
+            values = try(r.deny.values, null)
+          } : null
+          enforce = try(r.enforce, null)
+          condition = {
+            description = try(r.condition.description, null)
+            expression  = try(r.condition.expression, null)
+            location    = try(r.condition.location, null)
+            title       = try(r.condition.title, null)
+          }
+        }
+      ]
+    }
+  }
+
 }
 
 # TODO: add a check block to ensure our custom roles exist in the factory files
@@ -214,31 +257,34 @@ module "organization" {
       type                 = attrs.type
     }
   }
-  org_policies = var.bootstrap_user != null ? {} : {
-    "iam.allowedPolicyMemberDomains" = {
-      rules = [
-        {
-          allow = { values = local.drs_domains }
-          condition = {
-            expression = (
-              "!resource.matchTag('${local.drs_tag_name}', 'allowed-policy-member-domains-all')"
-            )
-          }
-        },
-        {
-          allow = { all = true }
-          condition = {
-            expression = (
-              "resource.matchTag('${local.drs_tag_name}', 'allowed-policy-member-domains-all')"
-            )
-            title = "allow-all"
-          }
-        },
-      ]
-    }
-    # "gcp.resourceLocations" = {}
-    # "iam.workloadIdentityPoolProviders" = {}
-  }
+  org_policies = var.bootstrap_user != null ? {} : merge(
+    {
+      "iam.allowedPolicyMemberDomains" = {
+        rules = [
+          {
+            allow = { values = local.drs_domains }
+            condition = {
+              expression = (
+                "!resource.matchTag('${local.drs_tag_name}', 'allowed-policy-member-domains-all')"
+              )
+            }
+          },
+          {
+            allow = { all = true }
+            condition = {
+              expression = (
+                "resource.matchTag('${local.drs_tag_name}', 'allowed-policy-member-domains-all')"
+              )
+              title = "allow-all"
+            }
+          },
+        ]
+      }
+      # "gcp.resourceLocations" = {}
+      # "iam.workloadIdentityPoolProviders" = {}
+    },
+    local._org_policies_raw
+  )
   tags = {
     (var.org_policies_config.tag_name) = {
       description = "Organization policy conditions."

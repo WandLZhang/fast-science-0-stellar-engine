@@ -10,7 +10,7 @@
 # of constraints that is commonly used and advised.
 compute.vmExternalIpAccess:
   rules:
-  - allow:
+  - deny:
       all: true
 
 # This boolean constraint disables Compute Engine API access to the Guest
@@ -67,9 +67,9 @@ compute.disableSerialPortAccess:
 # If this constraint is applied to a Project running public clusters, GKE
 # instances running in that Project may not function properly.
 # COULD HAVE
-# compute.requireOsLogin:
-#   rules:
-#   - enforce: false
+compute.requireOsLogin:
+  rules:
+  - enforce: true
 
 
 # This boolean constraint, when set to True, requires that all new Compute 
@@ -188,10 +188,30 @@ compute.disableSerialPortAccess:
 # be strings in the form: projects/PROJECT_ID. If this constraint is active,
 # only images from trusted projects will be allowed as the source for boot
 # disks for new instances.
-# compute.trustedImageProjects:
-#   rules:
-#   - allow:
-#       all: true
+compute.trustedImageProjects:
+  rules:
+  - allow:
+      values:
+        - "is:projects/centos-cloud"
+        - "is:projects/cos-cloud"
+        - "is:projects/debian-cloud"
+        - "is:projects/fedora-cloud"
+        - "is:projects/fedora-coreos-cloud"
+        - "is:projects/opensuse-cloud"
+        - "is:projects/rhel-cloud"
+        - "is:projects/rhel-sap-cloud"
+        - "is:projects/rocky-linux-cloud"
+        - "is:projects/suse-cloud"
+        - "is:projects/suse-sap-cloud"
+        - "is:projects/ubuntu-os-cloud"
+        - "is:projects/ubuntu-os-pro-cloud"
+        - "is:projects/windows-cloud"
+        - "is:projects/windows-sql-cloud"
+        - "is:projects/confidential-vm-images"
+        - "is:projects/backupdr-images"
+        - "is:projects/deeplearning-platform-release"
+        - "is:projects/serverless-vpc-access-images"
+        - "is:projects/paloaltonetworksgcp-public"
 
 
 # This list constraint defines the set of VM instances that can enable IP
@@ -234,28 +254,6 @@ compute.disableNonFIPSMachineTypes:
 #   rules:
 #   - enforce: true
 
-# only allow GCP images by default
-compute.trustedImageProjects:
+compute.disableGuestAttributesAccess:
   rules:
-  - allow:
-      values:
-        - "is:projects/centos-cloud"
-        - "is:projects/cos-cloud"
-        - "is:projects/debian-cloud"
-        - "is:projects/fedora-cloud"
-        - "is:projects/fedora-coreos-cloud"
-        - "is:projects/opensuse-cloud"
-        - "is:projects/rhel-cloud"
-        - "is:projects/rhel-sap-cloud"
-        - "is:projects/rocky-linux-cloud"
-        - "is:projects/suse-cloud"
-        - "is:projects/suse-sap-cloud"
-        - "is:projects/ubuntu-os-cloud"
-        - "is:projects/ubuntu-os-pro-cloud"
-        - "is:projects/windows-cloud"
-        - "is:projects/windows-sql-cloud"
-        - "is:projects/confidential-vm-images"
-        - "is:projects/backupdr-images"
-        - "is:projects/deeplearning-platform-release"
-        - "is:projects/serverless-vpc-access-images"
-        - "is:projects/paloaltonetworksgcp-public"
+    - enforce: true

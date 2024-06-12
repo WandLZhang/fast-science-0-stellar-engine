@@ -7,7 +7,7 @@
 # MUST HAVE
 sql.restrictAuthorizedNetworks:
   rules:
-  - enforce: false
+  - enforce: true
 
 # This boolean constraint restricts configuring Public IP on Cloud SQL
 # instances where this constraint is set to True. This constraint is not

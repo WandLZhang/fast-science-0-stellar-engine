@@ -51,4 +51,9 @@ storage.restrictAuthTypes:
 # MUST HAVE
 storage.uniformBucketLevelAccess:
   rules:
-  - enforce: false
+  - enforce: true
+
+
+storage.secureHttpTransport:
+  rules:
+    - enforce: true
