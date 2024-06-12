@@ -1,3 +1,4 @@
+---
 # This list constraint defines the allowed ingress settings for deployment of a
 # Cloud Function. When this constraint is enforced, functions will be required
 # to have ingress settings that match one of the allowed values. By default,

@@ -1,3 +1,4 @@
+---
 # This boolean constraint, when enforced, disables public marketplace for all users under the org. By default, public marketplace access is enabled for the org.
 # COULD HAVE
 # commerceorggovernance.disablePublicMarketplace:

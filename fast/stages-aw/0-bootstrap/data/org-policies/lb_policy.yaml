@@ -1,10 +1,11 @@
+---
 # This boolean constraint, when enforced, disables creating Cloud Armor security
 # policies. By default, you can create Cloud Armor security policies in any
 # organization, folder, or project.
 # COULD HAVE
 compute.disableGlobalCloudArmorPolicy:
   rules:
-  - enforce: false
+  - enforce: true
 
 # This boolean constraint disables creation of global load balancing products.
 # When enforced, only regional load balancing products without global dependencies
@@ -12,7 +13,7 @@ compute.disableGlobalCloudArmorPolicy:
 # COULD HAVE
 compute.disableGlobalLoadBalancing:
   rules:
-  - enforce: false
+  - enforce: true
 
 # This boolean constraint, when enforced, disables creation of global
 # self-managed SSL Certificates. Creation of google-managed or regional
@@ -22,7 +23,7 @@ compute.disableGlobalLoadBalancing:
 # COULD HAVE
 compute.disableGlobalSelfManagedSslCertificate:
   rules:
-  - enforce: false
+  - enforce: true
 
 # This list constraint defines the set of load balancer types which can be
 # created for an organization, folder, or project. Every load balancer type
