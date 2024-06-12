@@ -14,7 +14,7 @@ And to set the gcloud project default in your CLI
 gcloud config set project <prefix>-prod-iac-core-0
 ```
 Use the following command to access the web portal `gcloud compute ssh management-bastion --zone us-east4-a --tunnel-through-iap -- -L 8443:<ip-of-ngfw>:443`. 
-From here, you should be able to access the management interface at the url https://localhost:8443/ and log in with the username `admin` and the password you found using 
+From here, you should be able to access the management interface at the url https://localhost:8443 
 in the terraform output command. *Note*: You may need to change the zone in the above command if your management bastion host wasn't deployed in `us-east4-a`.
 
 ## Inputs
@@ -35,7 +35,6 @@ in the terraform output command. *Note*: You may need to change the zone in the 
 | kms_key_self_link |Self-link of kms key| `string` | n/a | yes |
 | compute_service_account_id |id of Compute Service account| `string` | n/a | yes | 
 | email | Email of user | `string` | n/a | yes |
-| group_email | Email of group | `string` | n/a | yes |
 | keyring | Keyring name | `string` | n/a | yes |
 | keys | Key names. | `list(string)` | `[]` | yes |
 | iam | Identity and Access Management. |`list(string)` |  `[]` | yes |

@@ -45,10 +45,6 @@ variable "email" {
   type = string
 }
 
-variable "group_email" {
-  type = string
-}
-
 variable "instance_type" {
   type    = string
   default = "e2-small"
