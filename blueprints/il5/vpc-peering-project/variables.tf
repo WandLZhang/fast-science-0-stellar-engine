@@ -19,12 +19,6 @@ variable "project_id" {
   #default     = "project-id"
 }
 
-variable "email" {
-  description = "Email address of the user."
-  type        = string
-  # Example  default = "your-email-address@your-domain.com"
-}
-
 variable "location" {
   description = "Location of the Shielded Compute VM"
   type        = string
