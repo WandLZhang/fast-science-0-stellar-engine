@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "project_id" {
+variable "current_project_id" {
   description = "Project ID"
   type        = string
   #default     = "project-id"
@@ -25,10 +25,10 @@ variable "location" {
   default     = "us-east4"
 }
 
-variable "host_project_name" {
-  description = "The name of the Host Project"
+variable "peer_host_project_name" {
+  description = "The name of the Peering Host Project"
   type        = string
-  #Example   default     = "abc-host-project-name"
+  #Example   default     = "peer-host-project-name"
 }
 
 variable "peer_network_name" {
@@ -66,4 +66,4 @@ variable "secondary_ip_ranges_cidr_b" {
   type        = string
   #Example default ="192.168.1.0/24"
 }
- 
+

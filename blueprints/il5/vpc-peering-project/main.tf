@@ -16,7 +16,7 @@
 
 # Terraform Provider for Google Cloud Platform
 provider "google" {
-  project = var.project_id
+  project = var.current_project_id
   region  = var.location
 }
 
@@ -25,14 +25,14 @@ data "google_project" "current" {}
 
 # Get existing vpc from existing project (Main project)
 data "google_compute_network" "vpc" {
-  project = var.host_project_name
+  project = var.peer_host_project_name
   name    = var.peer_network_name
 }
 
 # Google VPC Module
 module "vpc" {
   source                          = "../../../modules/net-vpc"
-  project_id                      = var.project_id
+  project_id                      = var.current_project_id
   name                            = "vpc-pjt-${data.google_project.current.number}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
