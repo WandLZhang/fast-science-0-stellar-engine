@@ -13,16 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-output "vpc-network-id" {
-  description = "Fully qualified network id."
-  value       = module.vpc.id
-}
-
-output "vpc-network-name" {
-  description = "Network name."
-  value       = module.vpc.name
-}
-
 output "vpc-network" {
   description = "Network resource."
   value       = module.vpc.network
