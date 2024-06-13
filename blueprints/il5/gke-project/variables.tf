@@ -21,6 +21,14 @@ variable "region" {
   type        = string
   default     = "us-east4"
 }
+
+variable "compute_service_account_id" {
+  description = "The Compute Enginer Service account"
+  type        = string
+  default     = "gke-compute-sa"
+}
+
+
 variable "node_config" {
   description = "Node-level configuration."
   type = object({
@@ -29,10 +37,7 @@ variable "node_config" {
     tags              = optional(list(string))
   })
   default = {
-    # boot_disk_kms_key = "gke-keyringv1"
-    boot_disk_kms_key = "projects/tnbsea-dev-tapand-dev/locations/us-east4/keyRings/gke-keyringv1/cryptoKeys/gke-keyname"
-
-
+    boot_disk_kms_key = "projects/tnbsea-dev-tapand-dev/locations/us-east4/keyRings/gke-keyringv2/cryptoKeys/gke-keynamev2"
   }
 }
 
@@ -44,7 +49,7 @@ variable "keyring" {
   })
   default = {
     location = "us-east4"
-    name     = "gke-keyringv1"
+    name     = "gke-keyringv2"
   }
 }
 
@@ -81,7 +86,7 @@ variable "keys" {
     })), {})
   }))
   default = {
-    "gke-keyname" = {
+    "gke-keynamev2" = {
       rotation_period            = "7776000s"
       destroy_scheduled_duration = "2592000s"
       labels = {
@@ -100,4 +105,10 @@ variable "keys" {
     }
   }
   nullable = false
+}
+variable "deletion_protection" {
+  description = "Prevent Terraform from destroying data storage resources (storage buckets, GKE clusters, CloudSQL instances) in this blueprint. When this field is set in Terraform state, a terraform destroy or terraform apply that would delete data storage resources will fail."
+  type        = bool
+  default     = false
+  nullable    = false
 }
