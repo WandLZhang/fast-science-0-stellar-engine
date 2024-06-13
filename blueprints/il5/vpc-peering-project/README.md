@@ -154,7 +154,7 @@ Changes to Outputs:
           + network                    = "vpc-project-xxxxxx"
           + private_ip_google_access   = true
           + private_ipv6_google_access = (known after apply)
-          + project                    = "tnbsea-dev-tapand-dev"
+          + project                    = "project-xxxxxx"
           + purpose                    = (known after apply)
           + region                     = "us-east4"
           + role                       = null
