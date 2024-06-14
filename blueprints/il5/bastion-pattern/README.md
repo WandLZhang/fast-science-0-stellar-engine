@@ -1,21 +1,47 @@
 
 ## Introduction Bastion Pattern (Bastion Pattern Project)
-Bastions simplify secuirty administration. The internal network can be configured to block all the internet-bound traffic. It only allows SSH communications with the bastion host. The bastion pattern grants authorized users access access to a priate network from an external network such as internet. 
+Bastions simplify secuirty administration. The internal network can be configured to block all the internet-bound traffic. It only allows SSH communications with the bastion host. The bastion pattern grants authorized users access access to a priate network from an external network such as internet. By following these steps, you will securely access multiple web services via the bastion host using port forwarding. This README section explains how to set up port forwarding for multiple ports and access the corresponding web services.
 1. The IAM Permissions and Roles ```roles/cloudkms.cryptoKeyEncrypterDecrypter``` is assigned
 Obtains access credentials for your user account via a web-based authorization flow. When this command completes successfully, it sets the active account in the current configuration to the account specified.
 
 ## Pre-requisite for Bastion Pattern Project (Bastion Pattern Project)
-1. The Principal (user or group) must enablw BigQuery API in their Google Cloud Project 
-2. Have access to the GCP Project ID
-3.  You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
-4.  __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
-And to set the gcloud project default in your CLI
-```bash
-gcloud config set project <prefix>-prod-iac-core-0
-```
-Use the following command to access the web portal `gcloud compute ssh management-bastion --zone us-east4-a --tunnel-through-iap -- -L 8443:<ip-of-ngfw>:443`. 
-From here, you should be able to access the management interface at the url https://localhost:8443 
-in the terraform output command. *Note*: You may need to change the zone in the above command if your management bastion host wasn't deployed in `us-east4-a`.
+1. Have access to the GCP Project ID
+2. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
+3. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
+
+## How can you connect to the Bastion? 
+To access the web portal through the bastion host, follow these steps:
+
+1. **Set the Active Project** :
+   ```bash
+gcloud config set project set project <your-project-id>```
+
+This command will configure the gcloud CLI to utilize the specified project for every subsequent command. Thus, you should replace your project ID of your project with the ID of your Google Cloud Platform project. 
+
+2. **SSH into the Bastion Host via Port Forwarding**:
+Use the following command to create an SSH tunnel through the bastion host and set up port forwarding for multiple ports:
+gcloud compute ssh <your-bastion-host-name> --zone <your-zone> --tunnel-through-iap --project <your-project-id> -- \
+-L 8443:<ip-of-bastion>:<remote-port1> \
+-L 8444:<ip-of-bastion>:<remote-port2>\
+-L 8445:<ip-of-bastion>::<remote-port3>```
+
+For example, if you need to forward local ports 8443, 8444, and 8445 to remote ports 443, 8443, and 8444 on <ip-of-bastion>, respectively, you would use:
+gcloud compute ssh management-bastion --zone us-east4-a --tunnel-through-iap --project example-prod-iac-core-0 -- \
+-L 8443:192.168.1.10:443 \
+-L 8444:192.168.1.10:8443 \
+-L 8445:192.168.1.10:8444
+
+In this example:
+	•	-L 8443:192.168.1.10:443: Forwards local port 8443 to port 443 on the remote server.
+	•	-L 8444:192.168.1.10:8443: Forwards local port 8444 to port 8443 on the remote server.
+	•	-L 8445:192.168.1.10:8444: Forwards local port 8445 to port 8444 on the remote server.
+
+3. **Access the Web Portals**:
+Once the SSH tunnel is established, you can access the web services by navigating to these websites in your web browser:
+	•	https://localhost:8443 for the service on remote port 443.
+	•	https://localhost:8444 for the service on remote port 8443.
+	•	https://localhost:8445 for the service on remote port 8444.
+
 
 ## Inputs
 
