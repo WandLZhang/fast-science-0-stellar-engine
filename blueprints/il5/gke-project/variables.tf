@@ -53,6 +53,26 @@ variable "keyring" {
   }
 }
 
+variable "default_nodepool" {
+  description = "Enable default nodepool."
+  type = object({
+    remove_pool        = optional(bool, true)
+    initial_node_count = optional(number, 1)
+  })
+  default = {
+    remove_pool        = false
+    initial_node_count = 1
+  }
+  nullable = false
+  validation {
+    condition = (
+      var.default_nodepool.remove_pool != true
+      ||
+      var.default_nodepool.initial_node_count != null
+    )
+    error_message = "If `remove_pool` is set to false, `initial_node_count` needs to be set."
+  }
+}
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
