@@ -3,6 +3,8 @@ locals {
     for f in try(fileset("data/", "*.yaml"), []) :
     yamldecode(file("data/${f}"))
   ]...)
+
+  docker-registries = merge(google_artifact_registry_repository.docker-repos, {"docker-hub"=google_artifact_registry_repository.docker-hub} )
 }
 
 data "google_project" "project" {}
