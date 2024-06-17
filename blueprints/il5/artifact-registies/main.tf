@@ -13,6 +13,8 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      google_service_account.consumer.member,
+      "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com",
       "serviceAccount:service-${data.google_project.project.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com"
     ]
   }
@@ -53,7 +55,7 @@ resource "google_artifact_registry_repository" "docker-hub" {
       public_repository = "DOCKER_HUB"
     }
   }
-    kms_key_name = module.kms.keys["artifact-registry"].id
+  kms_key_name = module.kms.keys["artifact-registry"].id
   depends_on = [
     module.kms
   ]
@@ -74,7 +76,7 @@ resource "google_artifact_registry_repository" "docker-repos" {
       }
     }
   }
-    kms_key_name = module.kms.keys["artifact-registry"].id
+  kms_key_name = module.kms.keys["artifact-registry"].id
   depends_on = [
     module.kms
   ]

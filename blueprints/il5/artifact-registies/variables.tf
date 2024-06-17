@@ -73,3 +73,11 @@ variable "keys" {
 
   nullable = false
 }
+
+### Variables required for the demo consumer VM
+variable "compute_vpc" {
+  description = "VPC for deploying the compute VM which will access the registry"
+  type        = string
+  default     = ""
+  nullable    = false
+}
