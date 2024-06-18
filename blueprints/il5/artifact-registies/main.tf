@@ -73,7 +73,7 @@ resource "google_artifact_registry_repository" "docker-hub" {
   # We build the KMS key this way so that we can create this registry before the KMS module is called
   # This forces GCP to create the service-account, so that we can grant the service account permissions to use KMS
   # Getting us out of the dependency loop
-  kms_key_name = "projects/${data.google_project.project.name}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/artifact-registry"
+  kms_key_name = "${data.google_project.project.id}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/artifact-registry"
   depends_on   = [google_project_service.api]
 }
 
