@@ -22,23 +22,101 @@ variable "region" {
   default     = "us-east4"
 }
 
-variable "compute_service_account_id" {
-  description = "The Compute Enginer Service account"
+variable "gke_service_account_id" {
+  description = "The GKE Service account"
   type        = string
   default     = "gke-compute-sa"
 }
 
+variable "vpc_name_1" {
+  description = "The VPC Name"
+  type        = string
+  default     = "vpc-gke-j18"
+}
 
-variable "node_config" {
-  description = "Node-level configuration."
+variable "subnet_name_1" {
+  description = "The Subnet Name"
+  type        = string
+  default     = "subnet-gke-j18-a"
+}
+
+variable "subnet_ip_cidr_range_1" {
+  description = "The CIDR Range for the VPC Subnet"
+  type        = string
+  default     = "10.0.4.0/22"
+}
+
+variable "subnet_secondary_ip_range_pods_1" {
+  description = "The CIDR Range for the secondary IP CIDR Ranges for the k8s pods"
+  type        = string
+  default     = "10.4.0.0/14"
+}
+
+variable "subnet_secondary_ip_range_services_1" {
+  description = "The CIDR Range for the secondary IP CIDR Ranges for the k8s services"
+  type        = string
+  default     = "10.0.32.0/20"
+}
+
+variable "gke_vpc_master_ipv4_cidr_block" {
+  description = "The CIDR Range for the GKE Master IP CIDR Ranges for the k8s used for VPC configuration"
+  type        = string
+  default     = "192.168.0.0/28"
+}
+
+variable "gke_cluster_name" {
+  description = "The GKE Kubernetes Cluster Name"
+  type        = string
+  default     = "gke-k8-j18"
+}
+
+variable "gke_initial_node_count" {
+  description = "The Initla Node Count when the GKE Cluster Spins up"
+  type        = number
+  default     = 1
+}
+
+variable "node_config_tags" {
+  description = "The Tags on the Node Configuration"
+  type        = list(string)
+  default     = ["node-config-gke", "intial-nodeconfig-gke"]
+  nullable    = false
+}
+
+variable "gke_nat_name" {
+  description = "The GKE Cloud NAT to name"
+  type        = string
+  default     = "nat-gke-j18"
+}
+
+variable "gke_nodepool_name" {
+  description = "The GKE Kubernetes Cluster Name"
+  type        = string
+  default     = "gke-nodepoolj18"
+}
+
+variable "node_machine_type" {
+  description = "The Node Machine type to be used in the NodePool"
+  type        = string
+  default     = "e2-medium"
+}
+
+variable "node_disk_size_gb" {
+  description = "The disk size in GB to be given to each node"
+  type        = number
+  default     = 15
+}
+
+variable "nodepool_node_count" {
+  description = "Number of nodes  in the Nodepool"
   type = object({
-    boot_disk_kms_key = optional(string)
-    service_account   = optional(string)
-    tags              = optional(list(string))
+    current = optional(number)
+    initial = number
   })
   default = {
-    boot_disk_kms_key = "projects/tnbsea-dev-tapand-dev/locations/us-east4/keyRings/gke-keyringv2/cryptoKeys/gke-keynamev2"
+    initial = 1
   }
+  nullable = false
 }
 
 variable "keyring" {
@@ -49,30 +127,10 @@ variable "keyring" {
   })
   default = {
     location = "us-east4"
-    name     = "gke-keyringv2"
+    name     = "gkekeyring"
   }
 }
 
-variable "default_nodepool" {
-  description = "Enable default nodepool."
-  type = object({
-    remove_pool        = optional(bool, true)
-    initial_node_count = optional(number, 1)
-  })
-  default = {
-    remove_pool        = false
-    initial_node_count = 1
-  }
-  nullable = false
-  validation {
-    condition = (
-      var.default_nodepool.remove_pool != true
-      ||
-      var.default_nodepool.initial_node_count != null
-    )
-    error_message = "If `remove_pool` is set to false, `initial_node_count` needs to be set."
-  }
-}
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
@@ -106,7 +164,7 @@ variable "keys" {
     })), {})
   }))
   default = {
-    "gke-keynamev2" = {
+    "key-gke" = {
       rotation_period            = "7776000s"
       destroy_scheduled_duration = "2592000s"
       labels = {
@@ -126,9 +184,6 @@ variable "keys" {
   }
   nullable = false
 }
-variable "deletion_protection" {
-  description = "Prevent Terraform from destroying data storage resources (storage buckets, GKE clusters, CloudSQL instances) in this blueprint. When this field is set in Terraform state, a terraform destroy or terraform apply that would delete data storage resources will fail."
-  type        = bool
-  default     = false
-  nullable    = false
-}
+
+
+
