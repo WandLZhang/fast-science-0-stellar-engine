@@ -22,7 +22,6 @@ module "kms" {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.consumer.member,
       "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com",
-      "serviceAccount:service-${data.google_project.project.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com"
     ]
   }
   keyring = {
@@ -30,7 +29,6 @@ module "kms" {
     location = var.region
   }
   depends_on = [
-    google_artifact_registry_repository.docker-hub,
     google_project_service.api
   ]
 }
@@ -51,7 +49,7 @@ resource "google_artifact_registry_repository" "yum-repos" {
       }
     }
   }
-  kms_key_name = module.kms.keys["artifact-registry"].id
+  kms_key_name = module.kms.keys.artifact-registry.id
   depends_on = [
     module.kms,
     google_project_service.api
@@ -70,11 +68,12 @@ resource "google_artifact_registry_repository" "docker-hub" {
       public_repository = "DOCKER_HUB"
     }
   }
-  # We build the KMS key this way so that we can create this registry before the KMS module is called
-  # This forces GCP to create the service-account, so that we can grant the service account permissions to use KMS
-  # Getting us out of the dependency loop
-  kms_key_name = "${data.google_project.project.id}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/artifact-registry"
-  depends_on   = [google_project_service.api]
+
+  kms_key_name = module.kms.keys.artifact-registry.id
+  depends_on   = [
+    google_project_service.api,
+    google_kms_crypto_key_iam_member.crypto_key
+  ]
 }
 
 resource "google_artifact_registry_repository" "docker-repos" {
@@ -92,32 +91,15 @@ resource "google_artifact_registry_repository" "docker-repos" {
       }
     }
   }
-  kms_key_name = module.kms.keys["artifact-registry"].id
+  kms_key_name = module.kms.keys.artifact-registry.id
   depends_on = [
     module.kms,
     google_project_service.api
   ]
 }
 
-# Configure Google AOSS
-# External registeration required here https://developers.google.com/assured-oss#get-started
-
-# resource "google_artifact_registry_repository" "aoss-python" {
-#   location      = var.region
-#   repository_id = "aoss-python"
-#   description   = "Google Assured Open Source Software"
-#   format        = "PYTHON"
-#   mode          = "REMOTE_REPOSITORY"
-#   remote_repository_config {
-#     description                 = "Manage connection here https://developers.google.com/assured-oss#get-started"
-#     disable_upstream_validation = true
-#     python_repository {
-#       custom_repository {
-#         uri = "https://us-python.pkg.dev/cloud-aoss/python/simple/"
-#       }
-#     }
-#   }
-# }
-
-
-
+resource "google_kms_crypto_key_iam_member" "crypto_key" {
+  crypto_key_id = module.kms.keys.artifact-registry.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-artifactregistry.iam.gserviceaccount.com"
+}
