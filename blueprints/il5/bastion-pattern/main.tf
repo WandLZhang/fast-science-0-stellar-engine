@@ -46,8 +46,6 @@ module "kms" {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
         "serviceAccount:${google_service_account.compute.email}",
-        "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-        "user:${var.email}",
     ])
   }
   keyring = var.keyring
@@ -88,7 +86,7 @@ module "bastion-vm" {
 
   #Lockdown configuration
   encryption = {
-    kms_key_self_link = module.kms.keys.default.id
+    kms_key_self_link = module.kms.keys.bastion.id
   }
   attached_disks = [
     {
@@ -98,7 +96,13 @@ module "bastion-vm" {
       initialize_params = {
         image = var.image
       }
-      kms_key_self_link = module.kms.keys.default.id
+      kms_key_self_link = module.kms.keys.bastion.id
     }
   ]
+}
+
+resource "google_kms_crypto_key_iam_member" "crypto_key" {
+  crypto_key_id = module.kms.keys.bastion.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
 }

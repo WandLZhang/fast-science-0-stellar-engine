@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-output "kms_key_self_link" {
-  description = "The self link of the default KMS key"
-  value       = module.kms.keys.default.id
-}
-
 output "vpc_self_link" {
   description = "The self link of the VPC"
   value       = data.google_compute_network.my_vpc.self_link
