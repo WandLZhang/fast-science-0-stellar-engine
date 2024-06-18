@@ -41,10 +41,6 @@ variable "my_subnet" {
   type = string
 }
 
-variable "email" {
-  type = string
-}
-
 variable "instance_type" {
   type    = string
   default = "e2-small"
