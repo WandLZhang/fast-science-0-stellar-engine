@@ -99,6 +99,8 @@ module "bastion-vm" {
       kms_key_self_link = module.kms.keys.bastion.id
     }
   ]
+
+  depends_on = [ module.kms ]
 }
 
 resource "google_kms_crypto_key_iam_member" "crypto_key" {
