@@ -4,7 +4,7 @@ locals {
     yamldecode(file("data/${f}"))
   ]...)
 
-  docker-registries = merge(google_artifact_registry_repository.docker-repos, {"docker-hub"=google_artifact_registry_repository.docker-hub} )
+  docker-registries = merge(google_artifact_registry_repository.docker-repos, { "docker-hub" = google_artifact_registry_repository.docker-hub })
 }
 
 data "google_project" "project" {}
@@ -13,6 +13,7 @@ resource "google_project_service" "project" {
   project = data.google_project.project.id
   service = "artifactregistry.googleapis.com"
 }
+
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project
@@ -28,6 +29,7 @@ module "kms" {
     name     = var.keyring
     location = var.region
   }
+  depends_on = [google_artifact_registry_repository.docker-hub]
 }
 
 resource "google_artifact_registry_repository" "yum-repos" {
@@ -64,10 +66,10 @@ resource "google_artifact_registry_repository" "docker-hub" {
       public_repository = "DOCKER_HUB"
     }
   }
-  kms_key_name = module.kms.keys["artifact-registry"].id
-  depends_on = [
-    module.kms
-  ]
+  # We build the KMS key this way so that we can create this registry before the KMS module is called
+  # This forces GCP to create the service-account, so that we can grant the service account permissions to use KMS
+  # Getting us out of the dependency loop
+  kms_key_name = "projects/${data.google_project.project.name}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/artifact-registry"
 }
 
 resource "google_artifact_registry_repository" "docker-repos" {
