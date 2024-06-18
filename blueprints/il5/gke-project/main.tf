@@ -25,117 +25,108 @@ data "google_project" "current" {}
 
 
 # Custom service account with compute engine role  
-resource "google_service_account" "compute" {
-  account_id = var.compute_service_account_id
+resource "google_service_account" "gke" {
+  account_id = var.gke_service_account_id
   project    = var.project_id
 }
 
 
 #Create KMS Key Ring and Crypto Key using the kms module
-# module "kms" {
-#   source     = "../../../modules/kms"
-#   project_id = var.project_id
-#   keys       = var.keys
-#   keyring    = var.keyring
-#   iam = {
-#     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-#       "user:${var.email}",
-#       "group:${var.group_email}",
-#       "serviceAccount:${google_service_account.compute.email}",
-#       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-#     ]
-#   }
-# }
+module "kms" {
+  source     = "../../../modules/kms"
+  project_id = var.project_id
+  keys       = var.keys
+  keyring    = var.keyring
+  iam = {
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      "user:${var.email}",
+      "group:${var.group_email}",
+      "serviceAccount:${google_service_account.gke.email}",
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+    ]
+  }
+}
 
-# Google VPC Module
+
+# Google VPC Module management of VPC networks including subnetworks
 module "vpc" {
   source                  = "../../../modules/net-vpc"
   project_id              = var.project_id
-  name                    = "vpc-gke-kube"
+  name                    = var.vpc_name_1
   auto_create_subnetworks = false
   subnets = [
     {
-      ip_cidr_range = "10.0.4.0/22"
-      name          = "subnet-kube-1"
+      ip_cidr_range = var.subnet_ip_cidr_range_1
+      name          = var.subnet_name_1
       region        = var.region
       secondary_ip_ranges = {
-        pods     = "10.4.0.0/14"
-        services = "10.0.32.0/20"
+        pods     = var.subnet_secondary_ip_range_pods_1
+        services = var.subnet_secondary_ip_range_services_1
       }
     }
-
   ]
+  depends_on = [module.kms]
 }
 
-# Google Cloud NAT Module
+
+# Google Cloud NAT Module - Simple Cloud NAT management
 module "nat" {
   source         = "../../../modules/net-cloudnat"
   project_id     = var.project_id
   region         = var.region
-  name           = "dev-kube-nat"
+  name           = var.gke_nat_name
   router_network = module.vpc.name
-  depends_on     = [module.vpc]
+  depends_on     = [module.vpc, module.kms]
 }
+
 
 # Google GKE Kubernetes Standard Module
 module "cluster" {
   source              = "../../../modules/gke-cluster-standard"
   project_id          = var.project_id
-  name                = "cluster-kube-2"
+  name                = var.gke_cluster_name
   location            = var.region
   deletion_protection = false
-
-
   vpc_config = {
-    master_ipv4_cidr_block = "192.168.0.0/28"
+    master_ipv4_cidr_block = var.gke_vpc_master_ipv4_cidr_block
     network                = module.vpc.self_link
-    subnetwork             = module.vpc.subnet_self_links["${var.region}/subnet-kube-1"]
+    subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnet_name_1}"]
+  }
+  default_nodepool = {
+    initial_node_count       = var.gke_initial_node_count
+    remove_default_node_pool = false
+    deletion_protection      = false
   }
   node_config = {
-    boot_disk_kms_key        = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/gke-keynamev2"
-    deletion_protection      = false
-    remove_default_node_pool = false
-    initial_node_count       = 3
-
+    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-gke"
+    service_account   = google_service_account.gke.email
+    tags              = var.node_config_tags
   }
   private_cluster_config = {
     enable_private_endpoint = false
     master_global_access    = false
   }
-
-
-  depends_on = [module.vpc]
-}
-
-resource "google_kms_crypto_key_iam_binding" "gke_key_encrypter_decrypter" {
-  crypto_key_id = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/gke-keynamev2"
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  members = [
-    "user:${var.email}",
-    "group:${var.group_email}",
-    "serviceAccount:${google_service_account.compute.email}",
-    "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-  ]
-  depends_on = [module.vpc]
+  depends_on = [module.vpc, module.kms]
 }
 
 # Google GKE Kubernetes NodePool Module
 module "cluster_nodepool" {
   source       = "../../../modules/gke-nodepool"
   project_id   = var.project_id
-  cluster_name = "cluster-kube-2"
+  cluster_name = var.gke_cluster_name
   location     = var.region
-  name         = "nodepool-kube-1"
+  name         = var.gke_nodepool_name
+  node_count   = var.nodepool_node_count
+
   service_account = {
     create = false
   }
   node_config = {
-    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/gke-keynamev2"
-    disk_size_gb      = 20
-    machine_type      = "e2-medium"
+    boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-gke"
+    disk_size_gb      = var.node_disk_size_gb
+    machine_type      = var.node_machine_type
+    service_account   = "serviceAccount:${google_service_account.gke.email}"
   }
-  node_count = { initial = 2 }
-  depends_on = [module.vpc, module.cluster]
+
+  depends_on = [module.vpc, module.cluster, module.kms]
 }
-
-
