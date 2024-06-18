@@ -61,8 +61,8 @@ Once the SSH tunnel is established, you can access the web services by navigatin
 | kms_key_self_link |Self-link of kms key| `string` | n/a | yes |
 | compute_service_account_id |id of Compute Service account| `string` | n/a | yes | 
 | email | Email of user | `string` | n/a | yes |
-| keyring | Keyring name | `string` | n/a | yes |
-| keys | Key names. | `list(string)` | `[]` | yes |
+| keyring | KMS keyring to use for encryption. Use terraform import 'module.kms.google_kms_key_ring.default[0]' projects/\<your-project\>/locations/\<your location\>/keyRings/\<your-keyring\> if you want to use an existing keyring| `string` | n/a | yes |
+| keys | Key to use for encryption - defaults to the name "bastion". Use terraform import 'module.kms.google_kms_crypto_key.default["bastion"]' projects/\<your-project\>/locations/\<your-location\>/keyRings/\<your-keyring\>/cryptoKeys/bastion if you want to use an existing key | `list(string)` | `[]` | yes |
 | iam | Identity and Access Management. |`list(string)` |  `[]` | yes |
 | iam bindings| associates IAM policies with members | `list(string)`|  `[]` | yes |
 | default|contains the duration, roation, protection, algorithm of the keys  | `list(string)` | `[]` | yes |

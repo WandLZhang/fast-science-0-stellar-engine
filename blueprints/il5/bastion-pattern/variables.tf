@@ -126,7 +126,7 @@ variable "keys" {
   }))
 
   default = {
-    "default" = {
+    "bastion" = {
       destroy_scheduled_duration    = null
       rotation_period               = null
       labels                        = null
