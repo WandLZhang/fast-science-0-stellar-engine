@@ -9,6 +9,10 @@ locals {
 
 data "google_project" "project" {}
 
+resource "google_project_service" "project" {
+  project = data.google_project.project.id
+  service = "artifactregistry.googleapis.com"
+}
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project
