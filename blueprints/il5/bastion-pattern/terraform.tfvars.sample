@@ -1,4 +1,4 @@
-project_id             = "my-repository"
+project_id             = "my-project"
 image                  = "projects/cos-cloud/global/images/family/cos-stable"
 allowed_firewall_ports = ["80", "22", "443"]
 instance_name          = "sample-bastion"
@@ -10,7 +10,6 @@ keyring = {
   location = "us-east4"
   name     = "my-keyring"
 }
-email = "admin@email.com"
 my_subnet     = "my-subnet"
 ip_cidr_range              = "10.0.0.0/24"
 compute_service_account_id = "compute-one"
