@@ -73,7 +73,7 @@ variable "gke_cluster_name" {
 variable "gke_initial_node_count" {
   description = "The Initla Node Count when the GKE Cluster Spins up"
   type        = number
-  default     = 1
+  # default     = 1
 }
 
 variable "node_config_tags" {
@@ -115,9 +115,9 @@ variable "nodepool_node_count" {
   })
   nullable = false
   # Example  
-  # default = {
-  #   initial = 1
-  # }
+  default = {
+    initial = 1
+  }
 
 }
 

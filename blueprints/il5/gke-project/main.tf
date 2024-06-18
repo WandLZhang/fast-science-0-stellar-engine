@@ -31,21 +31,21 @@ resource "google_service_account" "gke" {
 }
 
 
-#Create KMS Key Ring and Crypto Key using the kms module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
-  keyring    = var.keyring
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "user:${var.email}",
-      "group:${var.group_email}",
-      "serviceAccount:${google_service_account.gke.email}",
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-    ]
-  }
-}
+# #Create KMS Key Ring and Crypto Key using the kms module
+# module "kms" {
+#   source     = "../../../modules/kms"
+#   project_id = var.project_id
+#   keys       = var.keys
+#   keyring    = var.keyring
+#   iam = {
+#     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+#       "user:${var.email}",
+#       "group:${var.group_email}",
+#       "serviceAccount:${google_service_account.gke.email}",
+#       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+#     ]
+#   }
+# }
 
 
 # Google VPC Module management of VPC networks including subnetworks
@@ -94,8 +94,7 @@ module "cluster" {
   }
   default_nodepool = {
     initial_node_count       = var.gke_initial_node_count
-    remove_default_node_pool = false
-    deletion_protection      = false
+    remove_default_node_pool = true
   }
   node_config = {
     boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-gke"
@@ -109,7 +108,7 @@ module "cluster" {
   depends_on = [module.vpc, module.kms]
 }
 
-# Google GKE Kubernetes NodePool Module
+# # Google GKE Kubernetes NodePool Module
 module "cluster_nodepool" {
   source       = "../../../modules/gke-nodepool"
   project_id   = var.project_id
@@ -127,6 +126,5 @@ module "cluster_nodepool" {
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
   }
-
   depends_on = [module.vpc, module.cluster, module.kms]
 }
