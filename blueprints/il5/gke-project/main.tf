@@ -47,6 +47,7 @@ module "kms" {
   }
 }
 
+
 # Google VPC Module management of VPC networks including subnetworks
 module "vpc" {
   source                  = "../../../modules/net-vpc"
@@ -68,17 +69,6 @@ module "vpc" {
 }
 
 
-# Google Cloud NAT Module - Simple Cloud NAT management
-module "nat" {
-  source         = "../../../modules/net-cloudnat"
-  project_id     = var.project_id
-  region         = var.region
-  name           = var.gke_nat_name
-  router_network = module.vpc.name
-  depends_on     = [module.vpc, module.kms]
-}
-
-
 # Google GKE Kubernetes Standard Module
 module "cluster" {
   source              = "../../../modules/gke-cluster-standard"
@@ -92,8 +82,8 @@ module "cluster" {
     subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnet_name_1}"]
   }
   default_nodepool = {
-    initial_node_count       = var.gke_initial_node_count
-    remove_default_node_pool = true
+    initial_node_count       = var.gke_initial_node_per_zone
+    remove_default_node_pool = false
   }
   node_config = {
     boot_disk_kms_key = "projects/${var.project_id}/locations/${var.region}/keyRings/${var.keyring.name}/cryptoKeys/key-gke"
@@ -107,7 +97,8 @@ module "cluster" {
   depends_on = [module.vpc, module.kms]
 }
 
-# # Google GKE Kubernetes NodePool Module
+
+# Google GKE Kubernetes NodePool Module
 module "cluster_nodepool" {
   source       = "../../../modules/gke-nodepool"
   project_id   = var.project_id
@@ -115,7 +106,6 @@ module "cluster_nodepool" {
   location     = var.region
   name         = var.gke_nodepool_name
   node_count   = var.nodepool_node_count
-
   service_account = {
     create = false
   }

@@ -83,11 +83,11 @@ variable "node_config_tags" {
   # default     = ["node-config-gke", "intial-nodeconfig-gke"]  
 }
 
-variable "gke_nat_name" {
-  description = "The GKE Cloud NAT to name"
-  type        = string
-  # default     = "nat-gke-kubernetes"
-}
+# variable "gke_nat_name" {
+#   description = "The GKE Cloud NAT to name"
+#   type        = string
+#   # default     = "nat-gke-kubernetes"
+# }
 
 variable "gke_nodepool_name" {
   description = "The GKE Kubernetes Cluster Name"
