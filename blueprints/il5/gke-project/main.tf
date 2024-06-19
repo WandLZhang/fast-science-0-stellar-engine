@@ -75,7 +75,7 @@ module "nat" {
   region         = var.region
   name           = var.gke_nat_name
   router_network = module.vpc.name
-  depends_on     = [module.vpc, module.kms]  
+  depends_on     = [module.vpc, module.kms]
 }
 
 
@@ -104,7 +104,7 @@ module "cluster" {
     enable_private_endpoint = false
     master_global_access    = false
   }
-  depends_on = [module.vpc, module.kms]  
+  depends_on = [module.vpc, module.kms]
 }
 
 # # Google GKE Kubernetes NodePool Module
