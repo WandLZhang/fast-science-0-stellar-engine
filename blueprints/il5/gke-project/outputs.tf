@@ -23,7 +23,6 @@ output "subnet_regions" {
   value       = module.vpc.subnet_regions
 }
 
-
 output "gke_cluster_name" {
   description = "The name of the GKE cluster."
   value       = module.cluster.name
@@ -33,7 +32,6 @@ output "gke_cluster_endpoint" {
   description = "The endpoint of the GKE cluster."
   value       = module.cluster.endpoint
 }
-
 
 output "cluster_master_version" {
   description = "Master version."
@@ -63,11 +61,6 @@ output "keyring_id" {
 output "keyring_resource" {
   description = "Keyring resource."
   value       = module.kms.keyring
-}
-
-output "qualified_key_ids" {
-  description = "Fully qualified key ids."
-  value       = module.kms.key_ids
 }
 
 output "keyrings_keys" {
