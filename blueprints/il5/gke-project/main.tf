@@ -64,7 +64,7 @@ module "vpc" {
       }
     }
   ]
-  #depends_on = [module.kms]
+  depends_on = [module.kms]
 }
 
 
@@ -75,8 +75,7 @@ module "nat" {
   region         = var.region
   name           = var.gke_nat_name
   router_network = module.vpc.name
-  #depends_on     = [module.vpc, module.kms]
-  depends_on = [module.vpc]
+  depends_on     = [module.vpc, module.kms]  
 }
 
 
@@ -105,8 +104,7 @@ module "cluster" {
     enable_private_endpoint = false
     master_global_access    = false
   }
-  #depends_on = [module.vpc, module.kms]
-  depends_on = [module.vpc]
+  depends_on = [module.vpc, module.kms]  
 }
 
 # # Google GKE Kubernetes NodePool Module
@@ -127,6 +125,5 @@ module "cluster_nodepool" {
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
   }
-  depends_on = [module.vpc, module.cluster]
-  # depends_on = [module.vpc, module.cluster, module.kms]
+  depends_on = [module.vpc, module.cluster, module.kms]
 }
