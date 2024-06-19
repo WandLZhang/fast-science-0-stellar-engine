@@ -29,35 +29,81 @@ It will take a few minutes. When complete, you should see an output stating the 
 
 The Output will look like following
 ```
-Apply complete! Resources: 8 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 11 added, 0 changed, 0 destroyed.
 
 Outputs:
 
+cluster_master_version = "1.29.4-gke.1043002"
 gke_cluster_endpoint = "x.x.x.x"
-gke_cluster_name = "gke-cluster-name"
-nodepool_id = "projects/project-name/locations/gcp-region-name/clusters/gke-cluster-name/nodePools/nodepool-name-here"
-nodepool_name = "nodepool-name-here"
+gke_cluster_name = "gke_cluster_name_xxx"
+keyring_id = "projects/project-name-xxx/locations/us-xxxxx/keyRings/keyring-xxx"
+keyring_location = "us-xxxxx"
+keyring_name = "keyring-xxx"
+keyring_resource = {
+  "id" = "projects/project-name-xxx/locations/us-xxxxx/keyRings/keyring-xxx"
+  "location" = "us-xxxxx"
+  "name" = "keyring-xxx"
+  "project" = "project-name-xxx"
+  "timeouts" = null /* object */
+}
+keyrings_keys = {
+  "keys-xxx" = {
+    "crypto_key_backend" = ""
+    "destroy_scheduled_duration" = "2592000s"
+    "effective_labels" = tomap({
+      "team" = "xxxx-team"
+    })
+    "id" = "projects/project-name-xxx/locations/us-xxxxx/keyRings/keyring-xxx/cryptoKeys/keys-xxx"
+    "import_only" = false
+    "key_ring" = "projects/project-name-xxx/locations/us-xxxxx/keyRings/keyring-xxx"
+    "labels" = tomap({
+      "team" = "team-xxx"
+    })
+    "name" = "keys-xxx"
+    "primary" = tolist([
+      {
+        "name" = "projects/project-name-xxx/locations/us-xxxxx/keyRings/keyring-xxx/cryptoKeys/keys-xxx/cryptoKeyVersions/1"
+        "state" = "ENABLED"
+      },
+    ])
+    "purpose" = "ENCRYPT_DECRYPT"
+    "rotation_period" = "7776000s"
+    "skip_initial_version_creation" = false
+    "terraform_labels" = tomap({
+      "team" = "team-xxx"
+    })
+    "timeouts" = null /* object */
+    "version_template" = tolist([
+      {
+        "algorithm" = "GOOGLE_SYMMETRIC_ENCRYPTION"
+        "protection_level" = "SOFTWARE"
+      },
+    ])
+  }
+}
+nodepool_id = "projects/project-name-xxx/locations/us-xxxxx/clusters/gke_cluster_name_xxx/nodePools/gke-nodepoolkc"
+nodepool_name = "gke-nodepoolkc"
 subnet_regions = {
-  "gcp-region-name/subnet-xxx-xxx" = "gcp-region-name"
+  "us-xxxxx/subnet-name-xxx" = "us-xxxxx"
 }
 subnets = {
-  "gcp-region-name/subnet-xxx-xxx" = {
+  "us-xxxxx/subnet-name-xxx" = {
     "description" = "Terraform-managed."
-    "external_ipv6_prefix" = ""
     "fingerprint" = tostring(null)
     "gateway_address" = "x.x.x.x"
-    "id" = "projects/project-name/regions/gcp-region-name/subnetworks/subnet-xxx-xxx"
+    "id" = "projects/project-name-xxx/regions/us-xxxxx/subnetworks/subnet-name-xxx"
     "internal_ipv6_prefix" = ""
     "ip_cidr_range" = "x.x.x.x/22"
     "ipv6_access_type" = ""
     "ipv6_cidr_range" = ""
     "log_config" = tolist([])
-    "name" = "subnet-xxx-xxx"
-    "network" = "https://www.googleapis.com/compute/v1/projects/project-name/global/networks/vpc-name-here"
+    "name" = "subnet-name-xxx"
+    "network" = "https://www.googleapis.com/compute/v1/projects/project-name-xxx/global/networks/vpc-name-xxx"
     "private_ip_google_access" = true
-    "project" = "project-name"
+    "private_ipv6_google_access" = "DISABLE_GOOGLE_ACCESS"
+    "project" = "project-name-xxx"
     "purpose" = "PRIVATE"
-    "region" = "gcp-region-name"
+    "region" = "us-xxxxx"
     "role" = ""
     "secondary_ip_range" = tolist([
       {
@@ -69,21 +115,21 @@ subnets = {
         "range_name" = "services"
       },
     ])
-    "self_link" = "https://www.googleapis.com/compute/v1/projects/project-name/regions/gcp-region-name/subnetworks/subnet-xxx-xxx"
+    "self_link" = "https://www.googleapis.com/compute/v1/projects/project-name-xxx/regions/us-xxxxx/subnetworks/subnet-name-xxx"
     "stack_type" = "IPV4_ONLY"
     "timeouts" = null /* object */
   }
 }
 vpc-network = {
-  "id" = "projects/project-name/global/networks/vpc-name-here"
-  "name" = "vpc-name-here"
-  "self_link" = "https://www.googleapis.com/compute/v1/projects/project-name/global/networks/vpc-name-here"
+  "id" = "projects/project-name-xxx/global/networks/vpc-name-xxx"
+  "name" = "vpc-name-xxx"
+  "self_link" = "https://www.googleapis.com/compute/v1/projects/project-name-xxx/global/networks/vpc-name-xxx"
 }
 vpc-subnet_ids = {
-  "gcp-region-name/subnet-xxx-xxx" = "projects/project-name/regions/gcp-region-name/subnetworks/subnet-xxx-xxx"
+  "us-xxxxx/subnet-name-xxx" = "projects/project-name-xxx/regions/us-xxxxx/subnetworks/subnet-name-xxx"
 }
 vpc-subnet_ips = {
-  "gcp-region-name/subnet-xxx-xxx" = "x.x.x.x/22"
+  "us-xxxxx/subnet-name-xxx" = "x.x.x.x/22"
 }
 
 
