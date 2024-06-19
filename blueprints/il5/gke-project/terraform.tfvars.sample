@@ -12,7 +12,6 @@ gke_vpc_master_ipv4_cidr_block       = "192.168.0.0/28"
 gke_cluster_name                     = "gke-k8-cluster_name"
 gke_initial_node_per_zone            = 1
 node_config_tags                     = ["node-config-gke", "intial-nodeconfig-gke"]
-gke_nat_name                         = "gke-nat-name"
 gke_nodepool_name                    = "gke-nodepool-name"
 node_machine_type                    = "e2-medium"
 node_disk_size_gb                    = 20
