@@ -57,11 +57,6 @@ data "google_compute_image" "vmseries" {
   most_recent = true
   project     = "paloaltonetworksgcp-public"
 }
-
-data "google_storage_project_service_account" "gcs_account" {
-  project = module.landing-project.project_id
-}
-
 data "google_compute_default_service_account" "gce_account" {
   project = module.landing-project.project_id
 }
@@ -145,7 +140,7 @@ resource "google_storage_bucket_iam_binding" "binding" {
   for_each = var.regions
   role     = "roles/storage.objectUser"
   members = [
-    data.google_compute_default_service_account.gce_account.member,
+    "serviceAccount:service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com",
     module.ngfw-service-account.service_account.member
   ]
 }
@@ -158,7 +153,7 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      data.google_storage_project_service_account.gcs_account.member,
+      "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",
       "serviceAccount:${local.cloud_compute_service_account}",
     ]
   }
@@ -170,7 +165,10 @@ module "kms" {
       protection_level = "HSM"
     }
   }
-  depends_on = [module.ngfw-service-account]
+  depends_on = [
+    module.ngfw-service-account,
+   module.landing-project
+   ]
 }
 
 resource "google_storage_bucket_object" "config_folders" {
