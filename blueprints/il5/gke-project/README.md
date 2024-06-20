@@ -141,3 +141,10 @@ vpc-subnet_ips = {
 - Click on the Cluster Name inside the Kubernetes Engine Panel
  
  ![Google Kubernetes Engine (GKE) Kubernetes Engine Panel](./images/gke2.png?raw=true "Google Kubernetes Engine (GKE) Kubernetes Engine Panel")
+
+
+## Cleanup
+Once the project is deployed, to ensure clean up, please apply following command.
+```bash
+terraform destory
+```
