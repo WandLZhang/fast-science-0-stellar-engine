@@ -6,10 +6,11 @@ billing_account = {
 
 # locations for GCS, BigQuery, and logging buckets created here
 locations = {
-  bq      = "US"
-  gcs     = "US"
-  logging = "us"
-  pubsub  = []
+  bq      = "us-east4"
+  gcs     = "us-east4"
+  logging = "us-east4"
+  pubsub  = ["us-east4"]
+  kms     = "us-east4"
 }
 
 # use `gcloud organizations list`
