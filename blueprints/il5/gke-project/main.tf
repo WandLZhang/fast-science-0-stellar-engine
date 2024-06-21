@@ -42,7 +42,7 @@ module "kms" {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       "user:${var.email}",
       "group:${var.group_email}",
-      "serviceAccount:${google_service_account.gke.email}",
+      google_service_account.gke.member,
       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
     ]
   }
