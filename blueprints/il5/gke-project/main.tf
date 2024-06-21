@@ -87,10 +87,16 @@ module "cluster" {
     remove_default_node_pool = var.remove_default_node_pool
   }
   node_config = {
-    boot_disk_kms_key =  module.kms.keys.key-k8s.id
+    boot_disk_kms_key = module.kms.keys.key-k8s.id
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
+  enable_features = {
+    enable_shielded_nodes = true
+    dataplane_v2          = true
+    binary_authorization  = true
+  }
+
   private_cluster_config = {
     enable_private_endpoint = var.gke_cluster_enable_private_endpoint
     master_global_access    = var.gke_cluster_master_global_access
@@ -110,11 +116,16 @@ module "cluster_nodepool" {
   service_account = {
     create = false
   }
-  node_config = {        
-    boot_disk_kms_key =  module.kms.keys.key-k8s.id
+  node_config = {
+    boot_disk_kms_key = module.kms.keys.key-k8s.id
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
+    shielded_instance_config = {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
+    }
   }
+
   depends_on = [module.vpc, module.cluster, module.kms]
 }
