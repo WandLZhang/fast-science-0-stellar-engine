@@ -18,6 +18,7 @@ backend.tf
 backend-config.hcl
 credentials.json
 id_rsa
+id_rsa.pub
 key.json
 terraform-ls.tf
 bundle.zip
