@@ -190,9 +190,6 @@ variable "keys" {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
         protection_level = "SOFTWARE"
       }
-      iam = {
-        "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:update-your-email-address-here", "group:update-group-email-address-here"]
-      }
       lifecycle = {
         prevent_destroy = true
       }
