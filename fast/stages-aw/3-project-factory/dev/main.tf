@@ -74,12 +74,11 @@ module "projects" {
   factories_config = var.factories_config
 }
 
-
 # Create Google VPC using modules
 module "vpc" {
   source                          = "../../../../modules/net-vpc"
   for_each                        = local.projects
-  project_id                      = "tnbsea-dev-${each.value.name}-dev"
+  project_id                      = "${var.prefix}-dev-${basename(trimsuffix(each.key, ".yaml"))}"
   name                            = "vpc-${var.prefix}-${each.value.name}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
