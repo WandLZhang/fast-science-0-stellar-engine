@@ -47,9 +47,9 @@ locals {
     }
   }
   nva_zones                     = ["b", "c"]
-  cloud_storage_service_account = "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com"
-  cloud_compute_service_account = "service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com"
   cidr_ranges                   = yamldecode(file("${path.module}/data/cidrs.yaml"))
+
+  cloud_compute_service_account = "service-${module.landing-project.number}@compute-system.iam.gserviceaccount.com"
 }
 
 data "google_compute_image" "vmseries" {
@@ -106,6 +106,7 @@ module "ngfw-service-account" {
       "roles/compute.viewer"
     ]
   }
+  depends_on = [ module.landing-project, google_project_iam_custom_role.ngfw-custom-role ]
 }
 
 data "external" "openssl" {
@@ -150,8 +151,8 @@ module "kms" {
   keys       = var.keys
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",
-      "serviceAccount:${local.cloud_compute_service_account}",
+      "serviceAccount:service-${module.landing-project.number}@gs-project-accounts.iam.gserviceaccount.com",
+      "serviceAccount:${local.cloud_compute_service_account}"
     ]
   }
   keyring = {
@@ -164,7 +165,7 @@ module "kms" {
   }
   depends_on = [
     module.ngfw-service-account,
-   module.landing-project
+    module.landing-project
    ]
 }
 
