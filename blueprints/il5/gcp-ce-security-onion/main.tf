@@ -39,10 +39,10 @@ module "compute-engine-vm" {
   instance_type = var.instance_type
   network_interfaces = [{
     network    = module.vpc.network.self_link
-    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-${data.google_project.current.number}"
+    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-so"
   }]
   encryption = {
-    kms_key_self_link = module.kms.keys.default.id
+    kms_key_self_link = module.kms.keys.key-so.id
   }
   service_account = {
     email = google_service_account.compute.email
@@ -51,12 +51,12 @@ module "compute-engine-vm" {
   attached_disks = [
     {
       auto_delete = var.auto_delete
-      size        = 20
+      size        = 100
       name        = "data-disk"
       initialize_params = {
         image = "debian-cloud/debian-10"
       }
-      kms_key_self_link = module.kms.keys.default.id
+      kms_key_self_link = module.kms.keys.key-so.id
     }
   ]
   depends_on = [module.kms, google_service_account.compute]
@@ -81,18 +81,19 @@ module "kms" {
 module "vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = var.project_id
-  name                            = "vpc-${data.google_project.current.number}"
+  name                            = "vpc-so"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name          = "subnet-${data.google_project.current.number}"
+      name          = "subnet-so"
       region        = var.location
       ip_cidr_range = var.ip_cidr_range
     }
   ]
 }
+
 # Google Computer Firewall
 resource "google_compute_firewall" "default" {
   name    = "allow-web"

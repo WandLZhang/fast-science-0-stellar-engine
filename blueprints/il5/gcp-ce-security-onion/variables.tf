@@ -28,7 +28,7 @@ variable "email" {
 variable "compute_service_account_id" {
   description = "The Service Account for Compute Engine"
   type        = string
-  # Example default = "computeblue"
+  # Example default = "computeso"
 }
 
 variable "auto_delete" {

@@ -45,27 +45,27 @@ output "compute-engine-vm-instance" {
   value       = try(module.compute-engine-vm.instance)
 }
 
-output "keyring-id" {
-  description = "Fully qualified keyring id."
-  value       = module.kms.id
-}
+# output "keyring-id" {
+#   description = "Fully qualified keyring id."
+#   value       = module.kms.id
+# }
 
-output "keyring-resource" {
-  description = "Keyring resource."
-  value       = module.kms.keyring
-}
+# output "keyring-resource" {
+#   description = "Keyring resource."
+#   value       = module.kms.keyring
+# }
 
-output "keyrings-keys" {
-  description = "Key resources."
-  value       = module.kms.keys
-}
+# output "keyrings-keys" {
+#   description = "Key resources."
+#   value       = module.kms.keys
+# }
 
-output "keyring-location" {
-  description = "Keyring location."
-  value       = module.kms.location
-}
+# output "keyring-location" {
+#   description = "Keyring location."
+#   value       = module.kms.location
+# }
 
-output "keyring-name" {
-  description = "Keyring name."
-  value       = module.kms.name
-}
+# output "keyring-name" {
+#   description = "Keyring name."
+#   value       = module.kms.name
+# }
