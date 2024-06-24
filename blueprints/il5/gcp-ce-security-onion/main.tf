@@ -51,7 +51,7 @@ module "compute-engine-vm" {
 
   network_interfaces = [{
     network    = module.vpc.network.self_link
-    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-so"
+    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-securityoniona"
   }]
   # Define metadata, including the startup script
   metadata = {
@@ -83,7 +83,7 @@ module "compute-engine-vm" {
   ]
 
   #depends_on = [module.kms, google_service_account.compute]
-  depends_on = [google_service_account.compute]
+  depends_on = [google_service_account.compute, module.vpc, module.nat]
 }
 
 # Google Cloud NAT Module - Simple Cloud NAT management
