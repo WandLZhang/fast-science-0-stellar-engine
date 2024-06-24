@@ -29,6 +29,41 @@ resource "google_service_account" "compute" {
   project    = var.project_id
 }
 
+#Bastion compute instance 
+module "bastion-vm" {
+  source     = "../../../modules/compute-vm"
+  project_id = var.project_id
+  zone       = var.zone
+  name       = "bastion-test"
+
+  instance_type = var.instance_type
+  network_interfaces = [{
+    # network    = data.google_compute_network.my_vpc.self_link
+    # subnetwork = data.google_compute_subnetwork.my_subnet.self_link
+    network    = module.vpc.network.self_link
+    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-onion-a"
+  }]
+
+  service_account = {
+    email = google_service_account.compute.email
+  }
+
+  #Lockdown configuration
+  encryption = {
+    kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
+  }
+  attached_disks = [
+    {
+      auto_delete = true
+      size        = 100
+      name        = "bastion-disk"
+      initialize_params = {
+        image = "ubuntu-2004-focal-v20240614"
+      }
+      kms_key_self_link = "projects/${var.project_id}/locations/${var.location}/keyRings/${var.keyring.name}/cryptoKeys/key-so"
+    }
+  ]
+}
 
 # Google Compute Engine VM Module
 
@@ -51,7 +86,12 @@ module "compute-engine-vm" {
 
   network_interfaces = [{
     network    = module.vpc.network.self_link
-    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-securityoniona"
+    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-onion-a"
+    access_config = {
+      # Enabling external IP
+      nat_ip = "10.200.12.128"
+      #nat_ip =  google_compute_address.public_ip.address    
+    }
   }]
   # Define metadata, including the startup script
   metadata = {
@@ -91,7 +131,7 @@ module "nat" {
   source         = "../../../modules/net-cloudnat"
   project_id     = var.project_id
   region         = var.location
-  name           = "secutity-onion-nat"
+  name           = "nat-secutity-onion"
   router_network = module.vpc.name
 
   #depends_on     = [module.vpc, module.kms]
@@ -114,21 +154,64 @@ module "nat" {
 # }
 
 # Google VPC Module
+# module "vpc" {
+#   source                          = "../../../modules/net-vpc"
+#   project_id                      = var.project_id
+#   name                            = "vpc-so-kc"
+#   auto_create_subnetworks         = false
+#   delete_default_routes_on_create = true
+#   routing_mode                    = "GLOBAL"
+#   subnets = [
+#     {
+#       name          = "subnet-securityoniona"
+#       region        = var.location
+#       description   = "Subnet a security onion public subnet"
+#       ip_cidr_range = "10.200.12.0/25"
+#       enable_private_access = false
+#     },
+#     # custom description and PGA disabled
+#     {
+#       name                  = "subnet-securityoniona-no-pga-b"
+#       region                = var.location
+#       ip_cidr_range         = "10.200.12.128/25"
+#       description           = "Subnet b with no PGA"
+#       enable_private_access = false
+#   },
+#   # secondary ranges
+#     {
+#       name          = "subnet-so-secondary-ranges"
+#       region        = var.location
+#       ip_cidr_range = "10.200.13.0/25"
+#       description   = "Subnet c with secondary ranges"
+#       secondary_ip_ranges = {
+#         a = "192.168.0.0/24"
+#         b = "192.168.1.0/24"
+#       }
+#     }
+#   ]
+
+# }
+
 module "vpc" {
-  source                          = "../../../modules/net-vpc"
-  project_id                      = var.project_id
-  name                            = "vpc-securityoniona"
-  auto_create_subnetworks         = false
-  delete_default_routes_on_create = true
-  routing_mode                    = "GLOBAL"
+  source                  = "../../../modules/net-vpc"
+  project_id              = var.project_id
+  name                    = "vpc-so-kc"
+  auto_create_subnetworks = false
   subnets = [
     {
-      name          = "subnet-securityoniona"
+      ip_cidr_range = "10.0.4.0/22"
+      name          = "subnet-onion-a"
       region        = var.location
-      ip_cidr_range = var.ip_cidr_range
+      secondary_ip_ranges = {
+        pods     = "10.4.0.0/14"
+        services = "10.0.32.0/20"
+      }
     }
   ]
+  #depends_on = [module.kms]
 }
+
+# 10.200.11.0/24	
 
 # Google Computer Firewall
 resource "google_compute_firewall" "default" {
