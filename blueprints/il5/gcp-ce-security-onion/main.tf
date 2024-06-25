@@ -31,7 +31,7 @@ resource "google_service_account" "compute" {
 }
 
 # Google KMS Module
-module "kms" {
+ module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
   keys       = var.keys
@@ -172,7 +172,6 @@ resource "google_compute_firewall" "defaulta" {
 resource "google_compute_firewall" "defaultb" {
   name    = "allow-traffic-b"
   network = module.vpc-b.network.self_link
-
   allow {
     protocol = "all"
   }
