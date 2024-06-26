@@ -1,7 +1,7 @@
-project_id = "tnbsea-dev-tapand-dev"
-email      = "admin.tapan@dino-runner.darkwolfsolutions.com"
+project_id = "project-id"
+email      = "email-address-here"
 # Provide the name to be given to the Computer Engine Service Account.
-compute_service_account_id   = "computeso"
+compute_service_account_id   = "computeserviceo"
 location                     = "us-east4"
 zone                         = "us-east4-a"
 instance_name                = "security-onio"
@@ -18,9 +18,10 @@ subnet_b_name                = "subnet-onion-b-vpcb"
 subnet_b_ip_cidr             = "10.1.9.128/25"
 subnet_b_secondary_ip_cidr_1 = "10.1.10.0/25"
 subnet_b_secondary_ip_cidr_2 = "10.1.10.128/25"
-nat_a_name                   = "nat-so-a"
-nat_b_name                   = "nat-so-b"
-auto_delete                  = true
+source_ranges_cidrs          = ["0.0.0.0/0"]
+nat_a_name  = "nat-so-a"
+nat_b_name  = "nat-so-b"
+auto_delete = true
 keyring = {
   location = "us-east4"
   name     = "sokeyring"
@@ -36,7 +37,7 @@ keys = {
     skip_initial_version_creation = false
     version_template = {
       algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-      protection_level = "HSM"
+      protection_level = "SOFTWARE"
     }
     lifecycle = {
       prevent_destroy = true
