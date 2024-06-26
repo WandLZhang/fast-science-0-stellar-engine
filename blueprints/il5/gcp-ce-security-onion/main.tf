@@ -23,7 +23,6 @@ provider "google" {
 # Work on the Current Project
 data "google_project" "current" {}
 
-
 # Custom service account with compute engine role  
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
@@ -31,7 +30,7 @@ resource "google_service_account" "compute" {
 }
 
 # Google KMS Module
- module "kms" {
+module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
   keys       = var.keys
@@ -45,9 +44,8 @@ resource "google_service_account" "compute" {
   keyring = var.keyring
 }
 
-
 # Using the Google Compute Engine VM Module for Security Onion
-module "compute-engine" {
+module "compute-engine-vm" {
   source        = "../../../modules/compute-vm"
   project_id    = var.project_id
   zone          = var.zone
@@ -92,9 +90,8 @@ module "compute-engine" {
       }
     }
   ]
-  depends_on = [google_service_account.compute, module.vpc-a, module.vpc-b, module.nat-a, module.nat-b]
+  depends_on = [google_service_account.compute, module.vpc-a, module.vpc-b, module.nat-a, module.nat-b, google_compute_firewall.defaulta, google_compute_firewall.defaultb, module.kms]
 }
-
 
 # Google VPC Module - First VPC
 module "vpc-a" {
@@ -114,7 +111,6 @@ module "vpc-a" {
     }
   ]
 }
-
 
 # Google VPC Module - Second VPC
 module "vpc-b" {
@@ -166,7 +162,6 @@ resource "google_compute_firewall" "defaulta" {
   source_ranges = ["0.0.0.0/0"]
   target_tags   = []
 }
-
 
 # Google Computer Firewall
 resource "google_compute_firewall" "defaultb" {
