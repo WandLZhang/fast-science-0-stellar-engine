@@ -45,8 +45,6 @@ output "compute-engine-vm-instance" {
   value       = try(module.compute-engine-vm.instance)
 }
 
-
-
 output "vpc-network-a" {
   description = "Network resource."
   value       = module.vpc-a.network
