@@ -128,8 +128,11 @@ variable "subnet_b_secondary_ip_cidr_2" {
   #Example default ="10.1.10.128/25"
 }
 
-
-
+variable "source_ranges_cidrs" {
+  description = "The CIDR source ranges"
+  type        = list(string)
+  #Example default = ["0.0.0.0/0"]
+}
 
 variable "nat_a_name" {
   description = "The NAT Name a"
@@ -162,7 +165,6 @@ variable "keyring" {
   # }
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1  
 }
-
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
