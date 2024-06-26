@@ -74,7 +74,7 @@ module "compute-engine-vm" {
   }
   tags = ["security-onion"]
   encryption = {
-    kms_key_self_link = module.kms.keys.key-so.id
+    kms_key_self_link = module.kms.keys.key-so.id    
   }
   service_account = {
     email = google_service_account.compute.email
@@ -178,14 +178,14 @@ resource "google_compute_firewall" "defaultb" {
 # Google Compute Firewall with rules
 resource "google_compute_firewall" "egressa" {
   name      = "allow-egress-a"
-  network   = module.vpc-b.network.self_link
+  network   = module.vpc-a.network.self_link
   direction = "EGRESS"
   allow {
     protocol = "all"
   }
   # Allowing to connect only within the VPC CIDR Range
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["0.0.0.0/0"]
+  target_tags   = []
 }
 
 # Google Compute Firewall with rules
@@ -198,5 +198,5 @@ resource "google_compute_firewall" "egressb" {
   }
   # Allowing to connect only within the VPC CIDR Range
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["0.0.0.0/0"]
+  target_tags   = []
 }
