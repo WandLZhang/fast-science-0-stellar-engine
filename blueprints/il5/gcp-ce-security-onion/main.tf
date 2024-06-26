@@ -151,7 +151,7 @@ module "nat-b" {
   depends_on     = [module.vpc-b]
 }
 
-# Google Computer Firewall
+# Google Compute Firewall with rules
 resource "google_compute_firewall" "defaulta" {
   name    = "allow-traffic-a"
   network = module.vpc-a.network.self_link
@@ -163,7 +163,7 @@ resource "google_compute_firewall" "defaulta" {
   target_tags   = []
 }
 
-# Google Computer Firewall
+# Google Compute Firewall with rules
 resource "google_compute_firewall" "defaultb" {
   name    = "allow-traffic-b"
   network = module.vpc-b.network.self_link
@@ -173,4 +173,30 @@ resource "google_compute_firewall" "defaultb" {
   # Allowing to connect only within the VPC CIDR Range
   source_ranges = ["0.0.0.0/0"]
   target_tags   = []
+}
+
+# Google Compute Firewall with rules
+resource "google_compute_firewall" "egressa" {
+  name      = "allow-egress-a"
+  network   = module.vpc-b.network.self_link
+  direction = "EGRESS"
+  allow {
+    protocol = "all"
+  }
+  # Allowing to connect only within the VPC CIDR Range
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["0.0.0.0/0"]
+}
+
+# Google Compute Firewall with rules
+resource "google_compute_firewall" "egressb" {
+  name      = "allow-egress-b"
+  network   = module.vpc-b.network.self_link
+  direction = "EGRESS"
+  allow {
+    protocol = "all"
+  }
+  # Allowing to connect only within the VPC CIDR Range
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["0.0.0.0/0"]
 }
