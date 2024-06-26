@@ -28,11 +28,10 @@ The Output will look like following
 
 - Go to the Google Compute Engine (GCE) in the GCP Console. Select the VM instance.
 
-![Google Compute Engine](./images/ce1.png?raw=true "Google Compute Engine")
+![Google Compute Engine](./images/gke1.png?raw=true "Google Compute Engine")
 - Click on the Instance Name inside the Google Compute Engine Panel
  
- ![Google Compute Engine so](./images/ce2.png?raw=true "Google Compute Engine so")
-
+ 
 
 ## Configuration of the Security Onion 
 
