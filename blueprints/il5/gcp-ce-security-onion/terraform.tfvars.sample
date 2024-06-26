@@ -1,5 +1,5 @@
-project_id = "project-id"
-email      = "email-address-here"
+project_id                   = "project-id"
+email                        = "email-address-here"
 # Provide the name to be given to the Computer Engine Service Account.
 compute_service_account_id   = "computeserviceo"
 location                     = "us-east4"
