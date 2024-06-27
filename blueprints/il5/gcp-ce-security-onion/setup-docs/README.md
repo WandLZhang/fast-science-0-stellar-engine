@@ -49,8 +49,11 @@ sudo bash so-setup-network
 - Enter the password 
 ![Security Onion ](../images/so12.png?raw=true "Security Onion ")
 
-- Important STEP:  Need External IP with DNS Setup. (Assured work load)
+- Important STEP:  For the Security Onion to work within the Assured Workload IL 5 Enviornment, select the Option "OTHER"
 ![Security Onion ](../images/so14.png?raw=true "Security Onion ")
+
+- Important STEP:  For the Security Onion to work within the Assured Workload IL 5 Enviornment, Enter the Host information as 127.0.0.1
+![Security Onion ](../images/sofqdn.png?raw=true "Security Onion ")
 
 - Select Yes to web interface
 ![Security Onion ](../images/so15.png?raw=true "Security Onion ")
@@ -67,5 +70,18 @@ sudo bash so-setup-network
 - It will take about 30-40 minutes for Security Onion to completed the installation
 Once done, you will see following message
 ![Security Onion](../images/so19.png?raw=true "Security Onion ")
+
 - The console window will show following
 ![Security Onion](../images/so20.png?raw=true "Security Onion ")
+
+- Once the installation is completed, in order to connect via Web Browswer use the following command 
+
+```
+gcloud compute ssh --zone "us-east4-a" "security-onio" --tunnel-through-iap --project project-name -- -L 8443:localhost:443
+```
+
+- From the web browswer please try to login using the following URL
+
+```
+https://127.0.0.1:8443/login
+```
