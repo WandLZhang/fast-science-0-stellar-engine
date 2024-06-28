@@ -70,7 +70,7 @@ resource "google_artifact_registry_repository" "docker-hub" {
   }
 
   kms_key_name = module.kms.keys.artifact-registry.id
-  depends_on   = [
+  depends_on = [
     google_project_service.api,
     google_kms_crypto_key_iam_member.crypto_key
   ]

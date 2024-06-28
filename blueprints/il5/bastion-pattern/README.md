@@ -9,38 +9,47 @@ Obtains access credentials for your user account via a web-based authorization f
 2. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
 3. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
+## Disclaimer
+- The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+
 ## How can you connect to the Bastion? 
 To access the web portal through the bastion host, follow these steps:
 
 1. **Set the Active Project** :
-   ```bash
-gcloud config set project set project <your-project-id>```
+```bash
+gcloud config set project set project <your-project-id>
+```
 
 This command will configure the gcloud CLI to utilize the specified project for every subsequent command. Thus, you should replace your project ID of your project with the ID of your Google Cloud Platform project. 
 
 2. **SSH into the Bastion Host via Port Forwarding**:
 Use the following command to create an SSH tunnel through the bastion host and set up port forwarding for multiple ports:
+```
 gcloud compute ssh <your-bastion-host-name> --zone <your-zone> --tunnel-through-iap --project <your-project-id> -- \
 -L 8443:<ip-of-bastion>:<remote-port1> \
 -L 8444:<ip-of-bastion>:<remote-port2>\
--L 8445:<ip-of-bastion>::<remote-port3>```
+-L 8445:<ip-of-bastion>::<remote-port3>
+```
 
 For example, if you need to forward local ports 8443, 8444, and 8445 to remote ports 443, 8443, and 8444 on <ip-of-bastion>, respectively, you would use:
+```bash
 gcloud compute ssh management-bastion --zone us-east4-a --tunnel-through-iap --project example-prod-iac-core-0 -- \
 -L 8443:192.168.1.10:443 \
 -L 8444:192.168.1.10:8443 \
 -L 8445:192.168.1.10:8444
+```
 
 In this example:
-	•	-L 8443:192.168.1.10:443: Forwards local port 8443 to port 443 on the remote server.
-	•	-L 8444:192.168.1.10:8443: Forwards local port 8444 to port 8443 on the remote server.
-	•	-L 8445:192.168.1.10:8444: Forwards local port 8445 to port 8444 on the remote server.
+- -L 8443:192.168.1.10:443: Forwards local port 8443 to port 443 on the remote server.
+- -L 8444:192.168.1.10:8443: Forwards local port 8444 to port 8443 on the remote server.
+- -L 8445:192.168.1.10:8444: Forwards local port 8445 to port 8444 on the remote server.
 
 3. **Access the Web Portals**:
 Once the SSH tunnel is established, you can access the web services by navigating to these websites in your web browser:
-	•	https://localhost:8443 for the service on remote port 443.
-	•	https://localhost:8444 for the service on remote port 8443.
-	•	https://localhost:8445 for the service on remote port 8444.
+- https://localhost:8443 for the service on remote port 443.
+- https://localhost:8444 for the service on remote port 8443.
+- https://localhost:8445 for the service on remote port 8444.
 
 
 ## Inputs
@@ -81,6 +90,7 @@ terraform apply
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 
+```bash
 Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 
 Outputs:
@@ -88,3 +98,5 @@ Outputs:
 internal_ip = "10.0.0.2"
 kms_key_self_link = "projects/my-repository/locations/us-east4/keyRings/my-keyring/cryptoKeys/default"
 vpc_network = "https://www.googleapis.com/compute/v1/projects/my-repository-dev/global/networks/prod-mgmt-0"
+
+```

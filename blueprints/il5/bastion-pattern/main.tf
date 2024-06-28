@@ -100,7 +100,7 @@ module "bastion-vm" {
     }
   ]
 
-  depends_on = [ module.kms ]
+  depends_on = [module.kms]
 }
 
 resource "google_kms_crypto_key_iam_member" "crypto_key" {
