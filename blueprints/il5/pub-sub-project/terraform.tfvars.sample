@@ -1,9 +1,6 @@
-project_id = "my-project"
-
-location = "us-east4"
-
-pubsub_topic      = "topic"
-
+project_id   = "my-project"
+location     = "us-east4"
+pubsub_topic = "topic"
 keys = {
   "default" = {
     destroy_scheduled_duration    = null
@@ -18,7 +15,6 @@ keys = {
     }
   }
 }
-
 subscriptions = {
   "my-subscription" = {
     labels                       = {}
@@ -33,12 +29,10 @@ subscriptions = {
       topic                 = "projects/your-project-id/topics/dead-letter-topic"
       max_delivery_attempts = 5
     }
-
     retry_policy = {
       maximum_backoff = "600s" # 10 minutes
       minimum_backoff = "10s"
     }
-
     push = {
       endpoint   = "https://example.com/push-endpoint"
       attributes = {}
@@ -47,14 +41,12 @@ subscriptions = {
         audience              = ""
       }
     }
-
     bigquery = {
       table               = ""
       use_topic_schema    = false
       write_metadata      = false
       drop_unknown_fields = false
     }
-
     cloud_storage = {
       bucket          = ""
       filename_prefix = ""
@@ -67,22 +59,14 @@ subscriptions = {
     }
   }
 }
-
 keyring = {
   name     = "keyring-9"
   location = "us-east4"
 }
-
 allowed_persistence_regions = ["us-east4"]
-
-email = "my-emaili@gmail.com"
-
-publisher_name = "publisher-service-account"
-
-publisher_account_id = "publisher"
-
-subscriber_account_id = "subscriber"
-
-subscriber_name = "subscriber-service-account"
-
-pubsub_subscription_name = "pb-subscription"
+email                       = "my-emaili@gmail.com"
+publisher_name              = "publisher-service-account"
+publisher_account_id        = "publisher"
+subscriber_account_id       = "subscriber"
+subscriber_name             = "subscriber-service-account"
+pubsub_subscription_name    = "pb-subscription"
