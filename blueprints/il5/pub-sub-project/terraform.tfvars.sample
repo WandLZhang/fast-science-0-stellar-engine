@@ -1,6 +1,17 @@
-project_id   = "my-project"
-location     = "us-east4"
-pubsub_topic = "topic"
+project_id                  = "my-project"
+location                    = "us-east4"
+pubsub_topic                = "topic"
+allowed_persistence_regions = ["us-east4"]
+email                       = "my-emaili@gmail.com"
+publisher_name              = "publisher-service-account"
+publisher_account_id        = "publisher"
+subscriber_account_id       = "subscriber"
+subscriber_name             = "subscriber-service-account"
+pubsub_subscription_name    = "pb-subscription"
+keyring = {
+  name     = "keyring-9"
+  location = "us-east4"
+}
 keys = {
   "default" = {
     destroy_scheduled_duration    = null
@@ -59,14 +70,5 @@ subscriptions = {
     }
   }
 }
-keyring = {
-  name     = "keyring-9"
-  location = "us-east4"
-}
-allowed_persistence_regions = ["us-east4"]
-email                       = "my-emaili@gmail.com"
-publisher_name              = "publisher-service-account"
-publisher_account_id        = "publisher"
-subscriber_account_id       = "subscriber"
-subscriber_name             = "subscriber-service-account"
-pubsub_subscription_name    = "pb-subscription"
+
+

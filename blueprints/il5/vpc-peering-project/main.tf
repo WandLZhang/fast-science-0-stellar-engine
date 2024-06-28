@@ -34,7 +34,7 @@ data "google_compute_network" "vpc" {
 # Google VPC Module
 module "vpc" {
   source                          = "../../../modules/net-vpc"
-  project_id                      =  var.current_project_id
+  project_id                      = var.current_project_id
   name                            = "vpca1-${data.google_project.current.number}"
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
