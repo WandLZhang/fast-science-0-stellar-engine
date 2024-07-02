@@ -25,8 +25,8 @@ provider "google" {
 }
 
 
-# Get existing vpc from existing project (Main project)
-data "google_compute_network" "vpc" {
+# Get Peering Network Information with Peer Host Project 
+data "google_compute_network" "peer_vpc" {
   project = var.peer_host_project_name
   name    = var.peer_network_name
 }
@@ -35,21 +35,21 @@ data "google_compute_network" "vpc" {
 module "vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = var.current_project_id
-  name                            = "vpca1-${data.google_project.current.number}"
+  name                            = var.vpc_name
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "REGIONAL"
   # Divided from 10.200.12.0/23
   subnets = [
     {
-      name          = "subnet-${data.google_project.current.number}-a"
+      name          = "${var.subnet_prefix_name}-a"
       region        = var.location
       description   = "Subnet a simple subnet"
       ip_cidr_range = var.subnets_cidr_a
     },
     # custom description and PGA disabled
     {
-      name                  = "subnet-${data.google_project.current.number}-no-pga-b"
+      name                  = "${var.subnet_prefix_name}-b-no-pga"
       region                = var.location
       ip_cidr_range         = var.subnets_cidr_b
       description           = "Subnet b with no PGA"
@@ -57,7 +57,7 @@ module "vpc" {
     },
     # secondary ranges
     {
-      name          = "subnet-${data.google_project.current.number}-secondary-ranges"
+      name          = "${var.subnet_prefix_name}-c-secondary-ranges"
       region        = var.location
       ip_cidr_range = var.subnets_cidr_c
       description   = "Subnet c with secondary ranges"
@@ -74,6 +74,6 @@ module "vpc" {
 module "peering" {
   source        = "../../../modules/net-vpc-peering"
   prefix        = "peer"
-  local_network = data.google_compute_network.vpc.self_link
+  local_network = data.google_compute_network.peer_vpc.self_link
   peer_network  = module.vpc.id
 }

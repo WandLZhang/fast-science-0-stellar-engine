@@ -25,6 +25,18 @@ variable "location" {
   default     = "us-east4"
 }
 
+variable "vpc_name" {
+  description = "The name of the VPC"
+  type        = string
+  #Example   default     = "vpc-blueprint-connect"
+}
+
+variable "subnet_prefix_name" {
+  description = "The name of the Subnet Prefix"
+  type        = string
+  #Example   default     = "subnet-blueprint"
+}
+
 variable "peer_host_project_name" {
   description = "The name of the Peering Host Project"
   type        = string
