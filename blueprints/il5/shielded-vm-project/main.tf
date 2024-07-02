@@ -29,18 +29,21 @@ resource "google_service_account" "compute" {
   project    = var.project_id
 }
 
-
 # Google Compute Shielded VM Module
 module "shielded-vm" {
-  source          = "../../../modules/compute-vm"
-  project_id      = var.project_id
-  zone            = var.zone
-  name            = var.instance_name
-  shielded_config = var.shielded_config
-  instance_type   = var.instance_type
+  source     = "../../../modules/compute-vm"
+  project_id = var.project_id
+  zone       = var.zone
+  name       = var.instance_name
+  shielded_config = {
+    enable_secure_boot          = true
+    enable_vtpm                 = true
+    enable_integrity_monitoring = true
+  }
+  instance_type = var.instance_type
   network_interfaces = [{
-    network    = module.vpc.network.self_link
-    subnetwork = "projects/${var.project_id}/regions/${var.location}/subnetworks/subnet-${data.google_project.current.number}"
+    network = module.vpc.network.self_link
+    subnetwork = module.vpc.subnet_self_links["${var.location}/${subnet_name}"]
   }]
   encryption = {
     kms_key_self_link = module.kms.keys.default.id
@@ -51,7 +54,7 @@ module "shielded-vm" {
   attached_disks = [
     {
       auto_delete = true
-      size        = 10
+      size        = 40
       name        = "data-disk"
       initialize_params = {
         image = "debian-cloud/debian-10"
@@ -81,13 +84,13 @@ module "kms" {
 module "vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = var.project_id
-  name                            = "vpc-${data.google_project.current.number}"
+  name                            = var.vpc_name
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name          = "subnet-${data.google_project.current.number}"
+      name          = var.subnet_name
       region        = var.location
       ip_cidr_range = var.ip_cidr_range
     }
@@ -95,7 +98,7 @@ module "vpc" {
 }
 # Google Computer Firewall
 resource "google_compute_firewall" "default" {
-  name    = "allow-web"
+  name    = "allow-firewall-rules"
   network = module.vpc.network.self_link
   allow {
     protocol = "tcp"

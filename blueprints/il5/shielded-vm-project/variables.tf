@@ -48,7 +48,6 @@ variable "location" {
   description = "Location of the Shielded Compute VM"
   type        = string
   default     = "us-east4"
-
 }
 
 variable "zone" {
@@ -63,18 +62,16 @@ variable "instance_name" {
   default     = "shieled-vm-inst"
 }
 
-variable "shielded_config" {
-  description = "Shielded VM configuration of the instances."
-  type = object({
-    enable_secure_boot          = bool
-    enable_vtpm                 = bool
-    enable_integrity_monitoring = bool
-  })
-  default = {
-    enable_secure_boot          = true
-    enable_vtpm                 = true
-    enable_integrity_monitoring = true
-  }
+variable "vpc_name" {
+  description = "The name of the VPC"
+  type        = string
+  #default     =  "vpc-shieledvm"
+}
+
+variable "subnet_name" {
+  description = "The name of the subnet"
+  type        = string
+  #default     = "subnet-one"
 }
 
 variable "ip_cidr_range" {
@@ -83,19 +80,18 @@ variable "ip_cidr_range" {
   #Example  default     = "10.0.1.0/24"
 }
 
-
 variable "instance_type" {
   description = "The Machine Type for the Shielded Compute VM"
   type        = string
   default     = "e2-micro"
   #Example  default     = "e2-micro"
 }
+
 variable "source_ranges_allowed" {
   description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM"
   type        = list(any)
   # #Example   default     = ["10.0.1.0/24"]
 }
-
 
 variable "allowed_firewall_ports" {
   description = "The list of the Allowed Ports"
