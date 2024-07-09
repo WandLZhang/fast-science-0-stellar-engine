@@ -34,7 +34,7 @@ variable "vpc_name" {
   # default     = "vpc-gke-kubernetes"
 }
 
-variable "subnet_name_1" {
+variable "subnet_name" {
   description = "The Subnet Name"
   type        = string
   # default     = "subnet-gke-kubernetes"

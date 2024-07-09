@@ -29,7 +29,7 @@ data "google_project" "current" {}
 resource "google_service_account" "gke" {
   account_id = var.gke_service_account_id
   project    = var.project_id
-}
+} 
 
 
 # #Create KMS Key Ring and Crypto Key using the kms module
@@ -58,7 +58,7 @@ module "vpc" {
   subnets = [
     {
       ip_cidr_range = var.subnet_ip_cidr_range_1
-      name          = var.subnet_name_1
+      name          = var.subnet_name
       region        = var.region
       secondary_ip_ranges = {
         pods     = var.subnet_secondary_ip_range_pods_1
@@ -80,17 +80,18 @@ module "cluster" {
   vpc_config = {
     master_ipv4_cidr_block = var.gke_vpc_master_ipv4_cidr_block
     network                = module.vpc.self_link
-    subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnet_name_1}"]
-    master_authorized_ranges  = {
+    subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnet_name}"]
+    master_authorized_ranges = {
       internal-vms = var.master_authorized_ranges_ip_ranges
-    }    
+    }
   }
   default_nodepool = {
     initial_node_count       = var.gke_initial_node_per_zone
-    remove_default_node_pool = var.remove_default_node_pool
+    remove_pool              = false
+    remove_default_node_pool = false
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.key-gke.id
+    boot_disk_kms_key = module.kms.keys.default.id    
     service_account   = google_service_account.gke.email
     tags              = var.node_config_tags
   }
@@ -120,7 +121,7 @@ module "cluster_nodepool" {
     create = false
   }
   node_config = {
-    boot_disk_kms_key = module.kms.keys.key-gke.id
+    boot_disk_kms_key = module.kms.keys.default.id
     disk_size_gb      = var.node_disk_size_gb
     machine_type      = var.node_machine_type
     service_account   = "serviceAccount:${google_service_account.gke.email}"
@@ -129,6 +130,5 @@ module "cluster_nodepool" {
       enable_integrity_monitoring = true
     }
   }
-
   depends_on = [module.vpc, module.cluster, module.kms]
 }
