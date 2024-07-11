@@ -42,7 +42,7 @@ data "google_pubsub_subscription" "subscription" {
   project = var.project_id
 }
 
-  
+
 data "google_bigquery_default_service_account" "bq_sa" {}
 
 module "bigquery-dataset" {
