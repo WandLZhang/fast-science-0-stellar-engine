@@ -18,6 +18,11 @@ variable "project_id" {
   type        = string
 }
 
+variable "location" {
+  description = "location of dataset."
+  type = string
+}
+
 variable "region" {
   description = "The region in which to provision resources."
   type        = string
@@ -34,7 +39,7 @@ variable "network" {
   type        = string
 }
 
-variable "bigquery_dataset_id" {
+variable "dataset_id" {
   description = "The dataset of bigquery."
   type        = string
 }
@@ -42,6 +47,12 @@ variable "bigquery_dataset_id" {
 variable "pubsub_topic_name" {
   description = "The topic name of pub sub"
   type        = string
+}
+
+variable "allowed_persistence_regions" {
+  description = "The allowed persistence regions for the Pub/Sub topic"
+  type        = list(string)
+  default     = ["us-east4"]
 }
 
 variable "pubsub_subscription_name" {
@@ -98,7 +109,7 @@ variable "bucket_name" {
 }
 
 variable "dataflow_service_account_id" {
-  description = "This is the name of the bucket."
+  description = "This is the name of the dataflow service accoount id."
   type        = string
 }
 
