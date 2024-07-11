@@ -14,28 +14,48 @@
  * limitations under the License.
  */
 output "dataflow_service_account_email" {
-  description = "Email of dataflow service account"
+  description = "Email of the Dataflow service account"
   value       = google_service_account.dataflow.email
-}
-output "bucket_name" {
-  description = "Name of Google Cloud storage bucket"
-  value       = module.gcs.bucket.name
-}
-
-output "pubsub_topic_name" {
-  description = "Name of pubsub topic."
-  value       = data.google_pubsub_topic.topic.name
 }
 
 output "bigquery_dataset_id" {
-  description = "Name of dataset id."
-  value       = data.google_bigquery_dataset.dataset.dataset_id
+  description = "ID of the BigQuery dataset"
+  value       = google_bigquery_dataset.dataset.dataset_id
 }
 
 output "bigquery_table_id" {
-  description = "Name of dataset table id."
-  value       = var.bigquery_table_id
+  description = "ID of the BigQuery table"
+  value       = google_bigquery_table.table.table_id
 }
+
+output "pubsub_topic_name" {
+  description = "Name of the Pub/Sub topic"
+  value       = google_pubsub_topic.topic.name
+}
+
+output "pubsub_subscription_name" {
+  description = "Name of the Pub/Sub subscription"
+  value       = google_pubsub_subscription.subscription.name
+}
+
+output "kms_key_name" {
+  description = "Name of the KMS key used for encryption"
+  value       = module.kms.keys.key-dataflow.id
+}
+
+output "gcs_bucket_name" {
+  description = "Name of the Google Cloud Storage bucket"
+  value       = module.gcs.name
+}
+
+output "dataflow_job_name" {
+  description = "Name of the Dataflow job"
+  value       = google_dataflow_job.job.name
+}
+
+
+
+
 
 
 

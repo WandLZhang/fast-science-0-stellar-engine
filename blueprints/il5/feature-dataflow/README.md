@@ -10,31 +10,17 @@ Obtains access credentials for your user account via a web-based authorization f
 
 ## Pre-requisite for Data flow (Google cloud platform Data-flow)
 1. Have access to the GCP Project ID
-2. You will need an existing BigQuery [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project). In this project code, you will need to use data source to locate your with dataset and table.
-3. Have an existing Pub/Sub [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects)with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project). In this project code, you will need to will need to use data source to locate your topic and subscription. 
-4. Enable Cloud Storage API and grant key admin permissions for your key. [https://console.cloud.google.com/storage]
-5. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
-6. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
-
-## Troubleshooting Errors
-1.
-a. To check existing topic 
-gcloud pubsub topics list --project= project-id
-
-b. To create a topic 
-gcloud pubsub topics create my-topic-name --project=project-id
-
-2.
-a. To check existing subscription
- gcloud pubsub subscriptions list --project= project-id
-b. gcloud pubsub subscriptions create my-subscription--topic=my-topic --project=project-id
+2. Enable Cloud Storage API and grant key admin permissions for your key. [https://console.cloud.google.com/storage]
+3. You will need an existing [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) with [billing enabled](https://cloud.google.com/billing/docs/how-to/modify-project) and a user with the “Project owner” [IAM](https://cloud.google.com/iam) role on that project.
+4. __Note__: to grant a user a role, take a look at the [Granting and Revoking Access](https://cloud.google.com/iam/docs/granting-changing-revoking-access#grant-single-role) documentation.
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | project_id | Project ID GCP | `string` | n/a | yes |
-| region |region/location of project | `string` | n/a | yes |
+| region |region of the project | `string` | n/a | yes |
+| location |location of dataset | `string` | n/a | yes |
 | email|The email of the user| `string` | n/a | yes |
 | network|The network of the data pipeline.| `string` | n/a | yes |
 | storage_class|The storage class of the bucket| `string` | n/a | yes |
@@ -52,7 +38,7 @@ b. gcloud pubsub subscriptions create my-subscription--topic=my-topic --project=
 | bucket_name |Name of bucket| `string` | n/a | yes |
 | dataflow_service_account_id |Name of dataflow service account| `string` | n/a | yes |
 | keyring | Keyring name | `KMS keyring to use for encryption. Use terraform import 'module.kms.google_kms_key_ring.default[0]' projects/<your-project>/locations/<your location>/keyRings/<your-keyring> if you want to use an existing keyring` | n/a | yes |
-| keys | Key names. | `Key to use for encryption - defaults to the name "bastion". Use terraform import 'module.kms.google_kms_crypto_key.default["bastion"]' projects/<your-project>/locations/<your-location>/keyRings/<your-keyring>/cryptoKeys/bastion if you want to use an existing key` | `[]` | yes |
+| keys | Key names. | `Key to use for encryption - defaults to the name "keyring-dataflow". Use terraform import 'module.kms.google_kms_crypto_key.default["keyring-dataflow"]' projects/<your-project>/locations/<your-location>/keyRings/<your-keyring>/cryptoKeys/bastion if you want to use an existing key` | `[]` | yes |
 | iam | Identity and Access Management. |`list(string)` |  `[]` | yes |
 | iam bindings| associates IAM policies with members | `list(string)`|  `[]` | yes |
 | default|contains the duration, roation, protection, algorithm of the keys  | `list(string)` | `[]` | yes |
@@ -65,6 +51,7 @@ You should see this README and some terraform files.
 Verification of a successful deployment? 
 The dataset in dataflow storage bucket will look like this in your Google Cloud Console. 
 <img width="1440" alt="Screenshot 2024-06-20 at 12 55 50 PM" src="https://github.com/DarkWolf-Labs/dino-runner/assets/167789559/ffff1325-8009-4cbd-a0bc-dfa42d2b493f">
+
 ```bash
 terraform init
 terraform plan
