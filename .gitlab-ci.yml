@@ -34,7 +34,7 @@ test-stages-aw:   # This job runs in the test stage.
          - 0-bootstrap
          - 1-resman
          - 2-networking-c-nva
-         - 3 2-networking-f-ngfw
+         - 2-networking-f-ngfw
          - 2-security
          - 3-project-factory
   script:
