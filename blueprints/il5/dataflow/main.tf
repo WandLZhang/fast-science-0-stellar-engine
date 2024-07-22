@@ -22,26 +22,6 @@ provider "google" {
 
 data "google_project" "current" {}
 
-# Create the GCS service account
-resource "google_service_account" "gcs" {
-  account_id   = "gcs-service-account"
-  display_name = "GCS Service Account"
-  project      = var.project_id
-}
-
-# Bind the necessary roles to the GCS service account
-resource "google_project_iam_member" "gcs_storage_viewer" {
-  project = var.project_id
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_service_account.gcs.email}"
-}
-
-resource "google_project_iam_member" "gcs_storage_creator" {
-  project = var.project_id
-  role    = "roles/storage.objectCreator"
-  member  = "serviceAccount:${google_service_account.gcs.email}"
-}
-
 # Create the Dataflow service account
 resource "google_service_account" "dataflow" {
   account_id   = var.dataflow_service_account_id
@@ -62,17 +42,24 @@ resource "google_project_iam_member" "dataflow_network_user" {
   member  = "serviceAccount:${google_service_account.dataflow.email}"
 }
 
-resource "google_project_iam_member" "dataflow_storage_viewer" {
-  project = var.project_id
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_service_account.dataflow.email}"
-}
 
-resource "google_project_iam_member" "dataflow_storage_creator" {
-  project = var.project_id
-  role    = "roles/storage.objectCreator"
-  member  = "serviceAccount:${google_service_account.dataflow.email}"
-}
+
+
+
+# resource "google_project_iam_member" "dataflow_storage_viewer" {
+#   project = var.project_id
+#   role    = "roles/storage.objectViewer"
+#   member  = "serviceAccount:${google_service_account.dataflow.email}"
+# }
+
+# resource "google_project_iam_member" "dataflow_storage_creator" {
+#   project = var.project_id
+#   role    = "roles/storage.objectCreator"
+#   member  = "serviceAccount:${google_service_account.dataflow.email}"
+# }
+
+
+
 
 resource "google_project_iam_member" "dataflow_pubsub_subscriber" {
   project = var.project_id
@@ -84,6 +71,18 @@ resource "google_project_iam_member" "dataflow_pubsub_viewer" {
   project = var.project_id
   role    = "roles/pubsub.viewer"
   member  = "serviceAccount:${google_service_account.dataflow.email}"
+}
+
+resource "google_project_iam_member" "dataflow_pubsub_subscriber_1" {
+  project = var.project_id
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "dataflow_pubsub_viewer_1" {
+  project = var.project_id
+  role    = "roles/pubsub.viewer"
+  member  = "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "dataflow_bigquery_editor" {
@@ -107,6 +106,20 @@ module "gcs" {
   storage_class  = var.storage_class
   encryption_key = module.kms.keys.key-dataflow-job.id
   name           = var.bucket_name
+
+  iam = {
+    "roles/storage.objectViewer" = concat(
+      [
+        "serviceAccount:${google_service_account.dataflow.email}"
+      ]
+    ),
+    "roles/storage.objectCreator" = concat(
+      [
+        "serviceAccount:${google_service_account.dataflow.email}"
+      ]
+    )
+  }
+  depends_on = [ module.kms ]
 }
 
 # Google KMS Module
@@ -118,12 +131,14 @@ module "kms" {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
         "serviceAccount:${google_service_account.dataflow.email}",
-        "serviceAccount:${google_service_account.gcs.email}",
-        "user:${var.email}"
+        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
+        "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
       ]
     )
   }
   keyring = var.keyring
+
+  # depends_on = [ module.gcs.serviceAccount ]
 }
 
 # BigQuery Dataset
@@ -139,6 +154,8 @@ resource "google_bigquery_table" "table" {
   table_id   = var.bigquery_table_id
   dataset_id = google_bigquery_dataset.dataset.dataset_id
   project    = var.project_id
+
+  deletion_protection = false
 }
 
 # Pub/Sub Topic
@@ -146,6 +163,9 @@ resource "google_pubsub_topic" "topic" {
   name         = "pb-topic"
   project      = var.project_id
   kms_key_name = module.kms.keys.key-dataflow-job.id
+
+  depends_on = [module.kms]
+
 }
 
 # Pub/Sub Subscription
@@ -153,6 +173,9 @@ resource "google_pubsub_subscription" "subscription" {
   name    = "pb-topic-subscription"
   topic   = google_pubsub_topic.topic.name
   project = var.project_id
+
+  depends_on = [module.kms]
+
 }
 
 # Dataflow Job
