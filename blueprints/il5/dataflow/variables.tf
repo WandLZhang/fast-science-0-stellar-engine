@@ -29,11 +29,6 @@ variable "region" {
   default     = "us-east4"
 }
 
-variable "email" {
-  description = "The email of the user."
-  type        = string
-}
-
 variable "network_name" {
   description = "The email of the user."
   type        = string
