@@ -5,7 +5,7 @@ location      = "us-east4"
 dataflow_name = "dataflow-job-name"
 zone          = "us-east4-c"
 
-network_name = "network"                           # must already exist
+network      = "network"                           # must already exist
 subnet       = "regions/REGION/subnetworks/SUBNET" # must already exist
 
 bucket_name       = "bucket-name"
