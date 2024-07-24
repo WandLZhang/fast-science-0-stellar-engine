@@ -37,9 +37,7 @@ module "kms" {
       [
         "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account Required by Dataflow
         "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
-        # "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",                          # Worker Service account
-        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com" # GCS Service Account
-
+        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"             # GCS Service Account
       ]
     )
   }
@@ -59,8 +57,7 @@ module "gcs" {
   iam = {
     "roles/storage.objectAdmin" = concat(
       [
-        "serviceAccount:${google_service_account.dataflow_worker.email}"                           # Worker Service account
-        # "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service account
       ]
     )
   }
@@ -73,8 +70,7 @@ module "gcs" {
 resource "google_project_iam_member" "dataflow_worker" {
   project = var.project_id
   role    = "roles/dataflow.worker"
-  # member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
-  member = "serviceAccount:${google_service_account.dataflow_worker.email}"
+  member  = "serviceAccount:${google_service_account.dataflow_worker.email}"
 }
 
 resource "google_dataflow_job" "job" {
