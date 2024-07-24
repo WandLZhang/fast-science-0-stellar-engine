@@ -86,7 +86,7 @@ resource "google_dataflow_job" "job" {
 
   parameters = var.parameters
 
-  network          = var.network_name
+  network          = var.network
   subnetwork       = var.subnet
   ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 

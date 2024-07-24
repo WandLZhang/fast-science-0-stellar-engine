@@ -18,18 +18,13 @@ variable "project_id" {
   type        = string
 }
 
-variable "location" {
-  description = "location of dataset."
-  type        = string
-}
-
 variable "region" {
   description = "The region in which to provision resources."
   type        = string
   default     = "us-east4"
 }
 
-variable "network_name" {
+variable "network" {
   description = "The email of the user."
   type        = string
 }
