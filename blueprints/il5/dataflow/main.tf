@@ -21,6 +21,12 @@ provider "google" {
 
 data "google_project" "current" {}
 
+resource "google_service_account" "dataflow_worker" {
+  account_id   = var.project_id
+  display_name = "Dataflow Worker Storage Account"
+}
+
+
 module "kms" {
   source     = "../../../modules/kms"
   project_id = var.project_id
@@ -31,8 +37,9 @@ module "kms" {
       [
         "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account Required by Dataflow
         "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
-        "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",                          # Worker Service account
-        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"             # GCS Service Account
+        # "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",                          # Worker Service account
+        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com" # GCS Service Account
+
       ]
     )
   }
@@ -52,9 +59,8 @@ module "gcs" {
   iam = {
     "roles/storage.objectAdmin" = concat(
       [
-        "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account
-        "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
-        "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"                           # Worker Service account
+        "serviceAccount:${google_service_account.dataflow_worker.email}"                           # Worker Service account
+        # "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
       ]
     )
   }
@@ -67,7 +73,8 @@ module "gcs" {
 resource "google_project_iam_member" "dataflow_worker" {
   project = var.project_id
   role    = "roles/dataflow.worker"
-  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  # member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+  member = "serviceAccount:${google_service_account.dataflow_worker.email}"
 }
 
 resource "google_dataflow_job" "job" {
@@ -79,14 +86,15 @@ resource "google_dataflow_job" "job" {
   template_gcs_path = var.template_gcs_path
   temp_gcs_location = "gs://${module.gcs.bucket.name}/temp"
 
+  service_account_email = google_service_account.dataflow_worker.email
+
   parameters = var.parameters
 
   network          = var.network_name
   subnetwork       = var.subnet
-  ip_configuration = "WORKER_IP_PRIVATE"
+  ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 
   kms_key_name = module.kms.keys.dataflow-job.id
 
-  depends_on = [module.kms, module.gcs]
-
+  depends_on = [module.kms, module.gcs, google_project_iam_member.dataflow_worker]
 }
