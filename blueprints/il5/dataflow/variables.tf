@@ -94,7 +94,7 @@ variable "storage_class" {
 
 variable "parameters" {
   description = "Daraflow Paramaters"
-  type = map(string)
+  type        = map(string)
 }
 
 variable "prefix" {
