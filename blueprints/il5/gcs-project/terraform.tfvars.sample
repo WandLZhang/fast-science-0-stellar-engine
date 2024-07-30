@@ -8,7 +8,6 @@ prefix                   = "prefix-name"
 name                     = "Name-of-the-Bucket"
 location                 = "location-of-bucket"
 autoclass                = true
-public_access_prevention = "enforced"
 storage_class            = "STANDARD"
 keys = {
   "default" = {

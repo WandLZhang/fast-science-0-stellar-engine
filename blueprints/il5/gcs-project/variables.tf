@@ -36,16 +36,50 @@ variable "keyring" {
   }
 }
 
+# variable "uniform_bucket_level_access" {
+#   description = "Enable or disable uniform bucket level access"
+#   type        = bool
+#   default     = true
+#   validation {
+#     condition     = contains([true, false], var.uniform_bucket_level_access)
+#     error_message = "uniform_bucket_level_access must be either true or false."
+#   }
+# }
+
+# variable "public_access_prevention" {
+#   description = "Enable or disable public access prevention"
+#   type        = bool
+#   default     = true
+#   validation {
+#     condition     = contains([true, false], var.public_access_prevention)
+#     error_message = "public_access_prevention must be either true or false."
+#   }
+# }
+
 variable "uniform_bucket_level_access" {
   description = "Enable or disable uniform bucket level access"
   type        = bool
   default     = true
+  validation {
+    condition     = var.uniform_bucket_level_access == true || var.uniform_bucket_level_access == false
+    error_message = "uniform_bucket_level_access must be either true or false."
+  }
+}
+
+variable "public_access_prevention" {
+  description = "Enable or disable public access prevention"
+  type        = string
+  default     = "inherited"
+  validation {
+    condition     = contains(["enforced", "inherited"], var.public_access_prevention)
+    error_message = "public_access_prevention must be either 'enforced' or 'inherited'."
+  }
 }
 
 variable "prefix" {
   description = "Optional prefix used to generate the bucket name."
   type        = string
-  default     = ""
+  default     = "string"
   # TODO: Update the name of the prefix, for example "dino"
   validation {
     condition     = var.prefix != ""
@@ -79,12 +113,6 @@ variable "autoclass" {
   default     = true
 }
 
-variable "public_access_prevention" {
-  description = "Prevents public access to a bucket. The default value is set to enforced and enabled with private access only. Enabling public access prevention. Acceptable values are inherited or enforced. If inherited, the bucket uses public access prevention, only if the bucket is subject to the public access prevention organization policy constraint."
-  type        = string
-  default     = "enforced"
-}
-
 variable "storage_class" {
   description = "Bucket storage class."
   type        = string
@@ -92,16 +120,6 @@ variable "storage_class" {
   validation {
     condition     = contains(["STANDARD", "MULTI_REGIONAL", "REGIONAL", "NEARLINE", "COLDLINE", "ARCHIVE"], var.storage_class)
     error_message = "Storage class must be one of STANDARD, MULTI_REGIONAL, REGIONAL, NEARLINE, COLDLINE, ARCHIVE."
-  }
-}
-
-variable "string_may_not_contain" {
-  type    = string
-  default = "test"
-
-  validation {
-    error_message = "Value cannot contain a \"/\"."
-    condition     = !can(regex("/", var.string_may_not_contain))
   }
 }
 
