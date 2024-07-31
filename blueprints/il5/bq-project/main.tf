@@ -30,7 +30,7 @@ module "bigquery-dataset" {
   id             = var.dataset_id
   encryption_key = module.kms.keys.default.id
   depends_on     = [module.kms]
-   tables = {
+  tables = {
     bq-table = {
       deletion_protection = false
     }
@@ -47,7 +47,7 @@ module "bigquery-dataset" {
     ]
   }
 }
-  
+
 #Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
