@@ -105,7 +105,6 @@ variable "keys" {
       iam_bindings_additive = {}
     }
   }
-
   nullable = false
 }
 
