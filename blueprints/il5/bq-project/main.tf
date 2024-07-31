@@ -28,11 +28,26 @@ module "bigquery-dataset" {
   location       = var.location
   project_id     = var.project_id
   id             = var.dataset_id
-  description    = "This dataset has customer managed encrypted keys, is updated in real-time, and accessed by restricted roles."
   encryption_key = module.kms.keys.default.id
   depends_on     = [module.kms]
+   tables = {
+    bq-table = {
+      deletion_protection = false
+    }
+  }
+  iam = {
+    "roles/bigquery.dataEditor" = [
+      "serviceAccount:${google_service_account.bigquery-dataset.email}"
+    ]
+    "roles/bigquery.dataOwner" = [
+      "user:${var.email}"
+    ]
+    "roles/bigquery.dataViewer" = [
+      "user:${var.email}"
+    ]
+  }
 }
-
+  
 #Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
@@ -43,3 +58,4 @@ module "kms" {
   }
   keyring = var.keyring
 }
+
