@@ -37,13 +37,13 @@ module "bigquery-dataset" {
   }
   iam = {
     "roles/bigquery.dataEditor" = [
-      "serviceAccount:${google_service_account.bigquery-dataset.email}"
+      "serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"
     ]
     "roles/bigquery.dataOwner" = [
-      "user:${var.email}"
+      "serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"
     ]
     "roles/bigquery.dataViewer" = [
-      "user:${var.email}"
+      "serviceAccount:${data.google_bigquery_default_service_account.bq_sa.email}"
     ]
   }
 }
