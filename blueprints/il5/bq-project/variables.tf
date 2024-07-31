@@ -38,7 +38,6 @@ variable "location" {
   default     = "us-east4"
 }
 
-
 variable "keyring" {
   description = "Keyring attributes."
   type = object({
@@ -53,7 +52,6 @@ variable "keyring" {
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
 
 }
-
 
 variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
