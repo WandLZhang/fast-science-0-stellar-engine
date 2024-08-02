@@ -29,16 +29,20 @@ locals {
 
 # Google Cloud Storage Module 
 module "gcs" {
-  source                      = "../../../modules/gcs"
-  prefix                      = var.prefix
-  project_id                  = var.project_id
-  location                    = var.location
-  storage_class               = var.storage_class
-  encryption_key              = module.kms.keys.default.id
+  source         = "../../../modules/gcs"
+  prefix         = var.prefix
+  project_id     = var.project_id
+  location       = var.location
+  storage_class  = var.storage_class
+  encryption_key = module.kms.keys.default.id
+  name           = var.name
+  depends_on     = [module.kms]
+
+  # CIS Compliance Benchmark 5.1
+  public_access_prevention = var.public_access_prevention
+
+  # CIS Compliance Benchmark 5.2
   uniform_bucket_level_access = var.uniform_bucket_level_access
-  public_access_prevention    = var.public_access_prevention
-  name                        = var.name
-  depends_on                  = [module.kms]
 
   iam = {
     "roles/storage.admin" = ["user:${var.email}"]
