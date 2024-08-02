@@ -27,20 +27,20 @@ variable "keyring" {
   })
 }
 
-variable "uniform_bucket_level_access" {
-  description = "Enable or disable uniform bucket level access"
-  type        = bool
-  default     = true
-}
-
 variable "public_access_prevention" {
-  description = "Enable or disable public access prevention"
+  description = "This provides the ability to toggle Public Access Prevention for the GCS Storage bucket. By settng this variable to enforced, the CIS Benchmark 5.1 compliance control is satsified."
   type        = string
   default     = "enforced"
   validation {
     condition     = contains(["enforced", "inherited"], var.public_access_prevention)
     error_message = "public_access_prevention must be either 'enforced' or 'inherited'."
   }
+}
+
+variable "uniform_bucket_level_access" {
+  description = "This provides the ability to toggle Uniform Bucket Level Acess for the GCS Storage bucket. By settng this variable to true, the CIS Benchmark 5.2 compliance control is satsified."
+  type        = bool
+  default     = true
 }
 
 variable "prefix" {
