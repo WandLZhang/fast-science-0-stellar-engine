@@ -75,7 +75,7 @@ resource "google_project_iam_member" "dataflow_worker" {
 
 resource "google_dataflow_job" "job" {
   project = var.project_id
-  name    = "dataflow-job"
+  name    = var.dataflow_name
   region  = var.region
   zone    = var.zone
 
