@@ -6,6 +6,7 @@ This blueprint builds and deploys a Google Cloud Dataflow Job
 ## Pre-requisite
 1. The Principal (user or group) must have Cloud KMS Admin permission at the GCP Level
 1. A VNet and Subnet
+1. [Enable Dataflow API](https://console.developers.google.com/apis/api/dataflow.googleapis.com/overview?project=tnbsea-dev-tapand-dev)
 
 ## Deployment Steps
 1. Update the variables in terraform.tfvars
