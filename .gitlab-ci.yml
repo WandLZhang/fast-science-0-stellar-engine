@@ -46,9 +46,9 @@ validate-formatting:
   #       - pub-sub-project
   script:
     - cd "blueprints/il5/"
-    - tf fmt -check --recursive
+    - terraform fmt -check --recursive
     - cd "../../fast/stages-aw"
-    - tf fmt -check --recursive
+    - terraform fmt -check --recursive
 
 test-stages-aw:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
