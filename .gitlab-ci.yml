@@ -20,7 +20,6 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
-# Stage only runs on our additions
 validate-stages-aw-formatting:  
   stage: lint    
   image:
@@ -42,7 +41,6 @@ validate-stages-aw-formatting:
     - cd "fast/${STAGES}/${STAGE}/"
     - terraform fmt -check --recursive
 
-# Stage only runs on our additions
 validate-blueprints-formatting:  
   stage: lint    
   image:
