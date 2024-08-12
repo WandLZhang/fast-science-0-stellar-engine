@@ -17,10 +17,33 @@
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
 stages:          # List of stages for jobs, and their order of execution
+  - lint
   - test
   - deploy
 
-test-stages-aw:   # This job runs in the test stage.
+validate-stages-aw-formatting:  
+  stage: lint    
+  image:
+    name: hashicorp/terraform:1.9.2
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd "fast/stages-aw/"
+    - terraform fmt -check --recursive
+
+validate-blueprints-formatting:  
+  stage: lint    
+  image:
+    name: hashicorp/terraform:1.9.2
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd "blueprints/il5/"
+    - terraform fmt -check --recursive
+
+validate-stages-aw:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   image:
     name: hashicorp/terraform:1.9.2
@@ -40,10 +63,9 @@ test-stages-aw:   # This job runs in the test stage.
   script:
     - cd "fast/${STAGES}/${STAGE}/"
     - terraform init
-    - terraform fmt
     - terraform validate
 
-test-blueprints:   # This job runs in the test stage.
+validate-blueprints:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   image:
     name: hashicorp/terraform:1.9.2
@@ -68,5 +90,4 @@ test-blueprints:   # This job runs in the test stage.
   script:
     - cd "blueprints/il5/${BLUEPRINT}/"
     - terraform init
-    - terraform fmt
     - terraform validate
