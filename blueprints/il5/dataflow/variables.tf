@@ -131,5 +131,5 @@ variable "allowed_source_ranges" {
 
 variable "ip_cidr_range" {
   description = "IP CIDR Range for DataFlow subnet."
-  type = string
+  type        = string
 }

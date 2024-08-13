@@ -50,7 +50,7 @@ module "vpc" {
       name                  = var.subnet_name
       region                = var.region
       enable_private_access = true
-      ip_cidr_range = var.ip_cidr_range
+      ip_cidr_range         = var.ip_cidr_range
     }
   ]
 }
@@ -114,12 +114,12 @@ resource "google_dataflow_job" "job" {
 
   parameters = var.parameters
 
-  network = module.vpc.name
+  network    = module.vpc.name
   subnetwork = "regions/${var.region}/subnetworks/${var.subnet_name}"
-  
+
   ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 
   kms_key_name = module.kms.keys.dataflow-job.id
-  
+
   depends_on = [module.kms, module.gcs, module.vpc, google_project_iam_member.dataflow_worker]
 }
