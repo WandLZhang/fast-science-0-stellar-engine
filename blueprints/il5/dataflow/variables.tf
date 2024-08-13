@@ -24,13 +24,18 @@ variable "region" {
   default     = "us-east4"
 }
 
-variable "network" {
-  description = "The email of the user."
+variable "network_name" {
+  description = "The network name."
   type        = string
 }
 
-variable "subnet" {
-  description = "The email of the user."
+variable "subnet_name" {
+  description = "The subnet name."
+  type        = string
+}
+
+variable "firewall_name" {
+  description = "The firewall name."
   type        = string
 }
 
@@ -110,5 +115,21 @@ variable "zone" {
 
 variable "template_gcs_path" {
   description = "This is the template path of the dataflow job."
+  type        = string
+}
+
+variable "allowed_firewall_ports" {
+  description = "The allowed ports for the firewall. Dataflow requires 12345 and 12346."
+  type        = list(string)
+  default     = [12345, 12346]
+}
+
+variable "allowed_source_ranges" {
+  description = "These are the allowed source ranges."
+  type        = list(string)
+}
+
+variable "ip_cidr_range" {
+  description = "IP CIDR Range for DataFlow subnet."
   type        = string
 }
