@@ -13,26 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-output "google_kms_key_ring" {
-  value = google_kms_key_ring.key-ring01
-}
 
-output "google_kms_crypto_key" {
-  value = google_kms_crypto_key.crypto_key1
-}
-
-output "google_sql_database_instance" {
-  value = google_sql_database_instance.postgres.name
-}
-
-output "self_link" {
-  value = data.google_compute_network.vpc_network.self_link
-}
-
-output "connection_name" {
-  value = google_sql_database_instance.postgres.connection_name
-}
-
-output "private_ip_address" {
-  value = google_sql_database_instance.postgres.private_ip_address
+output "connection_internal_ip" {
+  value = module.postgres.ip
 }
