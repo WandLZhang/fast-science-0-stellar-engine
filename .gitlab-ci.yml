@@ -79,8 +79,8 @@ validate-blueprints:   # This job runs in the test stage.
         - compute-persistent-disk
         - gke-project
         - shielded-vm-project
-        - artifact-registies
-        - clean-postgres-deployment
+        - artifact-registry
+        - postgresql
         - gcp-ce-security-onion
         - kms-project
         - vpc-peering-project
