@@ -26,6 +26,34 @@ resource "google_service_account" "dataflow_worker" {
   display_name = "Dataflow Worker Storage Account"
 }
 
+resource "google_compute_firewall" "dataflow" {
+  name    = var.firewall_name
+  network = module.vpc.self_link
+  allow {
+    protocol = "tcp"
+    ports    = var.allowed_firewall_ports
+  }
+  source_ranges = var.allowed_source_ranges
+}
+
+# Google VPC Module
+module "vpc" {
+  source                  = "../../../modules/net-vpc"
+  project_id              = var.project_id
+  name                    = var.network_name
+  auto_create_subnetworks = false
+
+  delete_default_routes_on_create = false
+
+  subnets = [
+    {
+      name                  = var.subnet_name
+      region                = var.region
+      enable_private_access = true
+      ip_cidr_range         = var.ip_cidr_range
+    }
+  ]
+}
 
 module "kms" {
   source     = "../../../modules/kms"
@@ -57,7 +85,7 @@ module "gcs" {
   iam = {
     "roles/storage.objectAdmin" = concat(
       [
-        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service account
+        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service account 
       ]
     )
   }
@@ -75,7 +103,7 @@ resource "google_project_iam_member" "dataflow_worker" {
 
 resource "google_dataflow_job" "job" {
   project = var.project_id
-  name    = "dataflow-job"
+  name    = var.dataflow_name
   region  = var.region
   zone    = var.zone
 
@@ -86,11 +114,12 @@ resource "google_dataflow_job" "job" {
 
   parameters = var.parameters
 
-  network          = var.network
-  subnetwork       = var.subnet
+  network    = module.vpc.name
+  subnetwork = "regions/${var.region}/subnetworks/${var.subnet_name}"
+
   ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 
   kms_key_name = module.kms.keys.dataflow-job.id
 
-  depends_on = [module.kms, module.gcs, google_project_iam_member.dataflow_worker]
+  depends_on = [module.kms, module.gcs, module.vpc, google_project_iam_member.dataflow_worker]
 }
