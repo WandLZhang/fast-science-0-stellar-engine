@@ -116,3 +116,91 @@ variable "keys" {
     })), {})
   }))
 }
+
+variable "log_error_verbosity" {
+  description = "The log_error_verbosity flag controls the verbosity/details of messages logged."
+  type        = string
+  default     = "DEFAULT" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["TERSE", "DEFAULT", "VERBOSE"], var.log_error_verbosity)
+    error_message = "Only values \"TERSE\", \"DEFAULT\", and \"VERBOSE\" allowed."
+  }
+}
+
+variable "log_connections" {
+  description = "Enabling the log_connections setting causes each attempted connection to the server to be logged, along with successful completion of client authentication."
+  type        = string
+  default     = "on" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["on", "off"], var.log_connections)
+    error_message = "Only values \"on\" and \"off\" allowed."
+  }
+}
+
+variable "log_disconnections" {
+  description = "Enabling the log_disconnections setting logs the end of each session, including the session duration."
+  type        = string
+  default     = "on" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["on", "off"], var.log_disconnections)
+    error_message = "Only values \"on\" and \"off\" allowed."
+  }
+}
+
+variable "log_statement" {
+  description = "The value of log_statement flag determines the SQL statements that are logged."
+  type        = string
+  default     = "ddl" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["none", "ddl", "mod", "all"], var.log_statement)
+    error_message = "Only values \"none\", \"ddl\", \"mod\", and \"all\" allowed."
+  }
+}
+
+variable "log_min_messages" {
+  description = "The log_min_messages flag defines the minimum message severity level that is considered as an error statement."
+  type        = string
+  default     = "WARNING" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["DEBUG5", "DEBUG4", "DEBUG3", "DEBUG2", "DEBUG1", "INFO", "NOTICE", "WARNING", "ERROR", "LOG", "FATAL", "PANIC"], var.log_min_messages)
+    error_message = "Only values \"DEBUG5\", \"DEBUG4\", \"DEBUG3\", \"DEBUG2\", \"DEBUG1\", \"INFO\", \"NOTICE\", \"WARNING\", \"ERROR\", \"LOG\", \"FATAL\", and \"PANIC\" allowed."
+  }
+}
+
+variable "log_min_error_statement" {
+  description = "The log_min_error_statement flag defines the minimum message severity level that are considered as an error statement."
+  type        = string
+  default     = "ERROR" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["DEBUG5", "DEBUG4", "DEBUG3", "DEBUG2", "DEBUG1", "INFO", "NOTICE", "WARNING", "ERROR", "LOG", "FATAL", "PANIC"], var.log_min_error_statement)
+    error_message = "Only values \"DEBUG5\", \"DEBUG4\", \"DEBUG3\", \"DEBUG2\", \"DEBUG1\", \"INFO\", \"NOTICE\", \"WARNING\", \"ERROR\", \"LOG\", \"FATAL\", and \"PANIC\" allowed."
+  }
+}
+
+variable "log_min_duration_statement" {
+  description = "Type the minimum amount of execution time of a statement in milliseconds where the total duration of the statement is logged or \"-1\" to disable."
+  type        = number
+  default     = "-1" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = var.log_min_duration_statement >= "-1" && floor(var.log_min_duration_statement) == var.log_min_duration_statement
+    error_message = "Only values \"-1\" or a valid whole number are allowed."
+  }
+}
+
+variable "enable_pgaudit" {
+  description = "This extension provides detailed session and object logging to comply with government, financial & ISO standards and provides auditing capabilities to mitigate threats by monitoring security events on the instance."
+  type        = string
+  default     = "On" # Required for CIS Compliance Benchmark 6.2
+
+  validation {
+    condition     = contains(["on", "off"], var.enable_pgaudit)
+    error_message = "Only values \"on\" and \"off\" allowed."
+  }
+}
