@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
+output "dataset_name" {
+  value = module.bigquery-dataset.id
+}
 
 output "keyring" {
   value = module.kms.keyring
 }
 
-output "dataset_name" {
-  value = module.bigquery-dataset.id
+output "materialized_view_ids" {
+  value = module.bigquery-dataset.materialized_view_ids
 }
 
 output "materialized_views" {
   value = module.bigquery-dataset.materialized_views
-}
-
-output "materialized_view_ids" {
-  value = module.bigquery-dataset.materialized_view_ids
 }
 
 output "self_link" {

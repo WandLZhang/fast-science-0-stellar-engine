@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
+
+variable "allowed_firewall_ports" {
+  description = "The list of the Allowed Ports"
+  type        = list(any)
+  #Example default     = ["22", "443"]
 }
 
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-}
-
-variable "project_id" {
-  description = "Project ID"
-  type        = string
-  # Example default = "project-id-here"
-}
-
-variable "email" {
-  description = "Email address of the user."
-  type        = string
-  # Example default = "admin.user-anme@example.google.com"
+variable "auto_delete" {
+  description = "Persistent Disk auto delete options"
+  type        = bool
+  # Example default = true
 }
 
 variable "compute_service_account_id" {
@@ -41,10 +32,29 @@ variable "compute_service_account_id" {
   # Example default = "computeblue"
 }
 
-variable "auto_delete" {
-  description = "Persistent Disk auto delete options"
-  type        = bool
-  # Example default = true
+variable "email" {
+  description = "Email address of the user."
+  type        = string
+  # Example default = "admin.user-anme@example.google.com"
+}
+
+variable "instance_name" {
+  description = "Provide the name of the Compute Instance"
+  type        = string
+  #Example default     = "Compute-Instance-Name-1"
+}
+
+variable "instance_type" {
+  description = "The Machine Type for the Compute Engine VM"
+  type        = string
+  default     = "e2-micro"
+  #Example  default     = "e2-micro"
+}
+
+variable "ip_cidr_range" {
+  description = "The IP CIDR range for the VPC"
+  type        = string
+  #Example default = "10.0.1.0/24"
 }
 
 variable "keyring" {
@@ -59,49 +69,6 @@ variable "keyring" {
   #  name     = "name-of-keyring"
   # }
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
-}
-
-variable "location" {
-  description = "Location of the Compute Engine VM"
-  type        = string
-  default     = "us-east4"
-
-}
-
-variable "zone" {
-  description = "Zone of the Compute Engine VM us-east4-c , us-east4-a, us-east4-b"
-  type        = string
-  default     = "us-east4-c"
-}
-
-variable "instance_name" {
-  description = "Provide the name of the Compute Instance"
-  type        = string
-  #Example default     = "Compute-Instance-Name-1"
-}
-variable "instance_type" {
-  description = "The Machine Type for the Compute Engine VM"
-  type        = string
-  default     = "e2-micro"
-  #Example  default     = "e2-micro"
-}
-
-variable "ip_cidr_range" {
-  description = "The IP CIDR range for the VPC"
-  type        = string
-  #Example default = "10.0.1.0/24"
-}
-
-variable "source_ranges_allowed" {
-  description = "The List of the source IP CIDR range allowed to connect to the Compute Engine VM"
-  type        = list(any)
-  #Example default = ["10.0.1.0/24"]
-}
-
-variable "allowed_firewall_ports" {
-  description = "The list of the Allowed Ports"
-  type        = list(any)
-  #Example default     = ["22", "443"]
 }
 
 variable "keys" {
@@ -155,4 +122,39 @@ variable "keys" {
     }
   }
   nullable = false
+}
+
+variable "location" {
+  description = "Location of the Compute Engine VM"
+  type        = string
+  default     = "us-east4"
+
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
+variable "project_id" {
+  description = "Project ID"
+  type        = string
+  # Example default = "project-id-here"
+}
+
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "source_ranges_allowed" {
+  description = "The List of the source IP CIDR range allowed to connect to the Compute Engine VM"
+  type        = list(any)
+  #Example default = ["10.0.1.0/24"]
+}
+
+variable "zone" {
+  description = "Zone of the Compute Engine VM us-east4-c , us-east4-a, us-east4-b"
+  type        = string
+  default     = "us-east4-c"
 }

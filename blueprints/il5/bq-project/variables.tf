@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-variable "project_id" {
-  description = "Project ID"
+variable "dataset_description" {
+  description = "Provides a discription of the deployed BigQuery Dataset."
   type        = string
-}
-
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-
 }
 
 variable "dataset_id" {
   description = "This is the dataset id"
   type        = string
-}
-
-variable "location" {
-  description = "Location of the BigQuery Dataaset in GCP"
-  type        = string
-  default     = "us-east4"
 }
 
 variable "keyring" {
@@ -47,17 +30,6 @@ variable "keyring" {
     location = string
     name     = string
   })
-}
-
-variable "tables" {
-  description = "BigQuery tables."
-  type        = map(map(string))
-  default     = {}
-}
-
-variable "dataset_description" {
-  description = "Provides a discription of the deployed BigQuery Dataset."
-  type        = string
 }
 
 variable "keys" {
@@ -115,3 +87,30 @@ variable "keys" {
   nullable = false
 }
 
+variable "location" {
+  description = "Location of the BigQuery Dataaset in GCP"
+  type        = string
+  default     = "us-east4"
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+
+}
+
+variable "project_id" {
+  description = "Project ID"
+  type        = string
+}
+
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "tables" {
+  description = "BigQuery tables."
+  type        = map(map(string))
+  default     = {}
+}
