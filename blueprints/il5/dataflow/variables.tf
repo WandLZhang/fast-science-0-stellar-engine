@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "project_id" {
-  description = "The ID of the project in which to provision resources."
-  type        = string
+
+variable "allowed_firewall_ports" {
+  description = "The allowed ports for the firewall. Dataflow requires 12345 and 12346."
+  type        = list(string)
+  default     = [12345, 12346]
 }
 
-variable "region" {
-  description = "The region in which to provision resources."
-  type        = string
-  default     = "us-east4"
+variable "allowed_source_ranges" {
+  description = "These are the allowed source ranges."
+  type        = list(string)
 }
 
-variable "project" {
-  description = "GCP Project to deploy Google into"
-  type        = string
-}
-
-variable "network_name" {
-  description = "The network name."
+variable "bucket_name" {
+  description = "This is the name of the bucket."
   type        = string
 }
 
@@ -39,13 +35,13 @@ variable "dataflow_name" {
   type        = string
 }
 
-variable "subnet_name" {
-  description = "The subnet name."
+variable "firewall_name" {
+  description = "The firewall name."
   type        = string
 }
 
-variable "firewall_name" {
-  description = "The firewall name."
+variable "ip_cidr_range" {
+  description = "IP CIDR Range for DataFlow subnet."
   type        = string
 }
 
@@ -92,13 +88,8 @@ variable "keys" {
   }))
 }
 
-variable "bucket_name" {
-  description = "This is the name of the bucket."
-  type        = string
-}
-
-variable "storage_class" {
-  description = "This is the storage class of the storage bucket."
+variable "network_name" {
+  description = "The network name."
   type        = string
 }
 
@@ -112,10 +103,30 @@ variable "prefix" {
   type        = string
 }
 
-variable "zone" {
-  description = "This is the name of the zone."
+variable "project" {
+  description = "GCP Project to deploy Google into"
+  type        = string
+}
+
+variable "project_id" {
+  description = "The ID of the project in which to provision resources."
+  type        = string
+}
+
+variable "region" {
+  description = "The region in which to provision resources."
   type        = string
   default     = "us-east4"
+}
+
+variable "storage_class" {
+  description = "This is the storage class of the storage bucket."
+  type        = string
+}
+
+variable "subnet_name" {
+  description = "The subnet name."
+  type        = string
 }
 
 variable "template_gcs_path" {
@@ -123,18 +134,8 @@ variable "template_gcs_path" {
   type        = string
 }
 
-variable "allowed_firewall_ports" {
-  description = "The allowed ports for the firewall. Dataflow requires 12345 and 12346."
-  type        = list(string)
-  default     = [12345, 12346]
-}
-
-variable "allowed_source_ranges" {
-  description = "These are the allowed source ranges."
-  type        = list(string)
-}
-
-variable "ip_cidr_range" {
-  description = "IP CIDR Range for DataFlow subnet."
+variable "zone" {
+  description = "This is the name of the zone."
   type        = string
+  default     = "us-east4"
 }

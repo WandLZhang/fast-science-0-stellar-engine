@@ -13,15 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-}
 
 variable "current_project_id" {
   description = "Project ID"
@@ -35,16 +26,26 @@ variable "location" {
   default     = "us-east4"
 }
 
-variable "vpc_name" {
-  description = "The name of the VPC"
+variable "project" {
+  description = "GCP Project to deploy into"
   type        = string
-  #Example   default     = "vpc-blueprint-connect"
 }
 
-variable "vpc_network_name" {
-  description = "The name of the VPC"
+variable "region" {
+  description = "GCP Region to deploy into"
   type        = string
-  #Example   default     = "vpc-blueprint-connect"
+}
+
+variable "secondary_ip_ranges_cidr_a" {
+  description = "The Secondary IP CIDR"
+  type        = string
+  #Example default ="192.168.0.0/24"
+}
+
+variable "secondary_ip_ranges_cidr_b" {
+  description = "The Secondary IP CIDR"
+  type        = string
+  #Example default ="192.168.1.0/24"
 }
 
 variable "subnet_prefix_name" {
@@ -71,15 +72,14 @@ variable "subnets_cidr_c" {
   #Example default ="10.200.12.0/25"
 }
 
-variable "secondary_ip_ranges_cidr_a" {
-  description = "The Secondary IP CIDR"
+variable "vpc_name" {
+  description = "The name of the VPC"
   type        = string
-  #Example default ="192.168.0.0/24"
+  #Example   default     = "vpc-blueprint-connect"
 }
 
-variable "secondary_ip_ranges_cidr_b" {
-  description = "The Secondary IP CIDR"
+variable "vpc_network_name" {
+  description = "The name of the VPC"
   type        = string
-  #Example default ="192.168.1.0/24"
+  #Example   default     = "vpc-blueprint-connect"
 }
-

@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-output "vpc-network" {
-  description = "Network resource."
-  value       = module.vpc.network
+
+output "local_network_peering" {
+  description = "Network peering resource."
+  value       = module.peering.local_network_peering
 }
 
-output "vpc-network_attachment_ids" {
-  description = "IDs of network attachments."
-  value       = module.vpc.network_attachment_ids
-}
-
-output "vpc-network-self_link" {
-  description = "Network self link."
-  value       = module.vpc.self_link
-}
-
-output "vpc-subnet_ids" {
-  description = "Map of subnet IDs keyed by name."
-  value       = module.vpc.subnet_ids
-}
-
-output "vpc-subnet_ips" {
-  description = "Map of subnet address ranges keyed by name."
-  value       = module.vpc.subnet_ips
+output "peer_network_peering" {
+  description = "Peer network peering resource."
+  value       = module.peering.peer_network_peering
 }
 
 output "subnet_ipv6_external_prefixes" {
@@ -63,12 +49,27 @@ output "subnets" {
   value       = module.vpc.subnets
 }
 
-output "local_network_peering" {
-  description = "Network peering resource."
-  value       = module.peering.local_network_peering
+output "vpc-network" {
+  description = "Network resource."
+  value       = module.vpc.network
 }
 
-output "peer_network_peering" {
-  description = "Peer network peering resource."
-  value       = module.peering.peer_network_peering
+output "vpc-network-self_link" {
+  description = "Network self link."
+  value       = module.vpc.self_link
+}
+
+output "vpc-network_attachment_ids" {
+  description = "IDs of network attachments."
+  value       = module.vpc.network_attachment_ids
+}
+
+output "vpc-subnet_ids" {
+  description = "Map of subnet IDs keyed by name."
+  value       = module.vpc.subnet_ids
+}
+
+output "vpc-subnet_ips" {
+  description = "Map of subnet address ranges keyed by name."
+  value       = module.vpc.subnet_ips
 }

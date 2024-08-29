@@ -19,14 +19,20 @@ output "keyring-id" {
   value       = module.kms.id
 }
 
+output "keyring-location" {
+  description = "Keyring location."
+  value       = module.kms.location
+}
+
+
+output "keyring-name" {
+  description = "Keyring name."
+  value       = module.kms.name
+}
+
 output "keyring-resource" {
   description = "Keyring resource."
   value       = module.kms.keyring
-}
-
-output "qualified_key_ids" {
-  description = "Fully qualified key ids."
-  value       = module.kms.key_ids
 }
 
 output "keyrings-keys" {
@@ -34,13 +40,7 @@ output "keyrings-keys" {
   value       = module.kms.keys
 }
 
-output "keyring-name" {
-  description = "Keyring name."
-  value       = module.kms.name
+output "qualified_key_ids" {
+  description = "Fully qualified key ids."
+  value       = module.kms.key_ids
 }
-
-output "keyring-location" {
-  description = "Keyring location."
-  value       = module.kms.location
-}
- 

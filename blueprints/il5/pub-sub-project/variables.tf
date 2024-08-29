@@ -13,38 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
-}
 
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-}
-
-variable "project_id" {
-  type = string
-}
-
-variable "pubsub_topic" {
-  type = string
-}
-
-variable "publisher_name" {
-  type = string
-}
-
-variable "subscriber_name" {
-  type = string
-}
-
-variable "publisher_account_id" {
-  type = string
-}
-
-variable "subscriber_account_id" {
-  type = string
+variable "allowed_persistence_regions" {
+  description = "The allowed persistence regions for the Pub/Sub topic"
+  type        = list(string)
+  default     = ["us-east4"]
 }
 
 variable "keyring" {
@@ -53,12 +26,6 @@ variable "keyring" {
     location = string
     name     = string
   })
-}
-
-variable "allowed_persistence_regions" {
-  description = "The allowed persistence regions for the Pub/Sub topic"
-  type        = list(string)
-  default     = ["us-east4"]
 }
 
 variable "keys" {
@@ -116,4 +83,38 @@ variable "keys" {
   }
 
   nullable = false
+}
+
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
+variable "project_id" {
+  type = string
+}
+
+variable "publisher_account_id" {
+  type = string
+}
+
+variable "publisher_name" {
+  type = string
+}
+
+variable "pubsub_topic" {
+  type = string
+}
+
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}
+
+variable "subscriber_account_id" {
+  type = string
+}
+
+variable "subscriber_name" {
+  type = string
 }

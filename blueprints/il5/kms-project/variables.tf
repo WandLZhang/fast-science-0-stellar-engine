@@ -13,21 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-}
-
-variable "project_id" {
-  description = "Project ID"
-  type        = string
-  # Example default = project-id-123
-}
 
 variable "email" {
   description = "Email address of the user."
@@ -112,3 +97,18 @@ variable "keys" {
   nullable = false
 }
 
+variable "project" {
+  description = "GCP Project to deploy into"
+  type        = string
+}
+
+variable "project_id" {
+  description = "Project ID"
+  type        = string
+  # Example default = project-id-123
+}
+
+variable "region" {
+  description = "GCP Region to deploy into"
+  type        = string
+}

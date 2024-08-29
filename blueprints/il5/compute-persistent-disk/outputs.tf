@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
+output "compute-engine-vm-instance" {
+  description = "Instance resource."
+  sensitive   = true
+  value       = try(module.compute-engine-vm.instance)
+}
+
 output "compute-engine-vm-instance-id" {
   description = "Fully qualified instance id."
   value       = module.compute-engine-vm.id
-}
-
-output "compute-engine-vm-service_account_email" {
-  description = "Service account email."
-  value       = module.compute-engine-vm.service_account_email
 }
 
 output "compute-engine-vm-internal_ip" {
@@ -39,25 +40,14 @@ output "compute-engine-vm-service_account" {
   value       = module.compute-engine-vm.service_account
 }
 
-output "compute-engine-vm-instance" {
-  description = "Instance resource."
-  sensitive   = true
-  value       = try(module.compute-engine-vm.instance)
+output "compute-engine-vm-service_account_email" {
+  description = "Service account email."
+  value       = module.compute-engine-vm.service_account_email
 }
 
 output "keyring-id" {
   description = "Fully qualified keyring id."
   value       = module.kms.id
-}
-
-output "keyring-resource" {
-  description = "Keyring resource."
-  value       = module.kms.keyring
-}
-
-output "keyrings-keys" {
-  description = "Key resources."
-  value       = module.kms.keys
 }
 
 output "keyring-location" {
@@ -68,4 +58,14 @@ output "keyring-location" {
 output "keyring-name" {
   description = "Keyring name."
   value       = module.kms.name
+}
+
+output "keyring-resource" {
+  description = "Keyring resource."
+  value       = module.kms.keyring
+}
+
+output "keyrings-keys" {
+  description = "Key resources."
+  value       = module.kms.keys
 }
