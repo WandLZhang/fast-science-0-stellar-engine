@@ -28,8 +28,6 @@ variable "gke_initial_node_per_zone" {
   #default     = 1
 }
 
-# tflint-ignore: terraform_unused_declarations
-
 variable "gke_nodepool_name" {
   description = "The GKE Kubernetes Cluster Name."
   type        = string
@@ -175,6 +173,7 @@ variable "region" {
   # default     = "us-east4"
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "remove_default_node_pool" {
   description = "The Default NodePool remove it or not."
   type        = bool

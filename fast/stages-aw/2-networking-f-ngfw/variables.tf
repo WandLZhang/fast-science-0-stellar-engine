@@ -68,9 +68,7 @@ variable "custom_roles" {
   })
   default = null
 }
-
 # tflint-ignore: terraform_unused_declarations
-
 variable "dns" {
   description = "DNS configuration."
   type = object({
@@ -203,6 +201,7 @@ variable "keys" {
   nullable = false
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "locations" {
   description = "Optional locations for GCS, BigQuery, and logging buckets created here."
   type = object({
@@ -221,8 +220,6 @@ variable "locations" {
   }
   nullable = false
 }
-
-# tflint-ignore: terraform_unused_declarations
 
 variable "organization" {
   # tfdoc:variable:source 0-bootstrap

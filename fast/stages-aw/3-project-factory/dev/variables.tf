@@ -28,8 +28,6 @@ variable "billing_account" {
   }
 }
 
-# tflint-ignore: terraform_unused_declarations
-
 variable "factories_config" {
   description = "Path to folder with YAML resource description data files."
   type = object({
@@ -54,6 +52,7 @@ variable "host_project_ids" {
   nullable    = false
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "location" {
   description = "Location of the Compute Engine VM."
   type        = string
