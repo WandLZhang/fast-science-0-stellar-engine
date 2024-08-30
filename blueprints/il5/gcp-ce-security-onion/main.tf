@@ -151,7 +151,7 @@ resource "google_compute_firewall" "defaulta" {
   name    = "allow-traffic-a"
   network = module.vpc-a.network.self_link
   allow {
-    protocol = "all"
+    protocol = var.allowed_protocols
   }
   # Allowing to connect only within the VPC CIDR Range
   source_ranges = var.source_ranges_cidrs
@@ -163,7 +163,7 @@ resource "google_compute_firewall" "defaultb" {
   name    = "allow-traffic-b"
   network = module.vpc-b.network.self_link
   allow {
-    protocol = "all"
+    protocol = var.allowed_protocols
   }
   # Allowing to connect only within the VPC CIDR Range
   source_ranges = var.source_ranges_cidrs

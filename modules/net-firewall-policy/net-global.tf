@@ -34,9 +34,7 @@ resource "google_compute_network_firewall_policy_association" "net-global" {
 resource "google_compute_network_firewall_policy_rule" "net-global" {
   # Terraform's type system barfs in the condition if we use the locals map
   for_each = toset(
-    !local.use_hierarchical && !local.use_regional
-    ? keys(local.rules)
-    : []
+    !local.use_hierarchical && !local.use_regional ? keys(local.rules) : []
   )
   project                 = var.parent_id
   firewall_policy         = google_compute_network_firewall_policy.net-global[0].name
@@ -52,43 +50,41 @@ resource "google_compute_network_firewall_policy_rule" "net-global" {
     dest_ip_ranges = local.rules[each.key].match.destination_ranges
     src_ip_ranges  = local.rules[each.key].match.source_ranges
     dest_address_groups = (
-      local.rules[each.key].direction == "EGRESS"
-      ? local.rules[each.key].match.address_groups
-      : null
+      local.rules[each.key].direction == "EGRESS" ?
+      local.rules[each.key].match.address_groups : null
     )
     dest_fqdns = (
-      local.rules[each.key].direction == "EGRESS"
-      ? local.rules[each.key].match.fqdns
-      : null
+      local.rules[each.key].direction == "EGRESS" ?
+      local.rules[each.key].match.fqdns : null
     )
     dest_region_codes = (
-      local.rules[each.key].direction == "EGRESS"
-      ? local.rules[each.key].match.region_codes
+      local.rules[each.key].direction == "EGRESS" ?
+      local.rules[each.key].match.region_codes
       : null
     )
     dest_threat_intelligences = (
-      local.rules[each.key].direction == "EGRESS"
-      ? local.rules[each.key].match.threat_intelligences
+      local.rules[each.key].direction == "EGRESS" ?
+      local.rules[each.key].match.threat_intelligences
       : null
     )
     src_address_groups = (
-      local.rules[each.key].direction == "INGRESS"
-      ? local.rules[each.key].match.address_groups
+      local.rules[each.key].direction == "INGRESS" ?
+      local.rules[each.key].match.address_groups
       : null
     )
     src_fqdns = (
-      local.rules[each.key].direction == "INGRESS"
-      ? local.rules[each.key].match.fqdns
+      local.rules[each.key].direction == "INGRESS" ?
+      local.rules[each.key].match.fqdns
       : null
     )
     src_region_codes = (
-      local.rules[each.key].direction == "INGRESS"
-      ? local.rules[each.key].match.region_codes
+      local.rules[each.key].direction == "INGRESS" ?
+      local.rules[each.key].match.region_codes
       : null
     )
     src_threat_intelligences = (
-      local.rules[each.key].direction == "INGRESS"
-      ? local.rules[each.key].match.threat_intelligences
+      local.rules[each.key].direction == "INGRESS" ?
+      local.rules[each.key].match.threat_intelligences
       : null
     )
     dynamic "layer4_configs" {
