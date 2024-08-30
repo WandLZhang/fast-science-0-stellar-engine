@@ -31,7 +31,6 @@ The following diagram illustrates the high-level design of created resources and
   - [VPC Service Controls configuration](#vpc-service-controls-configuration)
 - [Notes](#notes)
 - [Files](#files)
-- [Files](#files)
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->

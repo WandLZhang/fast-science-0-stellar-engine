@@ -297,12 +297,10 @@ variable "service_accounts" {
   default = null
 }
 
+# To get a list of available official images, please run the following command:
+# `gcloud compute images list --filter="family ~ vmseries" --project paloaltonetworksgcp-public --no-standard-images`
 variable "vmseries_image" {
-  description = <<EOF
-  The image name from which to boot an instance, including a license type (bundle/flex) and version.
-  To get a list of available official images, please run the following command:
-  `gcloud compute images list --filter="family ~ vmseries" --project paloaltonetworksgcp-public --no-standard-images`
-  EOF
+  description = "The image name from which to boot an instance, including a license type (bundle/flex) and version."
   default     = "vmseries-111"
   type        = string
 }
