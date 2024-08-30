@@ -44,9 +44,7 @@ resource "google_container_cluster" "cluster" {
   deletion_protection                      = var.deletion_protection
   enable_cilium_clusterwide_network_policy = var.enable_features.cilium_clusterwide_network_policy
   datapath_provider = (
-    var.enable_features.dataplane_v2
-    ? "ADVANCED_DATAPATH"
-    : "DATAPATH_PROVIDER_UNSPECIFIED"
+    var.enable_features.dataplane_v2 ? "ADVANCED_DATAPATH" : "DATAPATH_PROVIDER_UNSPECIFIED"
   )
   # the default node pool is deleted here, use the gke-nodepool module instead.
   # shielded nodes are controlled by the cluster-level enable_features variable
@@ -89,8 +87,7 @@ resource "google_container_cluster" "cluster" {
     istio_config {
       disabled = var.enable_addons.istio == null
       auth = (
-        try(var.enable_addons.istio.enable_tls, false) ? "AUTH_MUTUAL_TLS" : "AUTH_NONE"
-      )
+      try(var.enable_addons.istio.enable_tls, false) ? "AUTH_MUTUAL_TLS" : "AUTH_NONE")
     }
     gce_persistent_disk_csi_driver_config {
       enabled = var.enable_addons.gce_persistent_disk_csi_driver
@@ -177,9 +174,7 @@ resource "google_container_cluster" "cluster" {
                   )
                   dynamic "standard_rollout_policy" {
                     for_each = (
-                      local.cas_apd_us.blue_green.standard_rollout_policy != null
-                      ? [""]
-                      : []
+                      local.cas_apd_us.blue_green.standard_rollout_policy != null ? [""] : []
                     )
                     content {
                       batch_node_count = (
@@ -413,9 +408,7 @@ resource "google_container_cluster" "cluster" {
   # Dataplane V2 has built-in network policies
   dynamic "network_policy" {
     for_each = (
-      var.enable_addons.network_policy && !var.enable_features.dataplane_v2
-      ? [""]
-      : []
+      var.enable_addons.network_policy && !var.enable_features.dataplane_v2 ? [""] : []
     )
     content {
       enabled  = true
@@ -428,9 +421,8 @@ resource "google_container_cluster" "cluster" {
       pubsub {
         enabled = true
         topic = (
-          try(var.enable_features.upgrade_notifications.topic_id, null) != null
-          ? var.enable_features.upgrade_notifications.topic_id
-          : google_pubsub_topic.notifications[0].id
+          try(var.enable_features.upgrade_notifications.topic_id, null) != null ?
+          var.enable_features.upgrade_notifications.topic_id : google_pubsub_topic.notifications[0].id
         )
       }
     }
@@ -462,9 +454,7 @@ resource "google_container_cluster" "cluster" {
   }
   dynamic "resource_usage_export_config" {
     for_each = (
-      try(var.enable_features.resource_usage_export.dataset, null) != null
-      ? [""]
-      : []
+      try(var.enable_features.resource_usage_export.dataset, null) != null ? [""] : []
     )
     content {
       enable_network_egress_metering = (
@@ -503,9 +493,7 @@ resource "google_container_cluster" "cluster" {
 
 resource "google_gke_backup_backup_plan" "backup_plan" {
   for_each = (
-    var.backup_configs.enable_backup_agent
-    ? var.backup_configs.backup_plans
-    : {}
+    var.backup_configs.enable_backup_agent ? var.backup_configs.backup_plans : {}
   )
   name     = each.key
   cluster  = google_container_cluster.cluster.id

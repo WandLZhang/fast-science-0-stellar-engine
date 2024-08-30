@@ -2,7 +2,7 @@
 
 # https://gist.github.com/yermulnik/7e0cf991962680d406692e1db1b551e6
 # Tested with GNU Awk 5.1.0, API: 3.0 (GNU MPFR 4.1.0, GNU MP 6.2.1)
-# Usage: cat variables.tf | gawk -f <path-to-file>/vars_sort.awk > variables.tf | tee new.tf; mv new.tf variables.tf
+# Usage: cat variables.tf | gawk -f <path-to-file>/vars_sort.awk | tee new.tf; mv new.tf variables.tf
 # Note: "chmod +x /path/to/tf_vars_sort.awk" before use
 # No licensing; yermulnik@gmail.com, 2021-2024
 {

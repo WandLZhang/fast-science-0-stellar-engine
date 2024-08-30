@@ -29,7 +29,7 @@ echo 'terraform {
       version = ">=3.0.0"
     }
    tls = {
-      source  = "hashicorp/random"
+      source  = "hashicorp/tls"
       version = ">=3.0.0"
     }
   }

@@ -19,8 +19,7 @@
 locals {
   logging_sinks = {
     for k, v in var.logging_sinks :
-    # rewrite destination and type when type="project"
-    k => merge(v, v.type != "project" ? {} : {
+    k => merge(v, v.type != "project" ? {} : { # rewrite destination and type when type="project"
       destination = "projects/${v.destination}"
       type        = "logging"
     })
