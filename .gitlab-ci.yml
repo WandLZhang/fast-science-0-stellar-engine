@@ -66,8 +66,8 @@ tflint-blueprints:
     - cd blueprints/il5/
     - tflint --recursive
 
-test-stages-aw:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
+validate-stages-aw: 
+  stage: test 
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
@@ -90,8 +90,8 @@ test-stages-aw:   # This job runs in the test stage.
     - terraform init
     - terraform validate
 
-test-blueprints:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
+validate-blueprints:  
+  stage: test  
   image:
     name: hashicorp/terraform:1.9.2
     entrypoint:
@@ -143,3 +143,27 @@ check-docs-blueprints:
     - cd tools
     - pip install click marko
     - python check_documentation.py blueprints/il5
+
+checkov-stages-aw:   
+  stage: test
+  image:
+    name: bridgecrew/checkov:3.2.238
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd fast/stages-aw
+    - checkov -d .
+  allow_failure: true
+
+checkov-blueprints:   
+  stage: test
+  image:
+    name: bridgecrew/checkov:3.2.238
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd blueprints/il5
+    - checkov -d .
+  allow_failure: true

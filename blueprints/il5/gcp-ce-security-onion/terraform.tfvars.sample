@@ -1,3 +1,4 @@
+allowed_protocols = "all"
 project_id = "project-id"
 email      = "email-address-here"
 # Provide the name to be given to the Computer Engine Service Account.

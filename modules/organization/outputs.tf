@@ -22,9 +22,9 @@ output "custom_constraint_ids" {
 output "custom_role_id" {
   description = "Map of custom role IDs created in the organization."
   value = {
-    for k, v in google_organization_iam_custom_role.roles :
     # build the string manually so that role IDs can be used as map
     # keys (useful for folder/organization/project-level iam bindings)
+    for k, v in google_organization_iam_custom_role.roles :
     (k) => "${var.organization_id}/roles/${local.custom_roles[k].name}"
   }
 }

@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+variable "allowed_protocols" {
+  description = "Allowed protocols."
+  type        = string
+}
+
 variable "auto_delete" {
   description = "Persistent Disk auto delete options."
   type        = bool
@@ -23,7 +28,6 @@ variable "auto_delete" {
 variable "boot_disk_image" {
   description = "The Name of the Disk Image  for the Compute Engine VM."
   type        = string
-  #Example  default     = "centos-stream-9-v20240613"
 }
 
 variable "boot_disk_size_gb" {
@@ -139,11 +143,6 @@ variable "nat_b_name" {
   description = "The NAT Name b."
   type        = string
   #Example default ="nat-so-b"
-}
-
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
 }
 
 variable "project_id" {
