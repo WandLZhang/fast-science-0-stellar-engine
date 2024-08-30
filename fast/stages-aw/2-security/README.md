@@ -242,7 +242,6 @@ Some references that might be useful in setting up this stage:
 | [core-dev.tf](./core-dev.tf) | None | <code>kms</code> · <code>project</code> |  |
 | [core-prod.tf](./core-prod.tf) | None | <code>kms</code> · <code>project</code> |  |
 | [main.tf](./main.tf) | Module-level locals and resources. | <code>folder</code> |  |
-| [mock-versions.tf](./mock-versions.tf) | None |  |  |
 | [outputs.tf](./outputs.tf) | Module outputs. |  | <code>google_storage_bucket_object</code> · <code>local_file</code> |
 | [variables.tf](./variables.tf) | Module variables. |  |  |
 | [vpc-sc.tf](./vpc-sc.tf) | None | <code>projects-data-source</code> · <code>vpc-sc</code> |  |
