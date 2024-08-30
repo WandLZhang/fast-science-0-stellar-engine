@@ -129,4 +129,5 @@ check-docs-blueprints:   # This job runs in the test stage.
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
     - cd tools
+    - pip install click
     - python check_documentation.py blueprints/il5
