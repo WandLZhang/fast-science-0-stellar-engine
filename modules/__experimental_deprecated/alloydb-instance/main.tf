@@ -19,8 +19,7 @@ locals {
     var.automated_backup_policy != null ? (var.automated_backup_policy.quantity_based_retention_count != null ? [var.automated_backup_policy.quantity_based_retention_count] : []) : []
   )
   read_pool_instance = (
-    var.read_pool_instance != null ?
-    { for read_pool_instances in var.read_pool_instance : read_pool_instances.instance_id => read_pool_instances } : {}
+    var.read_pool_instance != null ? { for read_pool_instances in var.read_pool_instance : read_pool_instances.instance_id => read_pool_instances } : {}
   )
   time_based_retention_count = (
     var.automated_backup_policy != null ? (var.automated_backup_policy.time_based_retention_count != null ? [var.automated_backup_policy.time_based_retention_count] : []) : []

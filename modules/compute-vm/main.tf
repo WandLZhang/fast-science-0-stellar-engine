@@ -43,15 +43,14 @@ locals {
     )
     scopes = (
       var.service_account.scopes != null ? var.service_account.scopes : (
-        var.service_account.email == null && !var.service_account.auto_create
-        # default scopes for Compute default SA
-        ? [
+        var.service_account.email == null && !var.service_account.auto_create ? [
+          # default scopes for Compute default SA
           "https://www.googleapis.com/auth/devstorage.read_only",
           "https://www.googleapis.com/auth/logging.write",
           "https://www.googleapis.com/auth/monitoring.write"
         ]
-        # default scopes for own SA
         : [
+          # default scopes for own SA
           "https://www.googleapis.com/auth/cloud-platform",
           "https://www.googleapis.com/auth/userinfo.email"
         ]

@@ -32,13 +32,13 @@ locals {
   # if no attributes passed for service account, use the GCE default
   # if no email specified, create service account
   service_account_email = (
-    var.service_account.create
-    ? google_service_account.service_account[0].email
+    var.service_account.create ?
+    google_service_account.service_account[0].email
     : var.service_account.email
   )
   service_account_scopes = (
-    var.service_account.oauth_scopes != null
-    ? var.service_account.oauth_scopes
+    var.service_account.oauth_scopes != null ?
+    var.service_account.oauth_scopes
     : [
       "https://www.googleapis.com/auth/devstorage.read_only",
       "https://www.googleapis.com/auth/logging.write",
@@ -59,8 +59,8 @@ resource "google_service_account" "service_account" {
   count   = var.service_account.create ? 1 : 0
   project = var.project_id
   account_id = (
-    var.service_account.email != null
-    ? split("@", var.service_account.email)[0]
+    var.service_account.email != null ?
+    split("@", var.service_account.email)[0]
     : "tf-gke-${var.name}"
   )
   display_name = "Terraform GKE ${var.cluster_name} ${var.name}."
@@ -83,8 +83,8 @@ resource "google_container_node_pool" "nodepool" {
     for_each = (
       try(var.nodepool_config.autoscaling, null) != null
       &&
-      !try(var.nodepool_config.autoscaling.use_total_nodes, false)
-      ? [""] : []
+      !try(var.nodepool_config.autoscaling.use_total_nodes, false) ?
+      [""] : []
     )
     content {
       location_policy = try(var.nodepool_config.autoscaling.location_policy, null)
@@ -222,9 +222,7 @@ resource "google_container_node_pool" "nodepool" {
     dynamic "sandbox_config" {
       for_each = (
         var.node_config.sandbox_config_gvisor == true &&
-        local.image.is_cos_containerd != null
-        ? [""]
-        : []
+        local.image.is_cos_containerd != null ? [""] : []
       )
       content {
         sandbox_type = "gvisor"

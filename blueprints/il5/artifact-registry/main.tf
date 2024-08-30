@@ -15,6 +15,7 @@ resource "google_project_service" "api" {
 }
 
 module "kms" {
+  #checkov:skip=CKV_GCP_43: example of how to skip (in this case, a KMS deletion error) a check in checkov
   source     = "../../../modules/kms"
   project_id = var.project
   keys       = var.keys
