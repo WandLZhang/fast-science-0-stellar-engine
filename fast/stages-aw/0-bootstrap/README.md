@@ -654,7 +654,6 @@ The `fast_features` variable consists of 4 toggles:
 | [kms.tf](./kms.tf) | None | <code>kms</code> |  |
 | [log-export.tf](./log-export.tf) | Audit log project and sink. | <code>bigquery-dataset</code> · <code>gcs</code> · <code>logging-bucket</code> · <code>project</code> · <code>pubsub</code> |  |
 | [main.tf](./main.tf) | Module-level locals and resources. |  |  |
-| [mock-versions.tf](./mock-versions.tf) | None |  |  |
 | [organization-iam.tf](./organization-iam.tf) | Organization-level IAM bindings locals. |  |  |
 | [organization.tf](./organization.tf) | Organization-level IAM. | <code>organization</code> |  |
 | [outputs-files.tf](./outputs-files.tf) | Output files persistence to local filesystem. |  | <code>local_file</code> |

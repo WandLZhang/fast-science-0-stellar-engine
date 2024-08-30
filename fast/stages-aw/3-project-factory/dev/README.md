@@ -115,7 +115,6 @@ terraform apply
 | name | description | modules |
 |---|---|---|
 | [main.tf](./main.tf) | Project factory. | <code>net-vpc</code> · <code>net-vpc-peering</code> · <code>project-factory</code> |
-| [mock-versions.tf](./mock-versions.tf) | None |  |
 | [outputs.tf](./outputs.tf) | Module outputs. |  |
 | [variables.tf](./variables.tf) | Module variables. |  |
 
