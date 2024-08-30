@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+# tflint-ignore: terraform_unused_declarations
 variable "autoclass" {
   description = "Enable autoclass to automatically transition objects to appropriate storage classes based on their access pattern. If set to true, storage_class must be set to STANDARD. When set to true, All objects added to the bucket begin in Standard storage, even if a different storage class is specified in the request."
   type        = bool
@@ -24,8 +25,6 @@ variable "email" {
   description = "Email address of the user."
   type        = string
 }
-
-# tflint-ignore: terraform_unused_declarations
 
 variable "keyring" {
   description = "Keyring attributes."
