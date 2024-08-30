@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
+
+variable "allowed_firewall_ports" {
+  description = "The list of the Allowed Ports."
+  type        = list(any)
+  #Example  default     = ["22", "443"]
 }
 
-variable "project" {
-  description = "GCP Project to deploy into"
+variable "compute_service_account_id" {
+  description = "The Service Account for Compute Engine."
   type        = string
+  # Example  default = "compute-service-account"
 }
 
-variable "project_id" {
-  description = "Project ID"
-  type        = string
+variable "disksize" {
+  description = "Provide the Size of the size in GB."
+  type        = number
+  default     = 40
 }
 
 variable "email" {
@@ -34,10 +38,23 @@ variable "email" {
   # Example default = "admin.user-anme@example.google.com"
 }
 
-variable "compute_service_account_id" {
-  description = "The Service Account for Compute Engine"
+variable "instance_name" {
+  description = "Provide the name of the Compute Instance."
   type        = string
-  # Example  default = "compute-service-account"
+  default     = "shieled-vm-inst"
+}
+
+variable "instance_type" {
+  description = "The Machine Type for the Shielded Compute VM."
+  type        = string
+  default     = "e2-micro"
+  #Example  default     = "e2-micro"
+}
+
+variable "ip_cidr_range" {
+  description = "The IP CIDR range for the VPC."
+  type        = string
+  #Example  default     = "10.0.1.0/24"
 }
 
 variable "keyring" {
@@ -52,67 +69,6 @@ variable "keyring" {
   #  name     = "name-of-keyring"
   #}
   # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
-}
-
-variable "location" {
-  description = "Location of the Shielded Compute VM"
-  type        = string
-  default     = "us-east4"
-}
-
-variable "zone" {
-  description = "Zone of the Shielded Compute VM us-east4-c , us-east4-a, us-east4-b"
-  type        = string
-  default     = "us-east4-c"
-}
-
-variable "instance_name" {
-  description = "Provide the name of the Compute Instance"
-  type        = string
-  default     = "shieled-vm-inst"
-}
-
-variable "disksize" {
-  description = "Provide the Size of the size in GB"
-  type        = number
-  default     = 40
-}
-
-variable "vpc_name" {
-  description = "The name of the VPC"
-  type        = string
-  #default     =  "vpc-shieledvm"
-}
-
-variable "subnet_name" {
-  description = "The name of the subnet"
-  type        = string
-  #default     = "subnet-one"
-}
-
-variable "ip_cidr_range" {
-  description = "The IP CIDR range for the VPC"
-  type        = string
-  #Example  default     = "10.0.1.0/24"
-}
-
-variable "instance_type" {
-  description = "The Machine Type for the Shielded Compute VM"
-  type        = string
-  default     = "e2-micro"
-  #Example  default     = "e2-micro"
-}
-
-variable "source_ranges_allowed" {
-  description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM"
-  type        = list(any)
-  # #Example   default     = ["10.0.1.0/24"]
-}
-
-variable "allowed_firewall_ports" {
-  description = "The list of the Allowed Ports"
-  type        = list(any)
-  #Example  default     = ["22", "443"]
 }
 
 variable "keys" {
@@ -166,4 +122,49 @@ variable "keys" {
     }
   }
   nullable = false
+}
+
+variable "location" {
+  description = "Location of the Shielded Compute VM."
+  type        = string
+  default     = "us-east4"
+}
+
+variable "project" {
+  description = "GCP Project to deploy into."
+  type        = string
+}
+
+variable "project_id" {
+  description = "Project ID."
+  type        = string
+}
+
+variable "region" {
+  description = "GCP Region to deploy into."
+  type        = string
+}
+
+variable "source_ranges_allowed" {
+  description = "The List of the source IP CIDR range allowed to connect to the Shieled Compute VM."
+  type        = list(any)
+  # #Example   default     = ["10.0.1.0/24"]
+}
+
+variable "subnet_name" {
+  description = "The name of the subnet."
+  type        = string
+  #default     = "subnet-one"
+}
+
+variable "vpc_name" {
+  description = "The name of the VPC."
+  type        = string
+  #default     =  "vpc-shieledvm"
+}
+
+variable "zone" {
+  description = "Zone of the Shielded Compute VM us-east4-c , us-east4-a, us-east4-b."
+  type        = string
+  default     = "us-east4-c"
 }

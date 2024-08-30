@@ -13,52 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-
-}
-
-variable "project_id" {
-  description = "This is the ID of project."
-  type        = string
-}
-
-variable "zone" {
-  description = "This is the zone of the instance."
-  type        = string
-}
 
 variable "allowed_firewall_ports" {
-  description = "The allowed ports for the firewall"
+  description = "The allowed ports for the firewall."
   type        = list(string)
 }
 
-variable "my_vpc" {
-  type = string
+variable "allowed_source_ranges" {
+  description = "These are the allowed source ranges."
+  type        = list(string)
 }
 
-variable "my_subnet" {
-  type = string
-}
-
-variable "instance_type" {
-  type    = string
-  default = "e2-small"
-}
-
-variable "instance_name" {
-  description = "This is the instance name."
+variable "compute_service_account_id" {
+  description = "This is the compute service account id."
   type        = string
-}
-
-variable "image" {
-  type = string
 }
 
 variable "disk_name" {
@@ -66,13 +34,20 @@ variable "disk_name" {
   type        = string
 }
 
-variable "compute_service_account_id" {
-  type = string
+variable "image" {
+  description = "Disk image."
+  type        = string
 }
 
-variable "allowed_source_ranges" {
-  description = "These are the allowed source ranges."
-  type        = list(string)
+variable "instance_name" {
+  description = "This is the instance name."
+  type        = string
+}
+
+variable "instance_type" {
+  description = "Instance type."
+  type        = string
+  default     = "e2-small"
 }
 
 variable "keyring" {
@@ -139,5 +114,33 @@ variable "keys" {
   nullable = false
 }
 
+variable "my_subnet" {
+  description = "Subnet to use."
+  type        = string
+}
 
+variable "my_vpc" {
+  description = "VPC to use."
+  type        = string
+}
 
+variable "project" {
+  description = "GCP Project to deploy into."
+  type        = string
+
+}
+
+variable "project_id" {
+  description = "This is the ID of project."
+  type        = string
+}
+
+variable "region" {
+  description = "GCP Region to deploy into."
+  type        = string
+}
+
+variable "zone" {
+  description = "This is the zone of the instance."
+  type        = string
+}

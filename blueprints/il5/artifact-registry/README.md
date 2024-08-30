@@ -21,18 +21,24 @@ The blueprint also creates a CentOS-9-Stream instance with a startup-script that
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in an IL5 Impact Level 5 environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
 - An Assured Workloads and IL5 environments ensures that sensitive data and workloads in GCP adhere to the rigorous security standards mandated by the DoD, making it suitable for government agencies.
+<!-- BEGIN TFDOC -->
+## Variables
 
-## Inputs
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [keyring](variables.tf#L8) | Keyring attributes. | <code>string</code> | ✓ |  |
+| [keys](variables.tf#L13) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string&#41;&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  location                      &#61; optional&#40;string, &#34;us-east4&#34;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#10;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;&#10;&#10;&#10;default &#61; &#123;&#10;  &#34;artifact-registry&#34; &#61; &#123;&#10;    destroy_scheduled_duration    &#61; null&#10;    rotation_period               &#61; null&#10;    labels                        &#61; null&#10;    purpose                       &#61; &#34;ENCRYPT_DECRYPT&#34;&#10;    skip_initial_version_creation &#61; false&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;&#10;&#10;    iam                   &#61; &#123;&#125;&#10;    iam_bindings          &#61; &#123;&#125;&#10;    iam_bindings_additive &#61; &#123;&#125;&#10;  &#125;&#10;&#125;&#10;&#10;&#10;nullable &#61; false">&#8230;</code> | ✓ |  |
+| [project](variables.tf#L72) | GCP Project to deploy Google Artifact Registries into. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L78) | GCP Region to deploy Google Artifact Registries into. | <code>string</code> | ✓ |  |
+| [compute_vpc](variables.tf#L1) | VPC for deploying the compute VM which will access the registry. | <code>string</code> |  | <code>&#34;&#34;</code> |
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| project | The GCP Project to deploy the blueprint into | string |  | ✓ |
-| region | The GCP region to deploy the blueprint into | string | us-east4 | ✓ |
-| keyring | KMS keyring to use for encryption. Use `terraform import 'module.kms.google_kms_key_ring.default[0]' projects/<your-project>/locations/<your location>/keyRings/<your-keyring>` if you want to use an existing keyring | string |  | ✓ |
-| keys | Configurations for the key that will be used for encrypting artifact-registry items, named "artifact-registry" | string | "artifact-registry" with HSM enabled | ✓ |
-| compute_vpc | The VPC to deploy the consumer VM into, using the first available subnet in the VPC | string |  | ✓ |
+## Outputs
 
-## Factories
+| name | description | sensitive |
+|---|---|:---:|
+| [docker_registries](outputs.tf#L1) | Docker registries created from teh docker-registries.yaml file, with Docker Hub appended. |  |
+| [yum_repositories](outputs.tf#L6) | Yum repositories created from the yum-repos.yaml file. |  |
+<!-- END TFDOC -->
 ### Yum Reposistories
 This blueprint deploys 2 Yum registries for pull-through proxying
 

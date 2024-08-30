@@ -1,12 +1,8 @@
-variable "region" {
-  description = "GCP Region to deploy Google Artifact Registries into"
+variable "compute_vpc" {
+  description = "VPC for deploying the compute VM which will access the registry."
   type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy Google Artifact Registries into"
-  type        = string
-
+  default     = ""
+  nullable    = false
 }
 
 variable "keyring" {
@@ -72,9 +68,14 @@ variable "keys" {
 }
 
 ### Variables required for the demo consumer VM
-variable "compute_vpc" {
-  description = "VPC for deploying the compute VM which will access the registry"
+
+variable "project" {
+  description = "GCP Project to deploy Google Artifact Registries into."
   type        = string
-  default     = ""
-  nullable    = false
+
+}
+
+variable "region" {
+  description = "GCP Region to deploy Google Artifact Registries into."
+  type        = string
 }
