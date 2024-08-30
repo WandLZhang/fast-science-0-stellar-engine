@@ -120,7 +120,7 @@ stages:          # List of stages for jobs, and their order of execution
 #     - terraform init
 #     - terraform validate
 
-check-docs-blueprints:   # This job runs in the test stage.
+check-docs:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
   image:
     name: python:3.9.19
