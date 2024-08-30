@@ -119,3 +119,27 @@ test-blueprints:   # This job runs in the test stage.
     - cd "blueprints/il5/${BLUEPRINT}/"
     - terraform init
     - terraform validate
+
+check-docs-stages-aw: 
+  stage: test
+  image:
+    name: python:3.9.19
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd tools
+    - pip install click marko
+    - python check_documentation.py fast/stages-aw
+
+check-docs-blueprints:
+  stage: test 
+  image:
+    name: python:3.9.19
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - cd tools
+    - pip install click marko
+    - python check_documentation.py blueprints/il5

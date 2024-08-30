@@ -82,21 +82,6 @@ locals {
 
 # generate tfvars file for subsequent stages
 
-resource "local_file" "tfvars" {
-  for_each        = var.outputs_location == null ? {} : { 1 = 1 }
-  file_permission = "0644"
-  filename        = "${try(pathexpand(var.outputs_location), "")}/tfvars/2-networking.auto.tfvars.json"
-  content         = jsonencode(local.tfvars)
-}
-
-resource "google_storage_bucket_object" "tfvars" {
-  bucket  = var.automation.outputs_bucket
-  name    = "tfvars/2-networking.auto.tfvars.json"
-  content = jsonencode(local.tfvars)
-}
-
-# outputs
-
 output "host_project_ids" {
   description = "Network project ids."
   value       = local.host_project_ids
@@ -105,6 +90,12 @@ output "host_project_ids" {
 output "host_project_numbers" {
   description = "Network project numbers."
   value       = local.host_project_numbers
+}
+
+output "ngfw_password" {
+  description = "Password for authenticating to the NGFW."
+  sensitive   = true
+  value       = random_password.password
 }
 
 output "shared_vpc_self_links" {
@@ -132,17 +123,27 @@ output "vpn_gateway_endpoints" {
   }
 }
 
-output "ngfw_password" {
-  description = "Password for authenticating to the NGFW"
-  sensitive   = true
-  value       = random_password.password
+resource "google_storage_bucket_object" "tfvars" {
+  bucket  = var.automation.outputs_bucket
+  name    = "tfvars/2-networking.auto.tfvars.json"
+  content = jsonencode(local.tfvars)
 }
+
+# outputs
 
 resource "local_file" "rsa-out" {
   content  = nonsensitive(tls_private_key.ngfw-ssh.private_key_openssh)
   filename = "${path.module}/id_rsa"
 }
+
 resource "local_file" "rsa-pub-out" {
   content  = nonsensitive(tls_private_key.ngfw-ssh.public_key_openssh)
   filename = "${path.module}/id_rsa.pub"
+}
+
+resource "local_file" "tfvars" {
+  for_each        = var.outputs_location == null ? {} : { 1 = 1 }
+  file_permission = "0644"
+  filename        = "${try(pathexpand(var.outputs_location), "")}/tfvars/2-networking.auto.tfvars.json"
+  content         = jsonencode(local.tfvars)
 }

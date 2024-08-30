@@ -175,6 +175,7 @@ variable "locations" {
 
 # See https://cloud.google.com/architecture/exporting-stackdriver-logging-for-security-and-access-analytics
 # for additional logging filter examples
+
 variable "log_sinks" {
   description = "Org-level log sinks, in name => {type, filter} format."
   type = map(object({
@@ -202,6 +203,12 @@ variable "log_sinks" {
     ])
     error_message = "Type must be one of 'bigquery', 'logging', 'pubsub', 'storage'."
   }
+}
+
+variable "logging_kms_key" {
+  description = "value of the KMS key used for logging."
+  type        = string
+  default     = null
 }
 
 variable "org_policies_config" {
@@ -290,10 +297,4 @@ variable "workload_identity_providers" {
   #   condition     = var.federated_identity_providers.custom_settings == null
   #   error_message = "Custom settings cannot be null."
   # }
-}
-
-variable "logging_kms_key" {
-  description = "value of the KMS key used for logging"
-  type        = string
-  default     = null
 }

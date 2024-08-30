@@ -14,14 +14,40 @@
  * limitations under the License.
  */
 
+output "keyring-id" {
+  description = "Fully qualified keyring id."
+  value       = module.kms.id
+}
+
+output "keyring-location" {
+  description = "Keyring location."
+  value       = module.kms.location
+}
+
+output "keyring-name" {
+  description = "Keyring name."
+  value       = module.kms.name
+}
+
+output "keyring-resource" {
+  description = "Keyring resource."
+  value       = module.kms.keyring
+}
+
+output "keyrings-keys" {
+  description = "Key resources."
+  value       = module.kms.keys
+}
+
+output "shielded-vm-instance" {
+  description = "Instance resource."
+  sensitive   = true
+  value       = try(module.shielded-vm.instance)
+}
+
 output "shielded-vm-instance-id" {
   description = "Fully qualified instance id."
   value       = module.shielded-vm.id
-}
-
-output "shielded-vm-service_account_email" {
-  description = "Service account email."
-  value       = module.shielded-vm.service_account_email
 }
 
 output "shielded-vm-internal_ip" {
@@ -39,33 +65,7 @@ output "shielded-vm-service_account" {
   value       = module.shielded-vm.service_account
 }
 
-output "shielded-vm-instance" {
-  description = "Instance resource."
-  sensitive   = true
-  value       = try(module.shielded-vm.instance)
-}
-
-output "keyring-id" {
-  description = "Fully qualified keyring id."
-  value       = module.kms.id
-}
-
-output "keyring-resource" {
-  description = "Keyring resource."
-  value       = module.kms.keyring
-}
-
-output "keyrings-keys" {
-  description = "Key resources."
-  value       = module.kms.keys
-}
-
-output "keyring-location" {
-  description = "Keyring location."
-  value       = module.kms.location
-}
-
-output "keyring-name" {
-  description = "Keyring name."
-  value       = module.kms.name
+output "shielded-vm-service_account_email" {
+  description = "Service account email."
+  value       = module.shielded-vm.service_account_email
 }

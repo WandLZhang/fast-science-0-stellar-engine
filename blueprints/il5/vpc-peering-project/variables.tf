@@ -13,73 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "region" {
-  description = "GCP Region to deploy into"
-  type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy into"
-  type        = string
-}
 
 variable "current_project_id" {
-  description = "Project ID"
+  description = "Project ID."
   type        = string
   #default     = "project-id"
 }
 
 variable "location" {
-  description = "Location of the Shielded Compute VM"
+  description = "Location of the Shielded Compute VM."
   type        = string
   default     = "us-east4"
 }
 
-variable "vpc_name" {
-  description = "The name of the VPC"
+variable "project" {
+  description = "GCP Project to deploy into."
   type        = string
-  #Example   default     = "vpc-blueprint-connect"
 }
 
-variable "vpc_network_name" {
-  description = "The name of the VPC"
+variable "region" {
+  description = "GCP Region to deploy into."
   type        = string
-  #Example   default     = "vpc-blueprint-connect"
-}
-
-variable "subnet_prefix_name" {
-  description = "The name of the Subnet Prefix"
-  type        = string
-  #Example   default     = "subnet-blueprint"
-}
-
-variable "subnets_cidr_a" {
-  description = "The Subnet CIDR"
-  type        = string
-  #Example default ="10.200.12.0/25"
-}
-
-variable "subnets_cidr_b" {
-  description = "The Subnet CIDR"
-  type        = string
-  #Example default ="10.200.12.0/25"
-}
-
-variable "subnets_cidr_c" {
-  description = "The Subnet CIDR"
-  type        = string
-  #Example default ="10.200.12.0/25"
 }
 
 variable "secondary_ip_ranges_cidr_a" {
-  description = "The Secondary IP CIDR"
+  description = "The Secondary IP CIDR."
   type        = string
   #Example default ="192.168.0.0/24"
 }
 
 variable "secondary_ip_ranges_cidr_b" {
-  description = "The Secondary IP CIDR"
+  description = "The Secondary IP CIDR."
   type        = string
   #Example default ="192.168.1.0/24"
 }
 
+variable "subnet_prefix_name" {
+  description = "The name of the Subnet Prefix."
+  type        = string
+  #Example   default     = "subnet-blueprint"
+}
+
+variable "subnets_cidr_a" {
+  description = "The Subnet CIDR."
+  type        = string
+  #Example default ="10.200.12.0/25"
+}
+
+variable "subnets_cidr_b" {
+  description = "The Subnet CIDR."
+  type        = string
+  #Example default ="10.200.12.0/25"
+}
+
+variable "subnets_cidr_c" {
+  description = "The Subnet CIDR."
+  type        = string
+  #Example default ="10.200.12.0/25"
+}
+
+variable "vpc_name" {
+  description = "The name of the VPC."
+  type        = string
+  #Example   default     = "vpc-blueprint-connect"
+}
+
+variable "vpc_network_name" {
+  description = "The name of the VPC."
+  type        = string
+  #Example   default     = "vpc-blueprint-connect"
+}

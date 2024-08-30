@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #TODO: tfdoc annotations
+
 variable "billing_account" {
   # tfdoc:variable:source 0-bootstrap
   description = "Billing account id. If billing account is not part of the same org set `is_org_level` to false."
@@ -26,14 +26,6 @@ variable "billing_account" {
     condition     = var.billing_account.is_org_level != null
     error_message = "Invalid `null` value for `billing_account.is_org_level`."
   }
-}
-
-# tflint-ignore: terraform_unused_declarations
-variable "location" {
-  description = "Location of the Compute Engine VM"
-  type        = string
-  #Example
-  default = "us-east4"
 }
 
 variable "factories_config" {
@@ -52,6 +44,22 @@ variable "factories_config" {
   nullable = false
 }
 
+variable "host_project_ids" {
+  # tfdoc:variable:source 3-network
+  description = "Map of host projects from the networks stages."
+  type        = map(string)
+  default     = {}
+  nullable    = false
+}
+
+# tflint-ignore: terraform_unused_declarations
+variable "location" {
+  description = "Location of the Compute Engine VM."
+  type        = string
+  #Example
+  default = "us-east4"
+}
+
 variable "prefix" {
   # tfdoc:variable:source 0-bootstrap
   description = "Prefix used for resources that need unique names. Use 9 characters or less."
@@ -62,17 +70,9 @@ variable "prefix" {
   }
 }
 
-variable "host_project_ids" {
-  # tfdoc:variable:source 3-network
-  description = "Map of host projects from the networks stages"
-  type        = map(string)
-  default     = {}
-  nullable    = false
-}
-
 variable "vpc_self_links" {
   # tfdoc:variable:source 3-network
-  description = "Map of projects and VPC from the networks stages"
+  description = "Map of projects and VPC from the networks stages."
   type        = map(string)
   default     = {}
   nullable    = false
