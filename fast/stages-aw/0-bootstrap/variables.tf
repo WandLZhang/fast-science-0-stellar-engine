@@ -302,16 +302,12 @@ variable "workload_identity_providers" {
 variable "assured_workloads" {
   description = "Configuration for Assured Workloads"
   type = object({
-    compliance = object({
-      regime   = string
-      location = string
-    })
+    regime   = string
+    location = string
   })
   nullable = false
   default = {
-    compliance = {
-      regime   = "IL5"
-      location = "US"
-    }
+    regime   = "IL5"
+    location = "US"
   }
 }
