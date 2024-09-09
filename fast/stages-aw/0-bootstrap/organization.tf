@@ -180,9 +180,9 @@ module "organization-logging" {
 }
 
 resource "google_assured_workloads_workload" "primary" {
-  compliance_regime            = var.assured_workloads.compliance.regime
+  compliance_regime            = var.assured_workloads.regime
   display_name                 = "StellarEngine-${var.prefix}"
-  location                     = var.assured_workloads.compliance.location
+  location                     = var.assured_workloads.location
   organization                 = var.organization.id
   billing_account              = "billingAccounts/${var.billing_account.id}"
   provisioned_resources_parent = ""
@@ -195,7 +195,6 @@ resource "google_assured_workloads_workload" "primary" {
   lifecycle {
     create_before_destroy = true
   }
-  depends_on = [module.organization.google_organization_iam_binding]
 }
 module "organization" {
   source          = "../../../modules/organization"
