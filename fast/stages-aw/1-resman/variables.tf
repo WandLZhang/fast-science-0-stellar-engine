@@ -16,6 +16,17 @@
 # defaults for variables marked with global tfdoc annotations, can be set via
 # the tfvars file generated in stage 00 and stored in its outputs
 
+variable "assured_workloads" {
+  description = "Configuration for Assured Workloads"
+  type = object({
+    regime   = optional(string)
+    location = optional(string)
+    folder   = optional(string)
+  })
+  nullable = false
+  default  = {}
+}
+
 variable "automation" {
   # tfdoc:variable:source 0-bootstrap
   description = "Automation resources created by the bootstrap stage."
@@ -339,17 +350,6 @@ variable "tenants_config" {
     core_folder_roles   = optional(list(string), [])
     tenant_folder_roles = optional(list(string), [])
     top_folder_roles    = optional(list(string), [])
-  })
-  nullable = false
-  default  = {}
-}
-
-variable "assured_workloads" {
-  description = "Configuration for Assured Workloads"
-  type = object({
-    regime   = optional(string)
-    location = optional(string)
-    folder   = optional(string)
   })
   nullable = false
   default  = {}
