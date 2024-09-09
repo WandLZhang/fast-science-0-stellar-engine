@@ -344,8 +344,13 @@ variable "tenants_config" {
   default  = {}
 }
 
-variable "top_level_folder" {
-description = "Optional folder to nest all of the Stellar Engine folder beneath"
-type = string
-default = ""
+variable "assured_workloads" {
+  description = "Configuration for Assured Workloads"
+  type = object({
+    regime   = optional(string)
+    location = optional(string)
+    folder   = optional(string)
+  })
+  nullable = false
+  default  = {}
 }
