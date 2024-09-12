@@ -196,6 +196,14 @@ resource "google_assured_workloads_workload" "primary" {
     create_before_destroy = true
   }
 }
+
+module "branch-common-services-folder" {
+  source = "../../../modules/folder"
+  parent = "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}"
+  name   = "${var.assured_workloads.regime} Common Services"
+}
+
+
 module "organization" {
   source          = "../../../modules/organization"
   organization_id = module.organization-logging.id

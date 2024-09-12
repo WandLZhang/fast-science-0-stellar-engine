@@ -45,7 +45,7 @@ module "billing-export-project" {
   billing_account = var.billing_account.id
   name            = "billing-exp-0"
   parent = coalesce(
-    var.project_parent_ids.billing, "folders/${google_assured_workloads_workload.primary.resources[0].resource_id}"
+    var.project_parent_ids.billing, module.branch-common-services-folder.folder.name
   )
   prefix = local.prefix
   contacts = (
