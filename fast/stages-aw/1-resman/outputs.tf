@@ -550,5 +550,5 @@ output "tfvars" {
 
 output "envs" {
   description = "Environments folders created for the tenants"
-  value       = module.branch-envs-folders
+  value       = try(module.branch-envs-folders, null)
 }

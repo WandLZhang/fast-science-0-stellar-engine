@@ -330,21 +330,10 @@ variable "team_folders" {
 variable "envs_folders" {
   description = "List of environments to be created for projects to go into"
   type = map(object({
-    tag  = optional(string)
-    name = string
+    admin = string
   }))
-  default = {
-    prod = {
-      name = "Prod"
-    }
-    int = {
-      name = "Int"
-    }
-    test = {
-      name = "Test"
-    }
-  }
 }
+
 variable "tenants" {
   description = "Lightweight tenant definitions."
   type = map(object({
