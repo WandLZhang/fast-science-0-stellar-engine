@@ -47,29 +47,29 @@ module "tenant-top-folders" {
   }
 }
 
-# module "tenant-top-folder-iam" {
-#   source        = "../../../modules/folder"
-#   for_each = local.tenant_envs
-#   id            = module.tenant-top-folders[each.key].id
-#   folder_create = false
-#   tag_bindings = {
-#     tenant = module.organization.tag_values["${var.tag_names.tenant}/${each.key}"].id
-#   }
-#   iam = merge(
-#     {
-#       "roles/cloudasset.owner"               = [module.tenant-core-sa[each.value.tenant].iam_email]
-#       "roles/compute.xpnAdmin"               = [module.tenant-core-sa[each.value.tenant].iam_email]
-#       "roles/logging.admin"                  = [module.tenant-core-sa[each.value.tenant].iam_email]
-#       "roles/resourcemanager.folderAdmin"    = [module.tenant-core-sa[each.value.tenant].iam_email]
-#       "roles/resourcemanager.projectCreator" = [module.tenant-core-sa[each.value.tenant].iam_email]
-#       "roles/resourcemanager.tagUser"        = [module.tenant-core-sa[each.value.tenant].iam_email]
-#     },
-#     # {
-#     #   for k in var.tenants_config.top_folder_roles :
-#     #   k => local.tenant_iam[each.value.tenant.name]
-#     # }
-#   )
-# }
+module "tenant-top-folder-iam" {
+  source        = "../../../modules/folder"
+  for_each      = local.tenant_envs
+  id            = module.tenant-top-folders[each.key].id
+  folder_create = false
+  tag_bindings = {
+    tenant = module.organization.tag_values["${var.tag_names.tenant}/${each.value.tenant}"].id
+  }
+  iam = merge(
+    {
+      "roles/cloudasset.owner"               = [module.tenant-core-sa[each.key].iam_email]
+      "roles/compute.xpnAdmin"               = [module.tenant-core-sa[each.key].iam_email]
+      "roles/logging.admin"                  = [module.tenant-core-sa[each.key].iam_email]
+      "roles/resourcemanager.folderAdmin"    = [module.tenant-core-sa[each.key].iam_email]
+      "roles/resourcemanager.projectCreator" = [module.tenant-core-sa[each.key].iam_email]
+      "roles/resourcemanager.tagUser"        = [module.tenant-core-sa[each.key].iam_email]
+    },
+    {
+      for k in var.tenants_config.top_folder_roles :
+      k => local.tenant_iam[each.value.tenant.name]
+    }
+  )
+}
 
 module "tenant-core-folders" {
   source   = "../../../modules/folder"
@@ -78,24 +78,24 @@ module "tenant-core-folders" {
   name     = "${each.value.tenant_info.descriptive_name} - Core"
 }
 
-# # module "tenant-core-folder-iam" {
-# #   source        = "../../../modules/folder"
-# #   for_each      = local.tenant_folders
-# #   id            = module.tenant-core-folder[each.key].id
-# #   folder_create = false
-# #   iam = merge(
-# #     {
-# #       "roles/owner" = [
-# #         module.tenant-core-sa[each.key].iam_email
-# #       ]
-# #       "roles/viewer" = local.tenant_iam[each.key]
-# #     },
-# #     {
-# #       for k in var.tenants_config.core_folder_roles :
-# #       k => local.tenant_iam[each.key]
-# #     }
-# #   )
-# # }
+module "tenant-core-folder-iam" {
+  source        = "../../../modules/folder"
+  for_each = local.tenant_envs
+  id            = module.tenant-core-folders[each.key].id
+  folder_create = false
+  iam = merge(
+    {
+      "roles/owner" = [
+        module.tenant-core-sa[each.key].iam_email
+      ]
+      "roles/viewer" = local.tenant_iam[each.key]
+    },
+    {
+      for k in var.tenants_config.core_folder_roles :
+      k => local.tenant_iam[each.key]
+    }
+  )
+}
 
 module "tenant-self-folder" {
   source   = "../../../modules/folder"
