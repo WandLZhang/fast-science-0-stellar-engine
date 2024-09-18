@@ -47,7 +47,7 @@ module "tenant-top-folders" {
   }
 }
 
-module "tenant-top-folder-iam" {
+module "tenant-top-folders-iam" {
   source        = "../../../modules/folder"
   for_each      = local.tenant_envs
   id            = module.tenant-top-folders[each.key].id
@@ -78,9 +78,9 @@ module "tenant-core-folders" {
   name     = "${each.value.tenant_info.descriptive_name} - Core"
 }
 
-module "tenant-core-folder-iam" {
+module "tenant-core-folders-iam" {
   source        = "../../../modules/folder"
-  for_each = local.tenant_envs
+  for_each      = local.tenant_envs
   id            = module.tenant-core-folders[each.key].id
   folder_create = false
   iam = merge(
@@ -97,17 +97,17 @@ module "tenant-core-folder-iam" {
   )
 }
 
-module "tenant-self-folder" {
+module "tenant-self-folders" {
   source   = "../../../modules/folder"
   for_each = local.tenant_envs
   parent   = module.tenant-top-folders[each.key].id
   name     = "${each.value.tenant_info.descriptive_name}- Tenant"
 }
 
-module "tenant-self-folder-iam" {
+module "tenant-self-folders-iam" {
   source        = "../../../modules/folder"
   for_each      = local.tenant_envs
-  id            = module.tenant-self-folder[each.key].id
+  id            = module.tenant-self-folders[each.key].id
   folder_create = false
   iam = merge(
     {
@@ -152,15 +152,15 @@ module "tenant-core-gcs" {
     ? "MULTI_REGIONAL"
     : "REGIONAL"
   )
-  # encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
-  depends_on = [module.tenant-project-key]
+  # encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
+  depends_on = [module.tenant-project-keys]
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
 }
 
 # Tenant IaC project and resources (self)
-module "tenant-self-iac-project" {
+module "tenant-self-iac-projects" {
   source   = "../../../modules/project"
   for_each = local.tenant_envs
   billing_account = (
@@ -216,7 +216,7 @@ module "tenant-self-iac-project" {
 module "tenant-self-iac-gcs-outputs" {
   source     = "../../../modules/gcs"
   for_each   = local.tenant_envs
-  project_id = module.tenant-self-iac-project[each.key].project_id
+  project_id = module.tenant-self-iac-projects[each.key].project_id
   location   = local.gcs_locations[each.value.tenant]
   storage_class = (
     length(split("-", local.gcs_locations[each.value.tenant])) < 2
@@ -229,19 +229,19 @@ module "tenant-self-iac-gcs-outputs" {
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
-  encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
-  depends_on     = [module.tenant-project-key]
+  encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
+  depends_on     = [module.tenant-project-keys]
 
 }
 
-module "tenant-project-key" {
+module "tenant-project-keys" {
   source     = "../../../modules/kms"
-  project_id = module.tenant-self-iac-project[each.key].project_id
+  project_id = module.tenant-self-iac-projects[each.key].project_id
   for_each   = local.tenant_envs
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       module.tenant-core-sa[each.key].iam_email,
-      "serviceAccount:service-${module.tenant-self-iac-project[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
+      "serviceAccount:service-${module.tenant-self-iac-projects[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
     ]
   }
   keyring = {
@@ -262,10 +262,10 @@ module "tenant-project-key" {
   }
 }
 
-module "tenant-self-iac-gcs-state" {
+module "tenant-self-iac-gcs-states" {
   source     = "../../../modules/gcs"
   for_each   = local.tenant_envs
-  project_id = module.tenant-self-iac-project[each.key].project_id
+  project_id = module.tenant-self-iac-projects[each.key].project_id
   location   = local.gcs_locations[each.value.tenant]
   storage_class = (
     length(split("-", local.gcs_locations[each.value.tenant])) < 2
@@ -275,14 +275,14 @@ module "tenant-self-iac-gcs-state" {
   name           = "${each.key}-iac-0"
   prefix         = var.prefix
   versioning     = true
-  encryption_key = module.tenant-project-key[each.key].key_ids["gcs"]
-  depends_on     = [module.tenant-project-key]
+  encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
+  depends_on     = [module.tenant-project-keys]
 }
 
 module "tenant-self-iac-sa" {
   source      = "../../../modules/iam-service-account"
   for_each    = local.tenant_envs
-  project_id  = module.tenant-self-iac-project[each.key].project_id
+  project_id  = module.tenant-self-iac-projects[each.key].project_id
   name        = lower("${each.key}-iac-0")
   description = "Terraform automation service account."
   prefix      = var.prefix
@@ -290,7 +290,7 @@ module "tenant-self-iac-sa" {
     (module.tenant-self-iac-gcs-outputs[each.key].name) = [
       "roles/storage.admin"
     ]
-    (module.tenant-self-iac-gcs-state[each.key].name) = [
+    (module.tenant-self-iac-gcs-states[each.key].name) = [
       "roles/storage.admin"
     ]
   }
