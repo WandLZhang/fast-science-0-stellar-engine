@@ -138,9 +138,11 @@ module "env-spoke-vpc" {
 #   }
 # }
 
-# module "peering-dev" {
-#   source        = "../../../modules/net-vpc-peering"
-#   prefix        = "dev-peering-0"
-#   local_network = module.dev-spoke-vpc.self_link
-#   peer_network  = module.landing-vpc.self_link
-# }
+module "peering-envs" {
+  source   = "../../../modules/net-vpc-peering"
+  for_each = var.envs_folders
+
+  prefix        = lower("${each.key}-peering-0")
+  local_network = module.env-spoke-vpc[each.key].self_link
+  peer_network  = module.vdss-shared-vpc.self_link
+}
