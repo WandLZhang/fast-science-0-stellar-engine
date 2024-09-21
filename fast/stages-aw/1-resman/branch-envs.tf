@@ -63,34 +63,3 @@ module "branch-envs-sa" {
     (var.automation.outputs_bucket) = ["roles/storage.objectAdmin"]
   }
 }
-
-module "env-host-projects" {
-  source          = "../../../modules/project"
-  for_each        = var.envs_folders
-  billing_account = var.billing_account.id
-  name            = lower("${each.key}-host-project-0")
-  parent          = module.branch-envs-folders[each.key].id
-  prefix          = var.prefix
-  services = [
-    "accesscontextmanager.googleapis.com",
-    "bigquery.googleapis.com",
-    "bigqueryreservation.googleapis.com",
-    "bigquerystorage.googleapis.com",
-    "billingbudgets.googleapis.com",
-    "cloudbilling.googleapis.com",
-    "cloudkms.googleapis.com",
-    "cloudresourcemanager.googleapis.com",
-    "compute.googleapis.com",
-    "essentialcontacts.googleapis.com",
-    "iam.googleapis.com",
-    "iamcredentials.googleapis.com",
-    "orgpolicy.googleapis.com",
-    "pubsub.googleapis.com",
-    "servicenetworking.googleapis.com",
-    "serviceusage.googleapis.com",
-    "stackdriver.googleapis.com",
-    "storage-component.googleapis.com",
-    "storage.googleapis.com",
-    "sts.googleapis.com"
-  ]
-}
