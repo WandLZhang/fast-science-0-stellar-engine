@@ -143,6 +143,7 @@ locals {
       })
     )
   }
+  env_folder_ids = { for k, v in module.branch-envs-folders: k => try(v.folder.id, null)}
   folder_ids = merge(
     {
       data-platform-dev  = try(module.branch-dp-dev-folder[0].id, null)
@@ -157,7 +158,7 @@ locals {
       sandbox            = try(module.branch-sandbox-folder[0].id, null)
       security           = try(module.branch-security-folder.id, null)
       teams              = try(module.branch-teams-folder[0].id, null)
-      envs               = try(module.branch-envs-folders, null)
+      envs               = try(local.env_folder_ids, null)
     },
     {
       for k, v in module.branch-teams-team-folder :
