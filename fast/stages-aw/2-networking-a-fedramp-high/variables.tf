@@ -197,8 +197,7 @@ variable "psa_ranges" {
 variable "regions" {
   description = "Region definitions."
   type = object({
-    primary   = string
-    secondary = optional(string)
+    primary = string
   })
   default = {
     primary = "us-east4"

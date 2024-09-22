@@ -79,7 +79,7 @@ module "env-spoke-vpc" {
     logging = var.dns.enable_logging
   }
   factories_config = {
-    subnets_folder = "${var.factories_config.data_dir}/subnets/dev"
+    subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
   }
   delete_default_routes_on_create = true
   psa_configs                     = var.psa_ranges.dev
@@ -88,50 +88,30 @@ module "env-spoke-vpc" {
     private    = true
     restricted = true
   }
-  #   routes = {
-  #     nva-primary-to-primary = {
-  #       dest_range    = "0.0.0.0/0"
-  #       priority      = 1000
-  #       tags          = ["primary"]
-  #       next_hop_type = "ilb"
-  #       next_hop      = module.ilb-nva-landing["primary"].forwarding_rule_addresses[""]
-  #     }
-  #     nva-secondary-to-secondary = {
-  #       dest_range    = "0.0.0.0/0"
-  #       priority      = 1000
-  #       tags          = ["secondary"]
-  #       next_hop_type = "ilb"
-  #       next_hop      = module.ilb-nva-landing["secondary"].forwarding_rule_addresses[""]
-  #     }
-  #     nva-primary-to-secondary = {
-  #       dest_range    = "0.0.0.0/0"
-  #       priority      = 1001
-  #       tags          = ["primary"]
-  #       next_hop_type = "ilb"
-  #       next_hop      = module.ilb-nva-landing["primary"].forwarding_rule_addresses[""]
-  #     }
-  #     nva-secondary-to-primary = {
-  #       dest_range    = "0.0.0.0/0"
-  #       priority      = 1001
-  #       tags          = ["secondary"]
-  #       next_hop_type = "ilb"
-  #       next_hop      = module.ilb-nva-landing["secondary"].forwarding_rule_addresses[""]
-  #     }
-  #   }
+  routes = {
+    default = {
+      dest_range    = "0.0.0.0/0"
+      next_hop      = "default-internet-gateway"
+      next_hop_type = "gateway"
+      priority      = 1000
+    }
+  }
 }
 
-# module "dev-spoke-firewall" {
-#   source     = "../../../modules/net-vpc-firewall"
-#   project_id = module.dev-spoke-project.project_id
-#   network    = module.dev-spoke-vpc.name
-#   default_rules_config = {
-#     disabled = true
-#   }
-#   factories_config = {
-#     cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
-#     rules_folder  = "${var.factories_config.data_dir}/firewall-rules/dev"
-#   }
-# }
+module "env-spoke-firewall" {
+  source   = "../../../modules/net-vpc-firewall"
+  for_each = var.envs_folders
+
+  project_id = module.env-spoke-projects[each.key].project_id
+  network    = module.env-spoke-vpc[each.key].name
+  default_rules_config = {
+    disabled = true
+  }
+  factories_config = {
+    cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
+    rules_folder  = lower("${var.factories_config.data_dir}/firewall-rules/${each.key}")
+  }
+}
 
 module "peering-envs" {
   source   = "../../../modules/net-vpc-peering"
@@ -139,5 +119,14 @@ module "peering-envs" {
 
   prefix        = lower("${each.key}-peering-0")
   local_network = module.env-spoke-vpc[each.key].self_link
-  peer_network  = module.vdss-shared-vpc.self_link
+  peer_network  = module.vdss-vpc.self_link
+  routes_config = {
+    local = {
+      public_import = true
+    }
+    peer = {
+      public_export = true
+    }
+  }
+
 }
