@@ -86,29 +86,32 @@ module "env-spoke-vpc" {
     private    = true
     restricted = true
   }
+  factories_config = {
+    subnets_folder = lower("${var.factories_config.data_dir}/subnets/${each.key}")
+  }
+
 }
 
-resource "google_network_connectivity_internal_range" "reserved_ranges" {
-  for_each          = var.envs_folders
-  name              = lower("${each.key}-range")
-  project           = module.env-spoke-projects[each.key].project_id
-  description       = "Automatically reserved range for ${each.key}"
-  network           = module.env-spoke-vpc[each.key].id
-  usage             = "FOR_VPC"
-  peering           = "FOR_SELF"
-  prefix_length     = 22
-  target_cidr_range = ["10.64.0.0/16", ]
-}
+# resource "google_network_connectivity_internal_range" "reserved_ranges" {
+#   for_each          = var.envs_folders
+#   name              = lower("${each.key}-range")
+#   project           = module.env-spoke-projects[each.key].project_id
+#   description       = "Automatically reserved range for ${each.key}"
+#   network           = module.env-spoke-vpc[each.key].id
+#   usage             = "FOR_VPC"
+#   peering           = "FOR_SELF"
+#   prefix_length     = 22
+#   target_cidr_range = ["10.64.0.0/16", ]
+# }
 
-resource "google_compute_subnetwork" "defaults" {
-  provider                = google-beta
-  for_each                = var.envs_folders
-  name                    = lower("${each.key}-default-0")
-  project                 = module.env-spoke-projects[each.key].project_id
-  reserved_internal_range = google_network_connectivity_internal_range.reserved_ranges[each.key].ip_cidr_range
-  region                  = var.regions.primary
-  network                 = module.env-spoke-vpc[each.key].id
-}
+# resource "google_compute_subnetwork" "defaults" {
+#   for_each      = var.envs_folders
+#   name          = lower("${each.key}-default-0")
+#   project       = module.env-spoke-projects[each.key].project_id
+#   ip_cidr_range = google_network_connectivity_internal_range.reserved_ranges[each.key].ip_cidr_range
+#   region        = var.regions.primary
+#   network       = module.env-spoke-vpc[each.key].id
+# }
 
 module "env-spoke-firewall" {
   source   = "../../../modules/net-vpc-firewall"
