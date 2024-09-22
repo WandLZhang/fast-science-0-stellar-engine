@@ -24,10 +24,13 @@ module "vdss-host-project" {
   prefix          = var.prefix
   services = [
     "compute.googleapis.com",
+    "certificatemanager.googleapis.com",
     "dns.googleapis.com",
     "iap.googleapis.com",
     "networkmanagement.googleapis.com",
-    "stackdriver.googleapis.com"
+    "stackdriver.googleapis.com",
+    "networkservices.googleapis.com",
+    "cloudkms.googleapis.com"
   ]
   shared_vpc_host_config = {
     enabled = true
@@ -42,46 +45,48 @@ module "vdss-host-project" {
   }
 }
 
-# # DMZ (untrusted) VPC
+# DMZ (untrusted) VPC
 
-# module "dmz-vpc" {
-#   source     = "../../../modules/net-vpc"
-#   project_id = module.vdss-host-project.project_id
-#   name       = "vdss-dmz-0"
-#   mtu        = 1500
-#   dns_policy = {
-#     inbound = true
-#     logging = var.dns.enable_logging
-#   }
-#   create_googleapis_routes = null
-#   factories_config = {
-#     subnets_folder = "${var.factories_config.data_dir}/subnets/dmz"
-#   }
-# }
+module "dmz-vpc" {
+  source     = "../../../modules/net-vpc"
+  project_id = module.vdss-host-project.project_id
+  name       = "vdss-dmz-0"
+  mtu        = 1500
+  dns_policy = {
+    inbound = true
+    logging = var.dns.enable_logging
+  }
+  create_googleapis_routes = null
+  factories_config = {
+    context        = { regions = var.regions }
+    subnets_folder = "${var.factories_config.data_dir}/subnets/dmz"
+  }
+}
 
-# module "dmz-firewall" {
-#   source     = "../../../modules/net-vpc-firewall"
-#   project_id = module.vdss-host-project.project_id
-#   network    = module.dmz-vpc.name
-#   default_rules_config = {
-#     disabled = true
-#   }
-#   factories_config = {
-#     cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
-#     rules_folder  = "${var.factories_config.data_dir}/firewall-rules/dmz"
-#   }
-# }
+module "dmz-firewall" {
+  source     = "../../../modules/net-vpc-firewall"
+  project_id = module.vdss-host-project.project_id
+  network    = module.dmz-vpc.name
+  default_rules_config = {
+    disabled = true
+  }
+  factories_config = {
+    cidr_tpl_file = "${var.factories_config.data_dir}/cidrs.yaml"
+    rules_folder  = "${var.factories_config.data_dir}/firewall-rules/dmz"
+  }
+}
 
 
 # Landing (trusted) VPC
-module "vdss-shared-vpc" {
+module "vdss-vpc" {
   source                          = "../../../modules/net-vpc"
   project_id                      = module.vdss-host-project.project_id
-  name                            = "vdss-shared-0"
+  name                            = "vdss-landing-0"
   delete_default_routes_on_create = true
   mtu                             = 1500
   factories_config = {
-    subnets_folder = "${var.factories_config.data_dir}/subnets/vdss-shared"
+    context        = { regions = var.regions }
+    subnets_folder = "${var.factories_config.data_dir}/subnets/landing"
   }
   dns_policy = {
     inbound = true
@@ -91,20 +96,20 @@ module "vdss-shared-vpc" {
     private    = true
     restricted = true
   }
-  routes = {
-    default = {
-      dest_range    = "0.0.0.0/0"
-      next_hop      = "default-internet-gateway"
-      next_hop_type = "gateway"
-      priority      = 1000
-    }
-  }
+  # routes = {
+  #   default = {
+  #     dest_range    = "0.0.0.0/0"
+  #     next_hop      = "default-internet-gateway"
+  #     next_hop_type = "gateway"
+  #     priority      = 1000
+  #   }
+  # }
 }
 
 module "vdss-firewall" {
   source     = "../../../modules/net-vpc-firewall"
   project_id = module.vdss-host-project.project_id
-  network    = module.vdss-shared-vpc.name
+  network    = module.vdss-vpc.name
   default_rules_config = {
     disabled = true
   }
@@ -116,12 +121,12 @@ module "vdss-firewall" {
 
 # NAT
 
-module "vdss-nat-primary" {
+module "dmz-nat-primary" {
   source         = "../../../modules/net-cloudnat"
   project_id     = module.vdss-host-project.project_id
   region         = var.regions.primary
   name           = "nat-${var.regions.primary}"
   router_create  = true
   router_name    = "prod-nat-${var.regions.primary}"
-  router_network = module.vdss-shared-vpc.name
+  router_network = module.dmz-vpc.name
 }
