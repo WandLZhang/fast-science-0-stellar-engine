@@ -101,7 +101,7 @@ module "tenant-self-folders" {
   source   = "../../../modules/folder"
   for_each = local.tenant_envs
   parent   = module.tenant-top-folders[each.key].id
-  name     = "${each.value.tenant_info.descriptive_name}- Tenant"
+  name     = "${each.value.tenant_info.descriptive_name} - Main"
 }
 
 module "tenant-self-folders-iam" {
@@ -296,3 +296,56 @@ module "tenant-self-iac-sa" {
   }
 }
 
+# Tenant main project and resources (self)
+module "tenant-self-main-projects" {
+  source   = "../../../modules/project"
+  for_each = local.tenant_envs
+  billing_account = (
+    each.value.tenant_info.billing_account != null
+    ? each.value.tenant_info.billing_account
+    : var.billing_account.id
+  )
+  name   = lower("${each.key}-main-0")
+  parent = module.tenant-self-folders[each.key].id
+  prefix = var.prefix
+  iam_by_principals = {
+    (each.value.tenant_info.admin_principal) = [
+      "roles/iam.serviceAccountAdmin",
+      "roles/iam.serviceAccountTokenCreator",
+      "roles/iam.workloadIdentityPoolAdmin"
+    ]
+  }
+  iam = {
+    (var.custom_roles.storage_viewer) = [
+      "serviceAccount:${var.automation.service_accounts.resman-r}"
+    ]
+    "roles/viewer" = [
+      "serviceAccount:${var.automation.service_accounts.resman-r}"
+    ]
+  }
+  services = [
+    "accesscontextmanager.googleapis.com",
+    "bigquery.googleapis.com",
+    "bigqueryreservation.googleapis.com",
+    "bigquerystorage.googleapis.com",
+    "billingbudgets.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudkms.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "container.googleapis.com",
+    "compute.googleapis.com",
+    "container.googleapis.com",
+    "essentialcontacts.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "orgpolicy.googleapis.com",
+    "pubsub.googleapis.com",
+    "servicenetworking.googleapis.com",
+    "serviceusage.googleapis.com",
+    "stackdriver.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com",
+    "sts.googleapis.com"
+  ]
+}

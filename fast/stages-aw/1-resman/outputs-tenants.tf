@@ -46,6 +46,7 @@ locals {
       core = {
         billing_account = var.billing_account
         organization    = var.organization
+        main_project    = module.tenant-self-main-projects[k].id
       }
       folder_ids = {
         core = module.tenant-core-folders[k].id

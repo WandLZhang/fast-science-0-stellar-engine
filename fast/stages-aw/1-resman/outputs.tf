@@ -379,11 +379,17 @@ locals {
       tf_var_files      = local.cicd_workflow_var_files.stage_3
     }
   }
+  tenant_accounts = { for k, v in local.tenant_envs : k => {
+    main_project = module.tenant-self-main-projects[k].id
+    env          = v.env
+    tenant       = v.tenant
+  } }
   tfvars = {
     checklist_hierarchy = local.checklist.hierarchy
     folder_ids          = local.folder_ids
     envs_folders        = var.envs_folders
     service_accounts    = local.service_accounts
+    tenant_accounts     = local.tenant_accounts
     tag_keys            = { for k, v in try(module.organization.tag_keys, {}) : k => v.id }
     tag_names           = var.tag_names
     tag_values          = { for k, v in try(module.organization.tag_values, {}) : k => v.id }
