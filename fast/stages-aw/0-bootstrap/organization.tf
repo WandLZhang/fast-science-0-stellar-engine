@@ -195,6 +195,7 @@ resource "google_assured_workloads_workload" "primary" {
   lifecycle {
     create_before_destroy = true
   }
+  depends_on = [ module.organization ]
 }
 
 module "branch-common-services-folder" {
