@@ -94,7 +94,7 @@ module "env-spoke-vpc" {
   subnets_proxy_only = [{
     region        = var.regions.primary
     active        = true
-    name          = lower("${each.key}-proxy")
+    name          = lower("proxy-${var.regions.primary}")
     ip_cidr_range = local.proxy_subnets[each.key]
   }]
 
