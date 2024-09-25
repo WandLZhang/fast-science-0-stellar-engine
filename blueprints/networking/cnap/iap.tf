@@ -14,7 +14,8 @@ resource "google_iap_web_region_backend_service_iam_binding" "binding" {
   project                    = var.project
   web_region_backend_service = module.cnap-0.backend_service_names[each.key]
   role                       = "roles/iap.httpsResourceAccessor"
-  members                    = each.value.members
+  # Individual users or RBAC via groups made in Cloud Identity.
+  members = each.value.members
 
   condition {
     title       = lookup(each.value, "condition", { "title" = "" }).title
