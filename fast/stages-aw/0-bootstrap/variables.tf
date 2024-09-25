@@ -15,7 +15,7 @@
  */
 
 variable "assured_workloads" {
-  description = "Configuration for Assured Workloads"
+  description = "Configuration for Assured Workloads."
   type = object({
     regime   = string
     location = string
@@ -35,6 +35,11 @@ variable "billing_account" {
     no_iam       = optional(bool, false)
   })
   nullable = false
+}
+
+variable "bootstrap_project" {
+  description = "Bootstrap project."
+  type        = string
 }
 
 variable "bootstrap_user" {
@@ -123,6 +128,7 @@ variable "fast_features" {
     project_factory = optional(bool, false)
     sandbox         = optional(bool, false)
     teams           = optional(bool, false)
+    envs            = optional(bool, false)
   })
   default  = {}
   nullable = false

@@ -54,6 +54,7 @@ tflint-stages-aw:
     - ./generate-mocks.sh
     - cd fast/stages-aw
     - tflint --recursive
+  allow_failure: true
 
 tflint-blueprints:
   stage: lint

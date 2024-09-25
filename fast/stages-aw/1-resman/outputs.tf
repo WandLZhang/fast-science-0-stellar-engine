@@ -143,6 +143,8 @@ locals {
       })
     )
   }
+  envs_folders   = var.envs_folders
+  env_folder_ids = { for k, v in module.branch-envs-folders : k => try(v.folder.id, null) }
   folder_ids = merge(
     {
       data-platform-dev  = try(module.branch-dp-dev-folder[0].id, null)
@@ -152,11 +154,10 @@ locals {
       gke-dev            = try(module.branch-gke-dev-folder[0].id, null)
       gke-prod           = try(module.branch-gke-prod-folder[0].id, null)
       networking         = try(module.branch-network-folder.id, null)
-      networking-dev     = try(module.branch-network-dev-folder.id, null)
-      networking-prod    = try(module.branch-network-prod-folder.id, null)
       sandbox            = try(module.branch-sandbox-folder[0].id, null)
       security           = try(module.branch-security-folder.id, null)
       teams              = try(module.branch-teams-folder[0].id, null)
+      envs               = try(local.env_folder_ids, null)
     },
     {
       for k, v in module.branch-teams-team-folder :
@@ -378,10 +379,17 @@ locals {
       tf_var_files      = local.cicd_workflow_var_files.stage_3
     }
   }
+  tenant_accounts = { for k, v in local.tenant_envs : k => {
+    main_project = module.tenant-self-main-projects[k].id
+    env          = v.env
+    tenant       = v.tenant
+  } }
   tfvars = {
     checklist_hierarchy = local.checklist.hierarchy
     folder_ids          = local.folder_ids
+    envs_folders        = var.envs_folders
     service_accounts    = local.service_accounts
+    tenant_accounts     = local.tenant_accounts
     tag_keys            = { for k, v in try(module.organization.tag_keys, {}) : k => v.id }
     tag_names           = var.tag_names
     tag_values          = { for k, v in try(module.organization.tag_values, {}) : k => v.id }
@@ -545,4 +553,9 @@ output "tfvars" {
   description = "Terraform variable files for the following stages."
   sensitive   = true
   value       = local.tfvars
+}
+
+output "envs" {
+  description = "Environments folders created for the tenants"
+  value       = try(module.branch-envs-folders, null)
 }

@@ -16,7 +16,7 @@
 
 locals {
   tenant_core_providers = {
-    for k, v in var.tenants :
+    for k, v in local.tenant_envs :
     k => templatefile("${path.module}/templates/providers.tf.tpl", {
       bucket        = module.tenant-core-gcs[k].name
       name          = k
@@ -25,32 +25,32 @@ locals {
     })
   }
   tenant_self_providers = {
-    for k, v in var.tenants :
+    for k, v in local.tenant_envs :
     k => templatefile("${path.module}/templates/providers.tf.tpl", {
-      bucket        = module.tenant-self-iac-gcs-state[k].name
+      bucket        = module.tenant-self-iac-gcs-states[k].name
       name          = k
       sa            = module.tenant-self-iac-sa[k].email
       backend_extra = null
     })
   }
   tenant_tfvars = {
-    for k, v in var.tenants : k => merge(v, {
+    for k, v in local.tenant_envs : k => merge(v, {
       automation = {
         core_bucket    = module.tenant-core-gcs[k].name
         core_sa        = module.tenant-core-sa[k].email
         outputs_bucket = module.tenant-self-iac-gcs-outputs[k].name
-        project_id     = module.tenant-self-iac-project[k].project_id
+        project_id     = module.tenant-self-iac-projects[k].project_id
         sa             = module.tenant-self-iac-sa[k].email
-        state_bucket   = module.tenant-self-iac-gcs-state[k].name
+        state_bucket   = module.tenant-self-iac-gcs-states[k].name
       }
       core = {
         billing_account = var.billing_account
         organization    = var.organization
+        main_project    = module.tenant-self-main-projects[k].id
       }
       folder_ids = {
-        core = module.tenant-core-folder[k].id
-        self = module.tenant-self-folder[k].id
-        top  = module.tenant-top-folder[k].id
+        core = module.tenant-core-folders[k].id
+        self = module.tenant-self-folders[k].id
       }
       shortname  = k
       prefix     = "${var.prefix}-${k}"

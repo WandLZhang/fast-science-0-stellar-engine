@@ -56,6 +56,7 @@ module "organization" {
         security   = {}
         teams      = {}
         tenant     = {}
+        envs       = {}
       }
     }
     (var.tag_names.environment) = {
@@ -72,7 +73,7 @@ module "organization" {
         for k, v in var.tenants : k => {
           description = v.descriptive_name
           iam = {
-            "roles/resourcemanager.tagViewer" = local.tenant_iam[k]
+            # "roles/resourcemanager.tagViewer" = local.tenant_iam[k]
           }
         }
       }
