@@ -46,3 +46,10 @@ org_policies_config = {
 fast_features = {
   envs = true
 }
+
+assured_workloads = {
+  regime = "compliance-regime #"IL4, IL5, FEDRAMP_HIGH, etc..."
+  location = "us-east4"
+}
+
+bootstrap_project = "bootstrap-project-name"
