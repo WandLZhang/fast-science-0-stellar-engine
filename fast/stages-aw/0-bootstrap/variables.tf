@@ -214,6 +214,12 @@ variable "log_sinks" {
       filter = "logName:\"/logs/cloudaudit.googleapis.com%2Fdata_access\" and protoPayload.serviceName:\"login.googleapis.com\""
       type   = "logging"
     }
+
+    # CIS Compliance Benchmark 4.2
+    empty-audit-logs = {
+      filter = ""
+      type   = "logging"
+    }
   }
   validation {
     condition = alltrue([
