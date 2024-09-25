@@ -266,6 +266,11 @@ variable "prefix" {
   }
 }
 
+variable "bootstrap_project" {
+  description = "Bootstrap project."
+  type = string
+}
+
 variable "project_parent_ids" {
   description = "Optional parents for projects created here in folders/nnnnnnn format. Null values will use the organization as parent."
   type = object({
