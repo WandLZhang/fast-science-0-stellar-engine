@@ -40,6 +40,15 @@ values:
     locked: null
     project: fast-prod-audit-logs-0
     retention_days: 30
+  module.log-export-logbucket["empty-audit-logs"].google_logging_project_bucket_config.bucket[0]: 
+    bucket_id: empty-audit-logs
+    cmek_settings: []
+    enable_analytics: true
+    index_configs: []
+    location: europe-west1
+    locked: null
+    project: fast-prod-audit-logs-0
+    retention_days: 30
   module.organization.google_organization_iam_binding.authoritative["roles/billing.creator"]:
     condition: []
     members:

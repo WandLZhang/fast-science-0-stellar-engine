@@ -108,11 +108,6 @@ variable "prefix" {
   }
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
-}
-
 variable "project_id" {
   description = "Project ID."
   type        = string
@@ -128,9 +123,17 @@ variable "public_access_prevention" {
   }
 }
 
-variable "region" {
-  description = "GCP Region to deploy into."
-  type        = string
+variable "retention_policy" {
+  description = "Retention policy."
+  type = object({
+    is_locked        = bool
+    retention_period = number
+  })
+
+  default = {
+    is_locked        = false # Change to true if storing logs here for CIS Compliance Benchmark 2.3
+    retention_period = 7776000
+  }
 }
 
 variable "storage_class" {

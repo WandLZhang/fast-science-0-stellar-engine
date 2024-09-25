@@ -42,6 +42,8 @@ module "gcs" {
   iam = {
     "roles/storage.admin" = ["user:${var.email}"]
   }
+
+  retention_policy = var.retention_policy
 }
 
 # Google KMS Module

@@ -17,7 +17,7 @@
 # the tfvars file generated in stage 00 and stored in its outputs
 
 variable "assured_workloads" {
-  description = "Configuration for Assured Workloads"
+  description = "Configuration for Assured Workloads."
   type = object({
     regime   = optional(string)
     location = optional(string)
