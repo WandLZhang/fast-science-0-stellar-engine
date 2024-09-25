@@ -15,7 +15,7 @@
  */
 
 variable "assured_workloads" {
-  description = "Configuration for Assured Workloads"
+  description = "Configuration for Assured Workloads."
   type = object({
     regime   = string
     location = string
@@ -35,6 +35,11 @@ variable "billing_account" {
     no_iam       = optional(bool, false)
   })
   nullable = false
+}
+
+variable "bootstrap_project" {
+  description = "Bootstrap project."
+  type        = string
 }
 
 variable "bootstrap_user" {
@@ -264,11 +269,6 @@ variable "prefix" {
     condition     = try(length(var.prefix), 0) < 10
     error_message = "Use a maximum of 9 characters for prefix."
   }
-}
-
-variable "bootstrap_project" {
-  description = "Bootstrap project."
-  type = string
 }
 
 variable "project_parent_ids" {

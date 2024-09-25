@@ -85,6 +85,13 @@ variable "enable_cloud_nat" {
   nullable    = false
 }
 
+variable "envs_folders" {
+  description = "List of environments to be created for projects to go into"
+  type = map(object({
+    admin = string
+  }))
+}
+
 variable "essential_contacts" {
   description = "Email used for essential contacts, unset if null."
   type        = string
@@ -306,11 +313,4 @@ variable "vpn_onprem_secondary_config" {
     }))
   })
   default = null
-}
-
-variable "envs_folders" {
-  description = "List of environments to be created for projects to go into"
-  type = map(object({
-    admin = string
-  }))
 }
