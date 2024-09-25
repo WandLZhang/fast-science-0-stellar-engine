@@ -38,29 +38,29 @@ variable "instance_list" {
 
 variable "subnet_list" {
   description = "Subnet list to monitor with Cloud IDS"
-  type        = list
+  type        = list(any)
   default     = null
 }
 
-variable "ids_private_ip_prefix_length"{
-  type        = string
-  default     = 24
+variable "ids_private_ip_prefix_length" {
+  type    = string
+  default = 24
 }
 
 variable "ids_private_ip_range_name" {
-  type        = string
-  default     = "ids-private-address-1"
+  type    = string
+  default = "ids-private-address-1"
 }
 
 variable "ip_protocols_filter" {
   description = "IP Protocols filter for packet mirroing policy."
-  type        = list
+  type        = list(any)
   default     = null
 }
 
 variable "cidr_ranges_filter" {
   description = " ranges that apply as a filter on ingress or egress IP in the IPV4 header"
-  type        = list
+  type        = list(any)
   default     = null
 }
 variable "direction_filter" {

@@ -23,7 +23,6 @@ locals {
       enable_masquerading = true
       routes = [
         var.gcp_ranges.gcp_dmz_primary,
-        var.gcp_ranges.gcp_dmz_secondary,
       ]
     },
     {
@@ -76,12 +75,10 @@ module "nva-template" {
       addresses = null
     },
     {
-      network = module.landing-vpc.self_link
-      subnetwork = try(
-        module.landing-vpc.subnet_self_links["${each.value.region}/landing-default"], null
-      )
-      nat       = false
-      addresses = null
+      network    = module.landing-vpc.self_link
+      subnetwork = null
+      nat        = false
+      addresses  = null
     }
   ]
   boot_disk = {
@@ -105,7 +102,7 @@ module "nva-mig" {
   source            = "../../../modules/compute-mig"
   project_id        = module.landing-project.project_id
   location          = each.value.region
-  name              = "nva-cos-${each.key}"
+  name              = "nva-${each.key}"
   instance_template = module.nva-template[each.key].template.self_link
   target_size       = 1
   auto_healing_policies = {

@@ -81,7 +81,7 @@ variable "dns" {
 variable "enable_cloud_nat" {
   description = "Deploy Cloud NAT."
   type        = bool
-  default     = false
+  default     = true
   nullable    = false
 }
 

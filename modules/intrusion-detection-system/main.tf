@@ -13,8 +13,8 @@
 ##  limitations under the License.
 
 data "google_compute_network" "vpc_network" {
-  name         = var.landing_network
-  project      = var.project
+  name    = var.landing_network
+  project = var.project
 }
 
 # Setup Private IP access ###
@@ -72,11 +72,11 @@ resource "google_compute_packet_mirroring" "cloud_ids_packet_mirroring" {
       url = "https://www.googleapis.com/compute/v1/projects/${var.project}/regions/${var.network_region}/subnetworks/${var.subnet}"
     }
   }
-    filter {
-      ip_protocols = var.ip_protocols_filter
-      cidr_ranges  = var.cidr_ranges_filter
-      direction    = var.direction_filter
-    }
+  filter {
+    ip_protocols = var.ip_protocols_filter
+    cidr_ranges  = var.cidr_ranges_filter
+    direction    = var.direction_filter
+  }
   depends_on = [
     google_cloud_ids_endpoint.ids_endpoint,
   ]
