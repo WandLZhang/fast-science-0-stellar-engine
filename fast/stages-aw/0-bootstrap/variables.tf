@@ -236,6 +236,12 @@ variable "logging_kms_key" {
   default     = null
 }
 
+variable "gcs_kms_key" {
+  description = "value of the KMS key used for GCS."
+  type        = string
+  default     = null
+}
+
 variable "org_policies_config" {
   description = "Organization policies customization."
   type = object({
