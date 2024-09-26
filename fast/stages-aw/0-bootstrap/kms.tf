@@ -4,7 +4,7 @@ locals {
     protection_level = "HSM"
   }
 }
-module "kms" {
+module "logging-kms" {
   source     = "../../../modules/kms"
   project_id = module.log-export-project.project_id
 
@@ -17,6 +17,10 @@ module "kms" {
       version_template = local.version_template
     }
   }
+  # iam = {
+  #   "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:service-${module.automation-project.number}@gs-project-accounts.iam.gserviceaccount.com"]
+  # }
+
   iam_bindings_additive = {
     "pubsub" = {
       member = "serviceAccount:service-${module.log-export-project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
@@ -30,5 +34,26 @@ module "kms" {
       member = "serviceAccount:service-${module.log-export-project.number}@gs-project-accounts.iam.gserviceaccount.com"
       role   = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
     }
+  }
+}
+
+module "gcs-kms" {
+  source     = "../../../modules/kms"
+  project_id = module.automation-project.project_id
+
+  keyring = {
+    location = local.locations.gcs
+    name     = "gcs"
+  }
+  keys = {
+    "gcs" = {
+      version_template = local.version_template
+    }
+  }
+  iam = {
+
+    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
+      "serviceAccount:service-${module.automation-project.number}@gs-project-accounts.iam.gserviceaccount.com"
+    ]
   }
 }

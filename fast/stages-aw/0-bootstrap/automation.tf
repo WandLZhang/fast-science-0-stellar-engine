@@ -161,27 +161,29 @@ module "automation-project" {
 # output files bucket
 
 module "automation-tf-output-gcs" {
-  source        = "../../../modules/gcs"
-  project_id    = module.automation-project.project_id
-  name          = "iac-core-outputs-0"
-  prefix        = local.prefix
-  location      = local.locations.gcs
-  storage_class = local.gcs_storage_class
-  versioning    = true
-  depends_on    = [module.organization]
+  source         = "../../../modules/gcs"
+  project_id     = module.automation-project.project_id
+  name           = "iac-core-outputs-0"
+  prefix         = local.prefix
+  location       = local.locations.gcs
+  storage_class  = local.gcs_storage_class
+  versioning     = true
+  depends_on     = [module.organization, module.gcs-kms]
+  encryption_key = module.gcs-kms.keys.gcs.id
 }
 
 # this stage's bucket and service account
 
 module "automation-tf-bootstrap-gcs" {
-  source        = "../../../modules/gcs"
-  project_id    = module.automation-project.project_id
-  name          = "iac-core-bootstrap-0"
-  prefix        = local.prefix
-  location      = local.locations.gcs
-  storage_class = local.gcs_storage_class
-  versioning    = true
-  depends_on    = [module.organization]
+  source         = "../../../modules/gcs"
+  project_id     = module.automation-project.project_id
+  name           = "iac-core-bootstrap-0"
+  prefix         = local.prefix
+  location       = local.locations.gcs
+  storage_class  = local.gcs_storage_class
+  versioning     = true
+  depends_on     = [module.organization]
+  encryption_key = module.gcs-kms.keys.gcs.id
 }
 
 module "automation-tf-bootstrap-sa" {
@@ -240,7 +242,8 @@ module "automation-tf-resman-gcs" {
     "roles/storage.objectAdmin"  = [module.automation-tf-resman-sa.iam_email]
     "roles/storage.objectViewer" = [module.automation-tf-resman-r-sa.iam_email]
   }
-  depends_on = [module.organization]
+  depends_on     = [module.organization, module.gcs-kms]
+  encryption_key = module.gcs-kms.keys.gcs.id
 }
 
 module "automation-tf-resman-sa" {
