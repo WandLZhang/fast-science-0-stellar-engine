@@ -147,7 +147,7 @@ locals {
 # import org policy constraints enabled by default in new orgs since February 2024
 import {
   for_each = (
-    !var.org_policies_config.import_defaults || var.bootstrap_user != null
+    !var.org_policies_config.import_defaults
     ? toset([])
     : toset([
       # source: https://cloud.google.com/resource-manager/docs/secure-by-default-organizations#organization_policies_enforced_on_organization_resources
