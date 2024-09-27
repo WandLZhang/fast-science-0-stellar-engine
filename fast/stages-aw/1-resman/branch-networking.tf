@@ -114,4 +114,6 @@ module "branch-network-gcs" {
     "roles/storage.objectAdmin"  = [module.branch-network-sa.iam_email]
     "roles/storage.objectViewer" = [module.branch-network-r-sa.iam_email]
   }
+
+  encryption_key = module.resman-kms.keys.resman.id
 }
