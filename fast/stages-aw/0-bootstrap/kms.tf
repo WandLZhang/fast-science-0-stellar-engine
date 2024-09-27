@@ -17,9 +17,6 @@ module "logging-kms" {
       version_template = local.version_template
     }
   }
-  # iam = {
-  #   "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:service-${module.automation-project.number}@gs-project-accounts.iam.gserviceaccount.com"]
-  # }
 
   iam_bindings_additive = {
     "pubsub" = {

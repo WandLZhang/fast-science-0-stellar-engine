@@ -152,8 +152,8 @@ module "tenant-core-gcs" {
     ? "MULTI_REGIONAL"
     : "REGIONAL"
   )
-  # encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
-  depends_on = [module.tenant-project-keys]
+  encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
+  depends_on     = [module.tenant-project-keys]
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
@@ -232,34 +232,6 @@ module "tenant-self-iac-gcs-outputs" {
   encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
   depends_on     = [module.tenant-project-keys]
 
-}
-
-module "tenant-project-keys" {
-  source     = "../../../modules/kms"
-  project_id = module.tenant-self-iac-projects[each.key].project_id
-  for_each   = local.tenant_envs
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      module.tenant-core-sa[each.key].iam_email,
-      "serviceAccount:service-${module.tenant-self-iac-projects[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
-    ]
-  }
-  keyring = {
-    name     = "${each.key}-keyring"
-    location = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
-  }
-  keys = {
-    gcs = {
-      purpose         = "ENCRYPT_DECRYPT"
-      labels          = { service = "gcs" }
-      locations       = try(each.value.locations.kms != "", false) ? each.value.locations.kms : var.locations.kms
-      rotation_period = "7776000s"
-      version_template = {
-        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        protection_level = "HSM"
-      }
-    }
-  }
 }
 
 module "tenant-self-iac-gcs-states" {

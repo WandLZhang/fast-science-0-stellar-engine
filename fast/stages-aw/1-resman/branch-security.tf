@@ -113,4 +113,6 @@ module "branch-security-gcs" {
     "roles/storage.objectAdmin"  = [module.branch-security-sa.iam_email]
     "roles/storage.objectViewer" = [module.branch-security-r-sa.iam_email]
   }
+
+  encryption_key = module.resman-kms.keys.resman.id
 }
