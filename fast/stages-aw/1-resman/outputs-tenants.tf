@@ -86,8 +86,6 @@ resource "google_storage_bucket_object" "tenant-core-tfvars" {
   bucket   = var.automation.outputs_bucket
   name     = "tfvars/tenant/${each.key}.auto.tfvars.json"
   content  = jsonencode(each.value)
-
-  # kms_key_name = "${var.automation.project_id}/${var.locations.gcs}/gcs/gcs"
 }
 
 resource "google_storage_bucket_object" "tenant-core-providers" {
@@ -95,8 +93,6 @@ resource "google_storage_bucket_object" "tenant-core-providers" {
   bucket   = var.automation.outputs_bucket
   name     = "providers/tenant/${each.key}-providers.tf"
   content  = each.value
-
-  # kms_key_name = "${var.automation.project_id}/${var.locations.gcs}/gcs/gcs"
 }
 
 # tenant tfvars and providers
@@ -117,8 +113,6 @@ resource "google_storage_bucket_object" "tenant-self-tfvars" {
   bucket   = module.tenant-self-iac-gcs-outputs[each.key].name
   name     = "tfvars/${each.key}.auto.tfvars.json"
   content  = jsonencode(each.value)
-
-  # kms_key_name = "${var.automation.project_id}/${var.locations.gcs}/gcs/gcs"
 }
 
 resource "google_storage_bucket_object" "tenant-self-providers" {
@@ -126,6 +120,4 @@ resource "google_storage_bucket_object" "tenant-self-providers" {
   bucket   = module.tenant-self-iac-gcs-outputs[each.key].name
   name     = "providers/${each.key}-providers.tf"
   content  = each.value
-
-  # kms_key_name = "${var.automation.project_id}/${var.locations.gcs}/gcs/gcs"
 }

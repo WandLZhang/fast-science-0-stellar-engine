@@ -153,7 +153,7 @@ module "tenant-core-gcs" {
     : "REGIONAL"
   )
   encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
-  depends_on     = [module.tenant-project-keys]
+  depends_on     = [module.tenant-project-keys, google_kms_crypto_key_iam_member.tenant_kms]
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
@@ -230,7 +230,7 @@ module "tenant-self-iac-gcs-outputs" {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
   encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
-  depends_on     = [module.tenant-project-keys]
+  depends_on     = [module.tenant-project-keys, google_kms_crypto_key_iam_member.tenant_kms]
 
 }
 
@@ -248,7 +248,7 @@ module "tenant-self-iac-gcs-states" {
   prefix         = var.prefix
   versioning     = true
   encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
-  depends_on     = [module.tenant-project-keys]
+  depends_on     = [module.tenant-project-keys, google_kms_crypto_key_iam_member.tenant_kms]
 }
 
 module "tenant-self-iac-sa" {
@@ -325,3 +325,4 @@ module "tenant-self-main-projects" {
     "sts.googleapis.com"
   ]
 }
+

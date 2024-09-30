@@ -1,27 +1,3 @@
-module "resman-kms" {
-  source     = "../../../modules/kms"
-  project_id = var.automation.project_id
-  keyring = {
-    name     = "resman"
-    location = var.locations.kms
-  }
-  keys = {
-    resman = {
-      purpose         = "ENCRYPT_DECRYPT"
-      rotation_period = "7776000s"
-      version_template = {
-        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        protection_level = "HSM"
-      }
-    }
-  }
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      "serviceAccount:service-${var.automation.project_number}@gs-project-accounts.iam.gserviceaccount.com"
-    ]
-  }
-}
-
 module "tenant-project-keys" {
   source     = "../../../modules/kms"
   project_id = module.tenant-self-iac-projects[each.key].project_id
@@ -50,14 +26,17 @@ module "tenant-project-keys" {
   }
 }
 
-## TODO: Get this to work
-## projects/se-il5-prod-iac-core-0/locations/us-east4/keyRings/gcs/cryptoKeys/gcs/cryptoKeyVersions/1
-# resource "google_kms_crypto_key_iam_member" "crypto_key" {
-#   for_each      = local.tenant_envs
-#   crypto_key_id = "${var.automation.project_id}/${var.locations.gcs}/gcs/gcs"
-#   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-# #   member        = "serviceAccount:${module.tenant-core-sa[each.key].iam_email}"
-#   member = 
-#     # member = "serviceAccount:service-${var.automation.project_number}@gs-project-accounts.iam.gserviceaccount.com"
-# # }
-# projects/se-il5-prod-iac-core-0/locations/us-east4/keyRings/gcs/cryptoKeys/gcs/cryptoKeyVersions/1
+resource "google_kms_crypto_key_iam_member" "resman_bootstrap_kms" {
+  for_each      = local.tenant_envs
+  crypto_key_id = "projects/${var.automation.project_id}/locations/${var.locations.kms}/keyRings/gcs/cryptoKeys/gcs"
+  member        = "serviceAccount:service-${module.tenant-self-iac-projects[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+}
+
+resource "google_kms_crypto_key_iam_member" "tenant_kms" {
+  for_each      = local.tenant_envs
+  crypto_key_id = module.tenant-project-keys[each.key].key_ids["gcs"]
+  member        = "serviceAccount:service-${module.tenant-self-iac-projects[each.key].number}@gs-project-accounts.iam.gserviceaccount.com"
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+}
+
