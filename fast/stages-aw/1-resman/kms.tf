@@ -40,3 +40,5 @@ resource "google_kms_crypto_key_iam_member" "tenant_kms" {
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 }
 
+# projects/il5-prod-iac-core-0/locations/us-east4/keyRings/gcs/cryptoKeys/gcs
+# projects/il5-prod-iac-core-0/locations/us-east4/keyRings/gcs/cryptoKeys/gcs
