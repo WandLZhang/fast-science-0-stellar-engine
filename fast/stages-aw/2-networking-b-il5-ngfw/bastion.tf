@@ -4,13 +4,14 @@ module "bastion-vm" {
   project_id = module.vdss-host-project.project_id
   zone       = "${var.regions["primary"]}-c"
   name       = "management-bastion"
+  confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance and image types
   shielded_config = {
     enable_secure_boot          = true
     enable_vtpm                 = true
     enable_integrity_monitoring = true
   }
   tags          = ["bastion"]
-  instance_type = "e2-small"
+  instance_type = "n2d-highcpu-2"
   network_interfaces = [{
     network = module.mgmt-vpc.self_link
     subnetwork = try(
@@ -34,5 +35,6 @@ module "bastion-vm" {
   service_account = {
     email = module.ngfw-service-account.email
   }
+
   depends_on = [module.kms]
 }
