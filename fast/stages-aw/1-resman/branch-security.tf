@@ -113,4 +113,8 @@ module "branch-security-gcs" {
     "roles/storage.objectAdmin"  = [module.branch-security-sa.iam_email]
     "roles/storage.objectViewer" = [module.branch-security-r-sa.iam_email]
   }
+
+  encryption_key = "projects/${var.automation.project_id}/locations/${var.locations.kms}/keyRings/gcs/cryptoKeys/gcs"
+  depends_on     = [google_kms_crypto_key_iam_member.resman_bootstrap_kms]
 }
+

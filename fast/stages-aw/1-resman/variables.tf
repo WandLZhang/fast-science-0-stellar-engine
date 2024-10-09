@@ -44,6 +44,7 @@ variable "automation" {
       principal_repo   = string
     }))
     service_accounts = object({
+      resman   = string
       resman-r = string
     })
   })

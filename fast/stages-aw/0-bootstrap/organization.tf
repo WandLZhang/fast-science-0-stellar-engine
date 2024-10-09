@@ -147,9 +147,8 @@ locals {
 # import org policy constraints enabled by default in new orgs since February 2024
 import {
   for_each = (
-    !var.org_policies_config.import_defaults || var.bootstrap_user != null
-    ? toset([])
-    : toset([
+    var.org_policies_config.import_defaults && var.bootstrap_user == null
+    ? toset([
       # source: https://cloud.google.com/resource-manager/docs/secure-by-default-organizations#organization_policies_enforced_on_organization_resources
       # listed in the order as on page
       "iam.disableServiceAccountKeyCreation",
@@ -159,8 +158,8 @@ import {
       "essentialcontacts.allowedContactDomains",
       "storage.uniformBucketLevelAccess",
       "compute.setNewProjectDefaultToZonalDNSOnly",
-      # "compute.restrictProtocolForwardingCreationForTypes",  # not confirmed that this is live, but listed on webpage
-    ])
+      "compute.restrictProtocolForwardingCreationForTypes", # not confirmed that this is live, but listed on webpage
+    ]) : toset([])
   )
   id = "organizations/${var.organization.id}/policies/${each.key}"
   to = module.organization.google_org_policy_policy.default[each.key]
