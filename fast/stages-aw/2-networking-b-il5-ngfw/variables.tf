@@ -232,6 +232,7 @@ variable "tenant_accounts" {
 
 # To get a list of available official images, please run the following command:
 # `gcloud compute images list --filter="family ~ vmseries" --project paloaltonetworksgcp-public --no-standard-images`
+
 variable "vmseries_image" {
   description = "The image name from which to boot an instance, including a license type (bundle/flex) and version."
   default     = "vmseries-112"
