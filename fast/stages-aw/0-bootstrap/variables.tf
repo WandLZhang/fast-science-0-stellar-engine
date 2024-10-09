@@ -182,11 +182,11 @@ variable "iam_by_principals" {
 variable "locations" {
   description = "Optional locations for GCS, BigQuery, and logging buckets created here."
   type = object({
-    bq      = optional(string, "EU")
-    gcs     = optional(string, "EU")
+    bq      = optional(string, "US")
+    gcs     = optional(string, "US")
     logging = optional(string, "global")
     pubsub  = optional(list(string), [])
-    kms     = optional(string, "EU")
+    kms     = optional(string, "US")
   })
   nullable = false
   default  = {}
