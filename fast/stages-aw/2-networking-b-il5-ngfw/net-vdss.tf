@@ -39,9 +39,6 @@ module "vdss-host-project" {
     "roles/dns.admin" = compact([
       try(local.service_accounts.project-factory-prod, null)
     ])
-    (local.custom_roles.service_project_network_admin) = compact([
-      try(local.service_accounts.project-factory-prod, null)
-    ])
   }
 }
 

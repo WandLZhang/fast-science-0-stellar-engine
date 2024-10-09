@@ -103,7 +103,7 @@ module "ngfw-service-account" {
   project_id = module.landing-project.project_id
   iam_project_roles = {
     (module.landing-project.project_id) = [
-      # google_project_iam_custom_role.ngfw-custom-role.id,
+      google_project_iam_custom_role.ngfw-custom-role.id,
       "roles/compute.viewer"
     ]
   }
