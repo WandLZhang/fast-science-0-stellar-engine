@@ -46,7 +46,7 @@ log_sinks = {
 }
 
 org_policies_config = {
-  import_defaults = true
+  import_defaults = false # No policies to import as of 27 SEP 2024
 }
 
 fast_features = {
