@@ -38,7 +38,7 @@ log_sinks = {
       type   = "pubsub"
     }
     
-    # CIS Compliance Benchmark 4.2
+    # CIS Compliance Benchmark 2.2
     empty-audit-logs = {
       filter = ""
       type   = "pubsub"
