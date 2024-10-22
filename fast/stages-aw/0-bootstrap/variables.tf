@@ -37,6 +37,11 @@ variable "billing_account" {
   nullable = false
 }
 
+variable "bootstrap_project" {
+  description = "Bootstrap project ID."
+  type        = string
+}
+
 variable "bootstrap_user" {
   description = "Email of the nominal user running this stage for the first time."
   type        = string
@@ -318,3 +323,4 @@ variable "workload_identity_providers" {
   #   error_message = "Custom settings cannot be null."
   # }
 }
+
