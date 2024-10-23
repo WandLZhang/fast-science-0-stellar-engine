@@ -48,7 +48,7 @@ variable "enable_pgaudit" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default = "On"
+  default = "on"
 
   validation {
     condition     = contains(["on", "off"], var.enable_pgaudit)
@@ -146,11 +146,11 @@ variable "log_error_verbosity" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default = "DEFAULT"
+  default = "default"
 
   validation {
-    condition     = contains(["TERSE", "DEFAULT", "VERBOSE"], var.log_error_verbosity)
-    error_message = "Only values \"TERSE\", \"DEFAULT\", and \"VERBOSE\" allowed."
+    condition     = contains(["terse", "default", "verbose"], var.log_error_verbosity)
+    error_message = "Only values \"terse\", \"default\", and \"verbose\" allowed."
   }
 }
 
@@ -169,11 +169,11 @@ variable "log_min_duration_statement" {
 variable "log_min_error_statement" {
   description = "The log_min_error_statement flag defines the minimum message severity level that are considered as an error statement."
   type        = string
-  default     = "ERROR" # Required for CIS Compliance Benchmark 6.2
+  default     = "error" # Required for CIS Compliance Benchmark 6.2
 
   validation {
-    condition     = contains(["DEBUG5", "DEBUG4", "DEBUG3", "DEBUG2", "DEBUG1", "INFO", "NOTICE", "WARNING", "ERROR", "LOG", "FATAL", "PANIC"], var.log_min_error_statement)
-    error_message = "Only values \"DEBUG5\", \"DEBUG4\", \"DEBUG3\", \"DEBUG2\", \"DEBUG1\", \"INFO\", \"NOTICE\", \"WARNING\", \"ERROR\", \"LOG\", \"FATAL\", and \"PANIC\" allowed."
+    condition     = contains(["debug5", "debug4", "debug3", "debug2", "debug1", "info", "notice", "warning", "error", "log", "fatal", "panic"], var.log_min_error_statement)
+    error_message = "Only values \"debug5\", \"debug4\", \"debug3\", \"debug2\", \"debug1\", \"info\", \"notice\", \"warning\", \"error\", \"log\", \"fatal\", and \"panic\" allowed."
   }
 }
 
@@ -182,11 +182,11 @@ variable "log_min_messages" {
   type        = string
 
   # Required for CIS Compliance Benchmark 6.2
-  default = "WARNING"
+  default = "warning"
 
   validation {
-    condition     = contains(["DEBUG5", "DEBUG4", "DEBUG3", "DEBUG2", "DEBUG1", "INFO", "NOTICE", "WARNING", "ERROR", "LOG", "FATAL", "PANIC"], var.log_min_messages)
-    error_message = "Only values \"DEBUG5\", \"DEBUG4\", \"DEBUG3\", \"DEBUG2\", \"DEBUG1\", \"INFO\", \"NOTICE\", \"WARNING\", \"ERROR\", \"LOG\", \"FATAL\", and \"PANIC\" allowed."
+    condition     = contains(["debug5", "debug4", "debug3", "debug2", "debug1", "info", "notice", "warning", "error", "log", "fatal", "panic"], var.log_min_messages)
+    error_message = "Only values \"debug5\", \"debug4\", \"debug3\", \"debug2\", \"debug1\", \"info\", \"notice\", \"warning\", \"error\", \"log\", \"fatal\", and \"panic\" allowed."
   }
 }
 
