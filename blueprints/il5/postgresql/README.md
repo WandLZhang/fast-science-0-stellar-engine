@@ -46,14 +46,14 @@ google_service_networking_connection.postgres
 | [database_instance_tier](variables.tf#L23) | This specifies the kind of machine-type that we will be running it from. | <code>string</code> |  | <code>&#34;db-g1-small&#34;</code> |
 | [database_version](variables.tf#L34) | This is the database type that we are running the cloud sql instance. | <code>string</code> |  | <code>&#34;POSTGRES_13&#34;</code> |
 | [deletion_protection](variables.tf#L40) | Terraform deletion protection. | <code>bool</code> |  | <code>true</code> |
-| [enable_pgaudit](variables.tf#L46) | This extension provides detailed session and object logging to comply with government, financial & ISO standards and provides auditing capabilities to mitigate threats by monitoring security events on the instance. | <code>string</code> |  | <code>&#34;On&#34;</code> |
+| [enable_pgaudit](variables.tf#L46) | This extension provides detailed session and object logging to comply with government, financial & ISO standards and provides auditing capabilities to mitigate threats by monitoring security events on the instance. | <code>string</code> |  | <code>&#34;on&#34;</code> |
 | [google_compute_global_address_name](variables.tf#L69) | Global address for VPC name. | <code>string</code> |  | <code>&#34;postgres&#34;</code> |
 | [log_connections](variables.tf#L118) | Enabling the log_connections setting causes each attempted connection to the server to be logged, along with successful completion of client authentication. | <code>string</code> |  | <code>&#34;on&#34;</code> |
 | [log_disconnections](variables.tf#L131) | Enabling the log_disconnections setting logs the end of each session, including the session duration. | <code>string</code> |  | <code>&#34;on&#34;</code> |
-| [log_error_verbosity](variables.tf#L144) | The log_error_verbosity flag controls the verbosity/details of messages logged. | <code>string</code> |  | <code>&#34;DEFAULT&#34;</code> |
+| [log_error_verbosity](variables.tf#L144) | The log_error_verbosity flag controls the verbosity/details of messages logged. | <code>string</code> |  | <code>&#34;default&#34;</code> |
 | [log_min_duration_statement](variables.tf#L157) | Type the minimum amount of execution time of a statement in milliseconds where the total duration of the statement is logged or \"-1\" to disable. | <code>number</code> |  | <code>-1</code> |
-| [log_min_error_statement](variables.tf#L169) | The log_min_error_statement flag defines the minimum message severity level that are considered as an error statement. | <code>string</code> |  | <code>&#34;ERROR&#34; &#35; Required for CIS Compliance Benchmark 6.2&#34;</code> |
-| [log_min_messages](variables.tf#L180) | The log_min_messages flag defines the minimum message severity level that is considered as an error statement. | <code>string</code> |  | <code>&#34;WARNING&#34;</code> |
+| [log_min_error_statement](variables.tf#L169) | The log_min_error_statement flag defines the minimum message severity level that are considered as an error statement. | <code>string</code> |  | <code>&#34;error&#34; &#35; Required for CIS Compliance Benchmark 6.2&#34;</code> |
+| [log_min_messages](variables.tf#L180) | The log_min_messages flag defines the minimum message severity level that is considered as an error statement. | <code>string</code> |  | <code>&#34;warning&#34;</code> |
 | [log_statement](variables.tf#L193) | The value of log_statement flag determines the SQL statements that are logged. | <code>string</code> |  | <code>&#34;ddl&#34;</code> |
 | [region](variables.tf#L216) | This is the region that we are going to be running the cloud sql instance from. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
 
