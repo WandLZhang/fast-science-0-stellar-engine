@@ -10,22 +10,78 @@ Secret Manager is a secure and convenient storage system for API keys, passwords
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
-- Warning: managing versions will persist their data (the actual secret you want to protect) in the Terraform state in unencrypted form, accessible to any identity able to read or pull the state file. DO NOT MANAGE VERSIONS IN TERRAFORM unless the state file is being stored remotely and is encrypted
+- Warning: This blueprint uses a bash script to update the secret versions so that Terraform doesn't store any secret data. If you chose to manage versions in Terraform, the data (the actual secret you want to protect) will be stored in the Terraform state in unencrypted form, accessible to any identity able to read or pull the state file. 
 
 ## Requirements
 
 These sections describe requirements for using this module.
 
 ### IAM
-
 The following roles must be used to provision the resources of this module:
 
 - Cloud KMS Admin: `roles/cloudkms.admin` or
 - Owner: `roles/owner`
 
-### APIs
+You also need the following role to manage secret versions:
 
+- Secret Version Manager: `roles/secretmanager.secretVersionManager`
+
+### APIs
 A project with the following APIs enabled must be used to host the
 resources of this module:
 
 - Google Cloud Key Management Service: `cloudkms.googleapis.com`
+- Google Cloud Secret Manager: `secretmanager.googleapis.com`
+<!-- BEGIN_TF_DOCS -->
+## Variables
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_iam"></a> [iam](#input\_iam) | IAM bindings in {SECRET => {ROLE => [MEMBERS]}} format. | `map(map(list(string)))` | `{}` | no |
+| <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The Project ID where the secrets will be created. | `string` | n/a | yes |
+| <a name="input_region"></a> [region](#input\_region) | The Google Cloud region. | `string` | `"us-east4"` | no |
+| <a name="input_secrets"></a> [secrets](#input\_secrets) | Map of secrets to manage, their locations and KMS keys in {LOCATION => KEY} format. | <pre>map(object({<br/>    location = string   # A location is required for every secret<br/>    key      = string   # A key is required for the location (the key and secret must be in the same region)<br/>  }))</pre> | `{}` | no |
+| <a name="input_zone"></a> [zone](#input\_zone) | The Google Cloud zone within the specified region. | `string` | `"us-east4-a"` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_ids"></a> [ids](#output\_ids) | Secret IDs. |
+| <a name="output_secrets"></a> [secrets](#output\_secrets) | Secret resources. |
+<!-- END_TF_DOCS -->
+## Deployment Steps
+
+You should see this README and some terraform files. There is also a bash script and a folder labeled "secrets" with some example secret files in it. 
+1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties
+
+- ```project_id```  with your GCP Project ID<br />
+- ```region``` with the GCP Location <br />
+- ```zone```  with the GCP zone within the region<br />
+- ```secrets``` with the desired secret IDs to be created as well as their region and key <br />
+-  ```iam```  with the desired iam roles assigned to each secret<br />
+
+2. There is a sample ```terraform.tfvars.sample``` available to see the format that is accepted.
+3. The usual terraform commands will be used to deploy the secrets. To provision this example, run the following from within this directory:
+
+```terraform init ```<br />
+```terraform plan``` to see the infrastructure plan<br />
+```terraform apply``` to apply the infrastructure build<br />
+```terraform destroy``` to destroy the built infrastructure<br />
+
+Verification of a successful deployment? 
+All of the secrets will be created and available through the Cloud Console in the Secret Manager. These secrets will simply have a region and a key associated with them. They will not have versions, which actually contain the secret data. In order to add versions to your newly created secrets, follow the remaining steps:
+
+4. Go into the add_secret_versions.sh script and replace the PROJECT_ID variable with your Google Cloud project ID.
+5. Replace the example SECRET_IDS array with your actual secret IDs.
+6. Update the DATA_FILE path to point to the location where you store your secret data files. The example structure assumes you organize your secret data files by secret ID. Adapt this if necessary to match your file structure.
+7. Run the script: ./add_secret_versions.sh
+
+Troubleshooting: If the script doesn't run, try the following steps.
+- Make it executable: chmod +x add_secret_versions.sh
+- Authentication: Ensure that your gcloud CLI is authenticated with a service account or user that has the required permissions to create and manage secret versions.
+
+You should see the message "Secret versions added successfully" after the script runs. If not, there may have been an error in your file structure/naming.
+Now you can go into the Cloud Console and view your secrets again. This time they should have versions associated with them. 
+
+It is recommended to delete the local secret files after you run this script for security reasons.
