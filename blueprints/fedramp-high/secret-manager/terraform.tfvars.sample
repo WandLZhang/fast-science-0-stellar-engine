@@ -1,9 +1,6 @@
 project_id    = "your-project-id"
-
 region        = "us-east4"
-
 zone          = "us-east4-a"
-
 secrets = {
     "secret-id-one" = { 
         location = "us-east4" 
@@ -14,7 +11,6 @@ secrets = {
         key = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
     }
 }
-
 iam = {
     "secret-id-one" = { 
         "roles/secretmanager.secretAccessor" = [ 
