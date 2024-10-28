@@ -53,7 +53,7 @@ resources of this module:
 ## Deployment Steps
 
 You should see this README and some terraform files. There is also a bash script and a folder labeled "secrets" with some example secret files in it. 
-1. Update the Variables in the variables.tf and also the properties within the keys variables. For reference update the following variables and associated properties
+1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file. For reference update the following variables and associated properties:
 
 - ```project_id```  with your GCP Project ID<br />
 - ```region``` with the GCP Location <br />
@@ -61,8 +61,7 @@ You should see this README and some terraform files. There is also a bash script
 - ```secrets``` with the desired secret IDs to be created as well as their region and key <br />
 -  ```iam```  with the desired iam roles assigned to each secret<br />
 
-2. There is a sample ```terraform.tfvars.sample``` available to see the format that is accepted.
-3. The usual terraform commands will be used to deploy the secrets. To provision this example, run the following from within this directory:
+2. The usual terraform commands will be used to deploy the secrets. To provision this example, run the following from within this directory:
 
 ```terraform init ```<br />
 ```terraform plan``` to see the infrastructure plan<br />
@@ -72,10 +71,10 @@ You should see this README and some terraform files. There is also a bash script
 Verification of a successful deployment? 
 All of the secrets will be created and available through the Cloud Console in the Secret Manager. These secrets will simply have a region and a key associated with them. They will not have versions, which actually contain the secret data. In order to add versions to your newly created secrets, follow the remaining steps:
 
-4. Go into the add_secret_versions.sh script and replace the PROJECT_ID variable with your Google Cloud project ID.
-5. Replace the example SECRET_IDS array with your actual secret IDs.
-6. Update the DATA_FILE path to point to the location where you store your secret data files. The example structure assumes you organize your secret data files by secret ID. Adapt this if necessary to match your file structure.
-7. Run the script: ./add_secret_versions.sh
+3. Go into the add_secret_versions.sh script and replace the PROJECT_ID variable with your Google Cloud project ID.
+4. Replace the example SECRET_IDS array with your actual secret IDs.
+5. Update the DATA_FILE path to point to the location where you store your secret data files. The example structure assumes you organize your secret data files by secret ID. Adapt this if necessary to match your file structure.
+6. Run the script: ./add_secret_versions.sh
 
 Troubleshooting: If the script doesn't run, try the following steps.
 - Make it executable: chmod +x add_secret_versions.sh
@@ -84,8 +83,7 @@ Troubleshooting: If the script doesn't run, try the following steps.
 You should see the message "Secret versions added successfully" after the script runs. If not, there may have been an error in your file structure/naming.
 Now you can go into the Cloud Console and view your secrets again. This time they should have versions associated with them. 
 
-It is recommended to delete the local secret files after you run this script for security reasons.
-
+It is recommended to delete the local secret files after you run this script.
 
 
 ### GCE Option
