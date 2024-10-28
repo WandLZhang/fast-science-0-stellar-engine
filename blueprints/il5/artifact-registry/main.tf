@@ -10,8 +10,9 @@ locals {
 data "google_project" "project" {}
 
 resource "google_project_service" "api" {
+  for_each = toset(["artifactregistry.googleapis.com", "containerscanning.googleapis.com"])
   project = data.google_project.project.id
-  service = "artifactregistry.googleapis.com"
+  service = each.value
 }
 
 module "kms" {
@@ -64,12 +65,13 @@ resource "google_artifact_registry_repository" "docker-hub" {
   format        = "DOCKER"
   mode          = "REMOTE_REPOSITORY"
   remote_repository_config {
+    disable_upstream_validation = false
     description = "docker hub"
     docker_repository {
       public_repository = "DOCKER_HUB"
     }
   }
-
+  
   kms_key_name = module.kms.keys.artifact-registry.id
   depends_on = [
     google_project_service.api,
