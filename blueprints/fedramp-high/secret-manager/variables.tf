@@ -18,8 +18,8 @@ variable "zone" {
 variable "secrets" {
   description = "Map of secrets to manage, their locations and KMS keys in {LOCATION => KEY} format."
   type = map(object({
-    location = string   # A location is required for every secret
-    key      = string   # A key is required for the location (the key and secret must be in the same region)
+    location = string # A location is required for every secret
+    key      = string # A key is required for the location (the key and secret must be in the same region)
   }))
   default = {}
 }
