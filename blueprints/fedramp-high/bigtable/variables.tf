@@ -34,7 +34,7 @@ variable "num_nodes" {
 variable "key_name" {
   description = "The name of the existing key (required if use_existing_keys is true)."
   type        = string
-  default = null
+  default     = null
 }
 
 variable "storage_type" {
