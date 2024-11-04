@@ -7,6 +7,7 @@ CMEK allows you to encrypt your Bigtable data at rest using keys that you manage
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -16,7 +17,7 @@ CMEK allows you to encrypt your Bigtable data at rest using keys that you manage
 | [region](variables.tf#L6) | GCP Region to deploy Bigtable to. | <code>string</code> | ✓ | <code>"us-east4"</code> |
 | [zone](variables.tf#L12) | GCP Zone to deploy Bigtable to. | <code>string</code> | ✓ | <code>"us-east4-a"</code> |
 | [cluster_id](variables.tf#23) | The Bigtable cluster ID | <code>string</code> | ✓ | |
-| [key_name](variables.tf#45) | The entire path to the KMS key to be used for encryption | <code>string</code> | ✓ | 
+| [key_name](variables.tf#45) | The entire path to the KMS key to be used for encryption | <code>string</code> | ✓ |
 | [instance_name](variables.tf#18) | The Bigtable instance name to create | <code>string</code> | ✓ |
 | [num_nodes](variables.tf#28) | Number of nodes in the Bigtable cluster | <code>number</code> | ✓ | <code>1</code> |
 | [storage_type](variables.tf#57) | Either SSD or HDD | <code>string</code> | ✓ | <code>"SSH"</code> |
@@ -49,14 +50,14 @@ You should see this README and some terraform files.
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` to destroy the built infrastructure<br />
 
-Verification of a successful deployment? 
+Verification of a successful deployment?
 The instance in Bigtable will be available through the Bigtable console with the set Table, Cluster, and Instance name you provided.
 
 It will take a few minutes. When complete, you should see an output stating the command completed successfully, a list of the created resources.
 The Output will look like following
 ```
 
-Outputs: 
+Outputs:
 
 bigtable_service_identity_email = "service-{id}@gcp-sa-bigtable.iam.gserviceaccount.com"
 bigtable_service_identity_uid = "projects/project_id/services/bigtableadmin.googleapis.com"
