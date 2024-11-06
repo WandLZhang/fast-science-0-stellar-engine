@@ -180,6 +180,7 @@ module "firewall" {
 
 }
 
+/*
 module "cloudnat" {
   count          = local.use_shared_vpc ? 0 : 1
   source         = "../../../modules/net-cloudnat"
@@ -188,6 +189,7 @@ module "cloudnat" {
   name           = "default"
   router_network = module.vpc-local[0].self_link
 }
+*/
 
 module "project" {
   source            = "../../../modules/project"
