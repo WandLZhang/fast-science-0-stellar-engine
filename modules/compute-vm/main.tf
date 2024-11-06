@@ -43,14 +43,15 @@ locals {
     )
     scopes = (
       var.service_account.scopes != null ? var.service_account.scopes : (
-        var.service_account.email == null && !var.service_account.auto_create ? [
-          # default scopes for Compute default SA
+        var.service_account.email == null && !var.service_account.auto_create
+        # default scopes for Compute default SA
+        ? [
           "https://www.googleapis.com/auth/devstorage.read_only",
           "https://www.googleapis.com/auth/logging.write",
           "https://www.googleapis.com/auth/monitoring.write"
         ]
+        # default scopes for own SA
         : [
-          # default scopes for own SA
           "https://www.googleapis.com/auth/cloud-platform",
           "https://www.googleapis.com/auth/userinfo.email"
         ]
@@ -66,7 +67,7 @@ locals {
     )
   )
   termination_action = (
-    var.options.spot ? coalesce(var.options.termination_action, "STOP") : null
+    var.options.spot || var.options.max_run_duration != null ? coalesce(var.options.termination_action, "STOP") : null
   )
 }
 
@@ -279,6 +280,13 @@ resource "google_compute_instance" "default" {
     on_host_maintenance         = local.on_host_maintenance
     preemptible                 = var.options.spot
     provisioning_model          = var.options.spot ? "SPOT" : "STANDARD"
+    dynamic "max_run_duration" {
+      for_each = var.options.max_run_duration == null ? [] : [""]
+      content {
+        nanos   = var.options.max_run_duration.nanos
+        seconds = var.options.max_run_duration.seconds
+      }
+    }
 
     dynamic "node_affinities" {
       for_each = var.options.node_affinities
@@ -325,8 +333,6 @@ resource "google_compute_instance" "default" {
       resource_manager_tags = local.tags_combined
     }
   }
-
-  # guest_accelerator
 }
 
 resource "google_compute_instance_iam_binding" "default" {
@@ -361,13 +367,6 @@ resource "google_compute_instance_template" "default" {
     disk_type             = var.boot_disk.initialize_params.type
     resource_manager_tags = var.tag_bindings
     source_image          = var.boot_disk.initialize_params.image
-    dynamic "disk_encryption_key" {
-      for_each = var.encryption != null ? [""] : []
-      content {
-        kms_key_self_link = var.encryption.kms_key_self_link
-      }
-    }
-
   }
 
   dynamic "confidential_instance_config" {
@@ -451,6 +450,13 @@ resource "google_compute_instance_template" "default" {
     on_host_maintenance         = local.on_host_maintenance
     preemptible                 = var.options.spot
     provisioning_model          = var.options.spot ? "SPOT" : "STANDARD"
+    dynamic "max_run_duration" {
+      for_each = var.options.max_run_duration == null ? [] : [""]
+      content {
+        nanos   = var.options.max_run_duration.nanos
+        seconds = var.options.max_run_duration.seconds
+      }
+    }
 
     dynamic "node_affinities" {
       for_each = var.options.node_affinities
