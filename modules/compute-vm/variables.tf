@@ -41,7 +41,7 @@ variable "attached_disks" {
     device_name = optional(string)
     # TODO: size can be null when source_type is attach
     size              = string
-    snapshot_schedule = optional(string)
+    snapshot_schedule = optional(list(string))
     source            = optional(string)
     source_type       = optional(string)
     options = optional(
@@ -84,7 +84,7 @@ variable "boot_disk" {
   description = "Boot disk properties."
   type = object({
     auto_delete       = optional(bool, true)
-    snapshot_schedule = optional(string)
+    snapshot_schedule = optional(list(string))
     source            = optional(string)
     initialize_params = optional(object({
       image = optional(string, "projects/debian-cloud/global/images/family/debian-11")
@@ -265,6 +265,10 @@ variable "options" {
   type = object({
     allow_stopping_for_update = optional(bool, true)
     deletion_protection       = optional(bool, false)
+    max_run_duration = optional(object({
+      nanos   = optional(number)
+      seconds = number
+    }))
     node_affinities = optional(map(object({
       values = list(string)
       in     = optional(bool, true)
