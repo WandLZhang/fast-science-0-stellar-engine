@@ -14,7 +14,6 @@ The blueprint will deploy all the required resources to have a fully functional 
 1. GCP Project (optional) to host all the resources.
 1. Isolated VPC network and a subnet to be used by Vertex and Dataflow. Alternatively, an external Shared VPC can be configured using the `network_config`variable.
 1. Firewall rule to allow the internal subnet communication required by Dataflow.
-1. Cloud NAT required to reach the internet from the different computing resources (Vertex and Dataflow).
 1. GCS buckets to host Vertex AI and Cloud Build Artifacts. By default the buckets will be regional and should match the Vertex AI region for the different resources (i.e. Vertex Managed Dataset) and processes (i.e. Vertex trainining).
 1. BigQuery Dataset where the training data will be stored. This is optional, since the training data could be already hosted in an existing BigQuery dataset.
 1. Artifact Registry Docker repository to host the custom images.
