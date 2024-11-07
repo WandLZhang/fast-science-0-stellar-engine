@@ -1,5 +1,5 @@
 module "private_service_connect" {
-  source                     = "../../../modules/private-service-connect"
+  source   = "../../../modules/private-service-connect"
   for_each = var.envs_folders
 
   project_id = module.env-spoke-projects[each.key].project_id
