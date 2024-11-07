@@ -58,3 +58,4 @@ compute.restrictVpcPeering:
   - allow:
       values:
         - under:organizations/${organization_id}
+        - under:folders/832634261155
