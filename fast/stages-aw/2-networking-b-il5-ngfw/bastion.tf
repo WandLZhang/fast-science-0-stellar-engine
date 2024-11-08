@@ -4,7 +4,7 @@ module "bastion-vm" {
   project_id           = module.vdss-host-project.project_id
   zone                 = "${var.regions["primary"]}-c"
   name                 = "management-bastion"
-  confidential_compute = false # Confidential compute requires UEFI and the Palo Alto images are not UEFI compatible
+  confidential_compute = true
   shielded_config = {
     enable_secure_boot          = true
     enable_vtpm                 = true
@@ -32,6 +32,13 @@ module "bastion-vm" {
       kms_key_self_link = module.kms.keys.default.id
     }
   ]
+
+  boot_disk = {
+    initialize_params = {
+      image = "projects/cos-cloud/global/images/family/cos-stable"
+    }
+  }
+  
   service_account = {
     email = module.ngfw-service-account.email
   }
