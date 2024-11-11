@@ -4,7 +4,7 @@ module "bastion-vm" {
   project_id           = module.vdss-host-project.project_id
   zone                 = "${var.regions["primary"]}-c"
   name                 = "management-bastion"
-  confidential_compute = true
+  confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance and image types
   shielded_config = {
     enable_secure_boot          = true
     enable_vtpm                 = true
