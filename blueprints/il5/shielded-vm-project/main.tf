@@ -38,8 +38,6 @@ module "shielded-vm" {
 
   metadata = {
     block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
-    # enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4 - Uncomment if no org policy
-    # enable-osconfig = "TRUE" # CIS Compliance Benchmark 4.12 - Uncomment if no org policy
   }
 
   instance_type        = var.instance_type
