@@ -92,10 +92,13 @@ module "gitlab-instance" {
     }
   ]
   tags = var.gitlab_instance_config.network_tags
+
   metadata = {
     user-data              = local.gitlab_user_data
     google-logging-enabled = "true"
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
   }
+
   service_account = {
     email = module.gitlab-sa.email
   }

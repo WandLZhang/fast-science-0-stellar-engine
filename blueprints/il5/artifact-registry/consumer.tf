@@ -48,8 +48,6 @@ module "compute-engine-vm" {
       },
     )
     block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
-    # enable-oslogin         = "TRUE" # CIS Compliance Benchmark 4.4 - only uncomment out if no org policy
-    # enable-osconfig        = "TRUE" # CIS Compliance Benchmark 4.12 - only unccoment out if no org policy
   }
 
   # CIS Compliance Benchmark 4.1/4.2

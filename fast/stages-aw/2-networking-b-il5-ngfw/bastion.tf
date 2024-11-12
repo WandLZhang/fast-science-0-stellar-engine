@@ -43,5 +43,9 @@ module "bastion-vm" {
     email = module.ngfw-service-account.email
   }
 
+  metadata = {
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
+  }
+
   depends_on = [module.kms]
 }

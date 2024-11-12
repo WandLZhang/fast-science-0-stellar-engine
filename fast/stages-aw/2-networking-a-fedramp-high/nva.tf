@@ -82,7 +82,8 @@ module "nva-template" {
     termination_action        = "STOP"
   }
   metadata = {
-    user-data = module.nva-cloud-config.cloud_config
+    user-data              = module.nva-cloud-config.cloud_config
+    block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
   }
 
   # CIS Compliance Benchmark 4.1/4.2
