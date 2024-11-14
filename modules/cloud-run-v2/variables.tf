@@ -270,3 +270,9 @@ variable "volumes" {
     error_message = "Only one type of volume can be defined at a time."
   }
 }
+
+variable "binary_authorization_default" {
+  description = "Use the default binary authorization policy. True or False."
+  type        = bool
+  default     = true
+}
