@@ -15,16 +15,17 @@
  */
 
 resource "google_cloud_run_v2_service" "service" {
-  count            = var.create_job ? 0 : 1
-  provider         = google-beta
-  project          = var.project_id
-  location         = var.region
-  name             = "${local.prefix}${var.name}"
-  ingress          = var.ingress
-  labels           = var.labels
-  launch_stage     = var.launch_stage
-  custom_audiences = var.custom_audiences
-
+  count        = var.create_job ? 0 : 1
+  provider     = google-beta
+  project      = var.project_id
+  location     = var.region
+  name         = "${local.prefix}${var.name}"
+  ingress      = var.ingress
+  labels       = var.labels
+  launch_stage = var.launch_stage
+  binary_authorization {
+    use_default = var.binary_authorization_default
+  }
   template {
     encryption_key = var.encryption_key
     revision       = local.revision_name
