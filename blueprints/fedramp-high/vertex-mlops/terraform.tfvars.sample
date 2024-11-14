@@ -14,6 +14,7 @@ prefix = "pre"
 project_config = {
   project_id = "your-project-id"
 }
+region = "us-central1" #us-central1 is recommended
 service_encryption_keys = {
     aiplatform    = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
     bq            = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
