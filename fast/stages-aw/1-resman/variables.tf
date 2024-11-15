@@ -15,6 +15,10 @@
  */
 # defaults for variables marked with global tfdoc annotations, can be set via
 # the tfvars file generated in stage 00 and stored in its outputs
+variable "alert_email" {
+  description = "Email to receive log alerts."
+  type        = string
+}
 
 variable "assured_workloads" {
   description = "Configuration for Assured Workloads."
