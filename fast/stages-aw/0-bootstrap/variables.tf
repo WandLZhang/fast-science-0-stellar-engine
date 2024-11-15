@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+variable "alert_email" {
+  description = "Email to receive log alerts."
+  type        = string
+}
 
 variable "assured_workloads" {
   description = "Configuration for Assured Workloads."

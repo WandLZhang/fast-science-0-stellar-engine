@@ -79,6 +79,7 @@ locals {
     })
   }
   tfvars = {
+    alert_email = var.alert_email
     automation = {
       federated_identity_pool = try(
         google_iam_workload_identity_pool.default[0].name, null
@@ -122,6 +123,11 @@ locals {
     organization    = var.organization
     prefix          = var.prefix
   }
+}
+
+output "alert_email" {
+  description = "Email to receive log alerts."
+  value       = var.alert_email
 }
 
 output "assured_workload" {
