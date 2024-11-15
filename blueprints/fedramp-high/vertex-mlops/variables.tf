@@ -34,41 +34,18 @@ variable "deletion_protection" {
   nullable    = false
 }
 
-variable "groups" {
-  description = "Name of the groups (name@domain.org) to apply opinionated IAM permissions."
-  type = object({
-    gcp-ml-ds     = optional(string)
-    gcp-ml-eng    = optional(string)
-    gcp-ml-viewer = optional(string)
-  })
-  default  = {}
-  nullable = false
-}
-
-variable "identity_pool_claims" {
-  description = "Claims to be used by Workload Identity Federation (i.e.: attribute.repository/ORGANIZATION/REPO). If a not null value is provided, then google_iam_workload_identity_pool resource will be created."
-  type        = string
-  default     = null
-}
-
 variable "labels" {
   description = "Labels to be assigned at project level."
   type        = map(string)
   default     = {}
 }
 
-variable "location" {
-  description = "Location used for multi-regional resources."
-  type        = string
-  default     = "us"
-}
-
 variable "network_config" {
-  description = "Shared VPC network configurations to use. If null networks will be created in projects with preconfigured values."
+  description = "Shared VPC network configurations to use."
   type = object({
-    host_project      = string
-    network_self_link = string
-    subnet_self_link  = string
+    host_project = string
+    network_name = string
+    subnet_name  = string
   })
   validation {
     condition     = var.network_config != null
@@ -124,20 +101,13 @@ variable "region" {
   default     = "us-central1"
 }
 
-variable "repo_name" {
-  description = "Cloud Source Repository name, or null to avoid creating it."
-  type        = string
-  default     = null
-}
-
 variable "service_encryption_keys" {
   description = "Cloud KMS to use to encrypt different services. Key location should match service region."
   type = object({
-    aiplatform    = optional(string)
-    bq            = optional(string)
-    notebooks     = optional(string)
-    secretmanager = optional(string)
-    storage       = optional(string)
+    aiplatform = optional(string)
+    bq         = optional(string)
+    notebooks  = optional(string)
+    storage    = optional(string)
   })
   default  = {}
   nullable = false

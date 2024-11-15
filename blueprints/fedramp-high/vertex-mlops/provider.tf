@@ -15,10 +15,16 @@
  */
 
 terraform {
-  provider_meta "google" {
-    module_name = "blueprints/terraform/fabric-blueprints:vertex-mlops/v21.0.0"
+  required_version = ">= 1.7.4"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = ">= 6.1.0, < 7.0.0" # tftest
+    }
   }
-  provider_meta "google-beta" {
-    module_name = "blueprints/terraform/fabric-blueprints:vertex-mlops/v21.0.0"
-  }
+}
+
+provider "google" {
+  project = var.project_config.project_id
+  region  = var.region
 }
