@@ -16,68 +16,12 @@
 
 
 locals {
+  vpc    = "projects/${var.network_config.host_project}/global/networks/${var.network_config.network_name}"
+  subnet = "projects/${var.network_config.host_project}/regions/${var.region}/subnetworks/${var.network_config.subnet_name}"
+
   prefix = var.prefix == null ? "" : "${var.prefix}-"
-  iam_principals = merge(
-    var.groups.gcp-ml-viewer == null ? {} : {
-      "group:${var.groups.gcp-ml-viewer}" = [
-        "roles/aiplatform.viewer",
-        "roles/artifactregistry.reader",
-        "roles/dataflow.viewer",
-        "roles/logging.viewer",
-        "roles/storage.objectViewer"
-      ]
-    },
-    var.groups.gcp-ml-ds == null ? {} : {
-      "group:${var.groups.gcp-ml-ds}" = [
-        "roles/aiplatform.admin",
-        "roles/artifactregistry.admin",
-        "roles/bigquery.dataEditor",
-        "roles/bigquery.jobUser",
-        "roles/bigquery.user",
-        "roles/cloudbuild.builds.editor",
-        "roles/cloudfunctions.developer",
-        "roles/dataflow.developer",
-        "roles/dataflow.worker",
-        "roles/iam.serviceAccountUser",
-        "roles/logging.logWriter",
-        "roles/logging.viewer",
-        "roles/notebooks.admin",
-        "roles/pubsub.editor",
-        "roles/serviceusage.serviceUsageConsumer",
-        "roles/storage.admin"
-      ]
-    },
-    var.groups.gcp-ml-eng == null ? {} : {
-      "group:${var.groups.gcp-ml-eng}" = [
-        "roles/aiplatform.admin",
-        "roles/artifactregistry.admin",
-        "roles/bigquery.dataEditor",
-        "roles/bigquery.jobUser",
-        "roles/bigquery.user",
-        "roles/dataflow.developer",
-        "roles/dataflow.worker",
-        "roles/iam.serviceAccountUser",
-        "roles/logging.logWriter",
-        "roles/logging.viewer",
-        "roles/serviceusage.serviceUsageConsumer",
-        "roles/storage.admin"
-      ]
-    }
-  )
 
-  shared_vpc_project = try(var.network_config.host_project, null)
-
-  subnet = (
-    local.use_shared_vpc
-    ? var.network_config.subnet_self_link
-    : values(module.vpc-local[0].subnet_self_links)[0]
-  )
-  vpc = (
-    local.use_shared_vpc
-    ? var.network_config.network_self_link
-    : module.vpc-local[0].self_link
-  )
-  use_shared_vpc = var.network_config != null
+  shared_vpc_project = var.network_config.host_project
 
   shared_vpc_bindings = {
     "roles/compute.networkUser" = [
@@ -135,70 +79,12 @@ module "bq-dataset" {
   encryption_key = var.service_encryption_keys.bq
 }
 
-module "vpc-local" {
-  count        = local.use_shared_vpc ? 0 : 1
-  source       = "../../../modules/net-vpc"
-  project_id   = module.project.project_id
-  routing_mode = "REGIONAL"
-  name         = "vertex"
-  subnets = [
-    {
-      "name" : "subnet-${var.region}",
-      "region" : "${var.region}",
-      "ip_cidr_range" : "10.0.0.0/16",
-      "secondary_ip_range" : null
-    }
-  ]
-  psa_configs = [{
-    ranges = {
-      "vertex" : "10.13.0.0/18"
-    }
-    routes = null
-  }]
-}
-
-module "firewall" {
-  count      = local.use_shared_vpc ? 0 : 1
-  source     = "../../../modules/net-vpc-firewall"
-  project_id = module.project.project_id
-  network    = module.vpc-local[0].name
-  default_rules_config = {
-    disabled = true
-  }
-  ingress_rules = {
-    dataflow-ingress = {
-      description          = "Dataflow service."
-      direction            = "INGRESS"
-      action               = "allow"
-      sources              = ["dataflow"]
-      targets              = ["dataflow"]
-      ranges               = []
-      use_service_accounts = false
-      rules                = [{ protocol = "tcp", ports = ["12345-12346"] }]
-      extra_attributes     = {}
-    }
-  }
-
-}
-
-module "cloudnat" {
-  count          = local.use_shared_vpc ? 0 : 1
-  source         = "../../../modules/net-cloudnat"
-  project_id     = module.project.project_id
-  region         = var.region
-  name           = "default"
-  router_network = module.vpc-local[0].self_link
-}
-
-
 module "project" {
-  source            = "../../../modules/project"
-  name              = var.project_config.project_id
-  parent            = var.project_config.parent
-  billing_account   = var.project_config.billing_account_id
-  project_create    = var.project_config.billing_account_id != null
-  prefix            = null
-  iam_by_principals = local.iam_principals
+  source          = "../../../modules/project"
+  name            = var.project_config.project_id
+  parent          = var.project_config.parent
+  billing_account = var.project_config.billing_account_id
+  project_create  = var.project_config.billing_account_id != null
   iam_bindings_additive = {
     # we manage aiplatform.user additively since it is also granted to
     # the vertex-shtune service agent by the project module
@@ -213,7 +99,6 @@ module "project" {
   }
   iam = {
     "roles/artifactregistry.reader" = [module.service-account-mlops.iam_email]
-    "roles/artifactregistry.writer" = [module.service-account-github.iam_email]
     "roles/bigquery.dataEditor" = [
       module.service-account-mlops.iam_email,
       module.service-account-notebook.iam_email
@@ -222,10 +107,12 @@ module "project" {
       module.service-account-mlops.iam_email,
       module.service-account-notebook.iam_email
     ]
-    "roles/bigquery.user" = [module.service-account-mlops.iam_email, module.service-account-notebook.iam_email]
+    "roles/bigquery.user" = [
+      module.service-account-mlops.iam_email,
+      module.service-account-notebook.iam_email
+    ]
     "roles/cloudbuild.builds.editor" = [
       module.service-account-mlops.iam_email,
-      module.service-account-github.iam_email
     ]
 
     "roles/cloudfunctions.invoker" = [module.service-account-mlops.iam_email]
@@ -234,21 +121,21 @@ module "project" {
     "roles/iam.serviceAccountUser" = [
       module.service-account-mlops.iam_email,
       module.service-account-notebook.iam_email,
-      module.service-account-github.iam_email,
       module.project.service_agents.cloudbuild.iam_email
     ]
     "roles/monitoring.metricWriter" = [module.service-account-mlops.iam_email]
     "roles/run.invoker"             = [module.service-account-mlops.iam_email]
     "roles/serviceusage.serviceUsageConsumer" = [
       module.service-account-mlops.iam_email,
-      module.service-account-github.iam_email
     ]
-    "roles/storage.admin" = [
+    "roles/storage.objectViewer" = [
       module.service-account-mlops.iam_email,
-      module.service-account-github.iam_email,
       module.service-account-notebook.iam_email
     ]
-    //"roles/storage.objectViewer" = [module.service-account-notebook.iam_email]
+    "roles/storage.objectCreator" = [
+      module.service-account-mlops.iam_email,
+      module.service-account-notebook.iam_email
+    ]
   }
   labels = var.labels
 
@@ -257,9 +144,9 @@ module "project" {
     "bigquery.googleapis.com"   = compact([var.service_encryption_keys.bq])
     "compute.googleapis.com"    = compact([var.service_encryption_keys.notebooks])
     #"cloudbuild.googleapis.com"    = compact([var.service_encryption_keys.storage])
-    "notebooks.googleapis.com"     = compact([var.service_encryption_keys.notebooks])
-    "secretmanager.googleapis.com" = compact([var.service_encryption_keys.secretmanager])
-    "storage.googleapis.com"       = compact([var.service_encryption_keys.storage])
+    "notebooks.googleapis.com" = compact([var.service_encryption_keys.notebooks])
+    //"secretmanager.googleapis.com" = compact([var.service_encryption_keys.secretmanager])
+    "storage.googleapis.com" = compact([var.service_encryption_keys.storage])
   }
 
   services = [
@@ -275,7 +162,7 @@ module "project" {
     "ml.googleapis.com",
     "monitoring.googleapis.com",
     "notebooks.googleapis.com",
-    "secretmanager.googleapis.com",
+    //"secretmanager.googleapis.com",
     "servicenetworking.googleapis.com",
     "serviceusage.googleapis.com",
     "stackdriver.googleapis.com",
@@ -296,23 +183,23 @@ module "service-account-mlops" {
 }
 
 resource "google_project_iam_member" "shared_vpc" {
-  count   = local.use_shared_vpc ? 1 : 0
   project = var.network_config.host_project
   role    = "roles/compute.networkUser"
   member  = module.project.service_agents.notebooks.iam_email
 }
 
-resource "google_sourcerepo_repository" "code-repo" {
-  count   = var.repo_name == null ? 0 : 1
-  name    = var.repo_name
-  project = module.project.project_id
-}
-
 //add iam bindings to compute service account running notebooks
 resource "google_project_iam_member" "service_permissions" {
-  for_each   = toset(["roles/storage.admin", "roles/viewer", "roles/notebooks.runner", "roles/aiplatform.user", "roles/iam.serviceAccountUser"])
-  project    = module.project.project_id
-  role       = each.key
-  member     = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
-  depends_on = [google_workbench_instance.playground]
+  for_each = toset(["roles/notebooks.runner", "roles/aiplatform.user"])
+  project  = module.project.project_id
+  role     = each.key
+  member   = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "notebook_permissions" {
+  for_each = toset(["roles/storage.objectViewer", "roles/storage.objectCreator", "roles/iam.serviceAccountUser"])
+  project  = module.project.project_id
+  role     = each.key
+  member   = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
+  //depends_on = [google_notebooks_runtime.runtime]
 }
