@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 locals {
   vpc    = "projects/${var.network_config.host_project}/global/networks/${var.network_config.network_name}"
   subnet = "projects/${var.network_config.host_project}/regions/${var.region}/subnetworks/${var.network_config.subnet_name}"
@@ -85,7 +84,73 @@ module "project" {
   parent          = var.project_config.parent
   billing_account = var.project_config.billing_account_id
   project_create  = var.project_config.billing_account_id != null
-  labels          = var.labels
+  iam_bindings_additive = {
+    # we manage aiplatform.user additively since it is also granted to
+    # the vertex-shtune service agent by the project module
+    aiplatform-user-mlops = {
+      member = module.service-account-mlops.iam_email
+      role   = "roles/aiplatform.user"
+    }
+    aiplatform-user-notebook = {
+      member = module.service-account-notebook.iam_email
+      role   = "roles/aiplatform.user"
+    }
+    storage-viewer-mlops = {
+      member = module.service-account-mlops.iam_email
+      role   = "roles/storage.objectViewer"
+    }
+    storage-viewer-notebook = {
+      member = module.service-account-notebook.iam_email
+      role   = "roles/storage.objectViewer"
+    }
+    storage-creator-mlops = {
+      member = module.service-account-mlops.iam_email
+      role   = "roles/storage.objectCreator"
+    }
+    storage-creator-notebook = {
+      member = module.service-account-notebook.iam_email
+      role   = "roles/storage.objectCreator"
+    }
+    service-account-user-mlops = {
+      member = module.service-account-mlops.iam_email
+      role   = "roles/iam.serviceAccountUser"
+    }
+    service-account-user-notebook = {
+      member = module.service-account-notebook.iam_email
+      role   = "roles/iam.serviceAccountUser"
+    }
+    service-account-user-cloudbuild = {
+      member = module.project.service_agents.cloudbuild.iam_email,
+      role   = "roles/iam.serviceAccountUser"
+    }
+  }
+  iam = {
+    "roles/artifactregistry.reader" = [module.service-account-mlops.iam_email]
+    "roles/bigquery.dataEditor" = [
+      module.service-account-mlops.iam_email,
+      module.service-account-notebook.iam_email
+    ]
+    "roles/bigquery.jobUser" = [
+      module.service-account-mlops.iam_email,
+      module.service-account-notebook.iam_email
+    ]
+    "roles/bigquery.user" = [
+      module.service-account-mlops.iam_email,
+      module.service-account-notebook.iam_email
+    ]
+    "roles/cloudbuild.builds.editor" = [
+      module.service-account-mlops.iam_email,
+    ]
+    "roles/cloudfunctions.invoker"  = [module.service-account-mlops.iam_email]
+    "roles/dataflow.developer"      = [module.service-account-mlops.iam_email]
+    "roles/dataflow.worker"         = [module.service-account-mlops.iam_email]
+    "roles/monitoring.metricWriter" = [module.service-account-mlops.iam_email]
+    "roles/run.invoker"             = [module.service-account-mlops.iam_email]
+    "roles/serviceusage.serviceUsageConsumer" = [
+      module.service-account-mlops.iam_email,
+    ]
+  }
+  labels = var.labels
 
   service_encryption_key_ids = {
     "aiplatform.googleapis.com" = compact([var.service_encryption_keys.aiplatform])
@@ -121,6 +186,12 @@ module "project" {
     attach       = true
     host_project = local.shared_vpc_project
   }
+}
+
+module "service-account-mlops" {
+  source     = "../../../modules/iam-service-account"
+  name       = "${local.prefix}sa-mlops"
+  project_id = module.project.project_id
 }
 
 resource "google_project_iam_member" "shared_vpc" {
