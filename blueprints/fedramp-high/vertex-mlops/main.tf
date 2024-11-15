@@ -85,65 +85,13 @@ module "project" {
   parent          = var.project_config.parent
   billing_account = var.project_config.billing_account_id
   project_create  = var.project_config.billing_account_id != null
-  iam_bindings_additive = {
-    # we manage aiplatform.user additively since it is also granted to
-    # the vertex-shtune service agent by the project module
-    aiplatform-user-mlops = {
-      member = module.service-account-mlops.iam_email
-      role   = "roles/aiplatform.user"
-    }
-    aiplatform-user-notebook = {
-      member = module.service-account-notebook.iam_email
-      role   = "roles/aiplatform.user"
-    }
-  }
-  iam = {
-    "roles/artifactregistry.reader" = [module.service-account-mlops.iam_email]
-    "roles/bigquery.dataEditor" = [
-      module.service-account-mlops.iam_email,
-      module.service-account-notebook.iam_email
-    ]
-    "roles/bigquery.jobUser" = [
-      module.service-account-mlops.iam_email,
-      module.service-account-notebook.iam_email
-    ]
-    "roles/bigquery.user" = [
-      module.service-account-mlops.iam_email,
-      module.service-account-notebook.iam_email
-    ]
-    "roles/cloudbuild.builds.editor" = [
-      module.service-account-mlops.iam_email,
-    ]
-
-    "roles/cloudfunctions.invoker" = [module.service-account-mlops.iam_email]
-    "roles/dataflow.developer"     = [module.service-account-mlops.iam_email]
-    "roles/dataflow.worker"        = [module.service-account-mlops.iam_email]
-    "roles/iam.serviceAccountUser" = [
-      module.service-account-mlops.iam_email,
-      module.service-account-notebook.iam_email,
-      module.project.service_agents.cloudbuild.iam_email
-    ]
-    "roles/monitoring.metricWriter" = [module.service-account-mlops.iam_email]
-    "roles/run.invoker"             = [module.service-account-mlops.iam_email]
-    "roles/serviceusage.serviceUsageConsumer" = [
-      module.service-account-mlops.iam_email,
-    ]
-    "roles/storage.objectViewer" = [
-      module.service-account-mlops.iam_email,
-      module.service-account-notebook.iam_email
-    ]
-    "roles/storage.objectCreator" = [
-      module.service-account-mlops.iam_email,
-      module.service-account-notebook.iam_email
-    ]
-  }
-  labels = var.labels
+  labels          = var.labels
 
   service_encryption_key_ids = {
     "aiplatform.googleapis.com" = compact([var.service_encryption_keys.aiplatform])
     "bigquery.googleapis.com"   = compact([var.service_encryption_keys.bq])
     "compute.googleapis.com"    = compact([var.service_encryption_keys.notebooks])
-    #"cloudbuild.googleapis.com"    = compact([var.service_encryption_keys.storage])
+    //"cloudbuild.googleapis.com"    = compact([var.service_encryption_keys.storage])
     "notebooks.googleapis.com" = compact([var.service_encryption_keys.notebooks])
     //"secretmanager.googleapis.com" = compact([var.service_encryption_keys.secretmanager])
     "storage.googleapis.com" = compact([var.service_encryption_keys.storage])
@@ -175,12 +123,6 @@ module "project" {
   }
 }
 
-module "service-account-mlops" {
-  source     = "../../../modules/iam-service-account"
-  name       = "${local.prefix}sa-mlops"
-  project_id = module.project.project_id
-}
-
 resource "google_project_iam_member" "shared_vpc" {
   project = var.network_config.host_project
   role    = "roles/compute.networkUser"
@@ -200,22 +142,6 @@ resource "google_project_iam_member" "service_permissions" {
   project = module.project.project_id
   role    = each.key
   member  = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
-}
-
-resource "google_project_iam_member" "notebook_permissions" {
-  for_each = toset([
-    "roles/storage.objectViewer",
-    "roles/storage.objectCreator",
-    "roles/iam.serviceAccountUser",
-  ])
-  project = module.project.project_id
-  role    = each.key
-  member  = "serviceAccount:${module.project.number}-compute@developer.gserviceaccount.com"
-  depends_on = [
-    module.project,
-    google_notebooks_runtime.runtime,
-    google_project_iam_member.service_permissions,
-  ]
 }
 
 resource "google_project_iam_custom_role" "storage_role" {

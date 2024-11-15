@@ -15,8 +15,6 @@ The blueprint will deploy all the required resources to have a fully functional 
 1. An external Shared VPC must be configured using the `network_config`variable.
 1. GCS buckets to host Vertex AI and Cloud Build Artifacts. By default the buckets will be regional and should match the Vertex AI region for the different resources (i.e. Vertex Managed Dataset) and processes (i.e. Vertex trainining).
 1. BigQuery Dataset where the training data will be stored. This is optional, since the training data could be already hosted in an existing BigQuery dataset.
-1. Artifact Registry Docker repository to host the custom images.
-1. Service account (`PREFIX-sa-mlops`) with the minimum permissions required by Vertex AI and Dataflow (if this service is used inside of the Vertex AI Pipeline).
 
 ## Instructions
 ### Deploy the experimentation environment
