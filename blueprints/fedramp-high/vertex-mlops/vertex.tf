@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+module "service-account-notebook" {
+  source     = "../../../modules/iam-service-account"
+  project_id = module.project.project_id
+  name       = "notebook-sa"
+}
+
 resource "google_notebooks_runtime" "runtime" {
   for_each = { for k, v in var.notebooks : k => v if v.type == "MANAGED" }
   name     = "${local.prefix}${each.key}"
