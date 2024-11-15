@@ -2,8 +2,8 @@ bucket_name          = "vertex-ai-bucket"
 dataset_name         = "vertex_ai_data" #cannot contain dashes '-'
 network_config = {
   host_project = "your-networking-project"
-  network_self_link = "projects/<project_id>/global/networks/<VPC_name>"
-  subnet_self_link = "projects/<project_id>/regions/<region>/subnetworks/<subnet_name>"
+  network_name = "your-VPC-name"
+  subnet_name = "your-subnet-name"
 }
 notebooks = {
   "test-notebook" = {
@@ -19,6 +19,5 @@ service_encryption_keys = {
     aiplatform    = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
     bq            = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
     notebooks     = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
-    secretmanager = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
     storage       = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
 }
