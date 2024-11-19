@@ -1,6 +1,17 @@
 # MLOps with Vertex AI
 This blueprint demonstrates how to create a Vertex AI Workbench on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS. 
 
+<!-- BEGIN TOC -->
+- [Introduction to Vertex AI](#introduction-to-vertex-ai)
+- [Disclaimer](#disclaimer)
+- [Architecture](#architecture)
+- [Instructions](#instructions)
+  - [Deploy the experimentation environment](#deploy-the-experimentation-environment)
+- [Demo](#demo)
+- [Variables](#variables)
+- [Outputs](#outputs)
+<!-- END TOC -->
+
 ## Introduction to Vertex AI
 Vertex AI is a fully-managed, unified AI development platform for building and using generative AI. Access and utilize Vertex AI Studio, Agent Builder, and 150+ foundation models. Evaluate, tune, and deploy generative AI models or train your own custom models. 
 This example implements the infrastructure required to deploy an end-to-end [MLOps process](https://services.google.com/fh/files/misc/practitioners_guide_to_mlops_whitepaper.pdf) using [Vertex AI](https://cloud.google.com/vertex-ai) platform.
@@ -30,7 +41,7 @@ To try out the new notebook, you can use the provided code sample (the .ipynb fi
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [network_config](variables.tf#L43) | Shared VPC network configurations to use. | <code title="object&#40;&#123;&#10;  host_project      &#61; string&#10;  network_name      &#61; string&#10;  subnet_name       &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [network_config](variables.tf#L43) | Shared VPC network configurations to use. | <code title="object&#40;&#123;&#10;  host_project &#61; string&#10;  network_name &#61; string&#10;  subnet_name  &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
 | [notebooks](variables.tf#L57) | Vertex AI workbenches to be deployed. Service Account runtime/instances deployed. | <code title="map&#40;object&#40;&#123;&#10;  type             &#61; string&#10;  machine_type     &#61; optional&#40;string, &#34;n1-standard-4&#34;&#41;&#10;  internal_ip_only &#61; optional&#40;bool, true&#41;&#10;  idle_shutdown    &#61; optional&#40;bool, false&#41;&#10;  owner            &#61; optional&#40;string&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |
 | [project_config](variables.tf#L84) | Provide 'billing_account_id' value if project creation is needed, uses existing 'project_id' if null. Parent is in 'folders/nnn' or 'organizations/nnn' format. | <code title="object&#40;&#123;&#10;  billing_account_id &#61; optional&#40;string&#41;&#10;  parent             &#61; optional&#40;string&#41;&#10;  project_id         &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
 | [bucket_name](variables.tf#L18) | GCS bucket name to store the Vertex AI artifacts. | <code>string</code> |  | <code>null</code> |
@@ -39,7 +50,7 @@ To try out the new notebook, you can use the provided code sample (the .ipynb fi
 | [labels](variables.tf#L37) | Labels to be assigned at project level. | <code>map&#40;string&#41;</code> |  | <code>&#123;&#125;</code> |
 | [prefix](variables.tf#L78) | Prefix used for various resource creation. | <code>string</code> |  | <code>null</code> |
 | [region](variables.tf#L98) | Region used for regional resources. | <code>string</code> |  | <code>&#34;us-central1&#34;</code> |
-| [service_encryption_keys](variables.tf#L104) | Cloud KMS to use to encrypt different services. Key location should match service region. | <code title="object&#40;&#123;&#10;  aiplatform    &#61; optional&#40;string&#41;&#10;  bq            &#61; optional&#40;string&#41;&#10;  notebooks     &#61; optional&#40;string&#41;&#10;  storage       &#61; optional&#40;string&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [service_encryption_keys](variables.tf#L104) | Cloud KMS to use to encrypt different services. Key location should match service region. | <code title="object&#40;&#123;&#10;  aiplatform &#61; optional&#40;string&#41;&#10;  bq         &#61; optional&#40;string&#41;&#10;  notebooks  &#61; optional&#40;string&#41;&#10;  storage    &#61; optional&#40;string&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
 
 ## Outputs
 
