@@ -21,39 +21,39 @@ The final number of subnets, and their IP addressing will depend on the user-spe
   <img src="diagram.svg" alt="Networking diagram">
 </p>
 
-## Table of contents
-
-- [Networking with Network Virtual Appliance](#networking-with-network-virtual-appliance)
-  - [Table of contents](#table-of-contents)
-  - [Design overview and choices](#design-overview-and-choices)
-    - [Palo Alto NGFW](#palo-alto-ngfw)
-    - [Multi-regional deployment](#multi-regional-deployment)
-    - [VPC design](#vpc-design)
-    - [External connectivity](#external-connectivity)
-    - [Internal connectivity](#internal-connectivity)
-    - [IP ranges, subnetting, routing](#ip-ranges-subnetting-routing)
-    - [Internet egress](#internet-egress)
-    - [VPC and Hierarchical Firewall](#vpc-and-hierarchical-firewall)
-    - [DNS](#dns)
-  - [Stage structure and files layout](#stage-structure-and-files-layout)
-    - [VPCs](#vpcs)
-    - [Firewall](#firewall)
-    - [DNS architecture](#dns-architecture)
-      - [Cloud environment](#cloud-environment)
-  - [How to run this stage](#how-to-run-this-stage)
-    - [Provider and Terraform variables](#provider-and-terraform-variables)
-    - [Impersonating the automation service account](#impersonating-the-automation-service-account)
-    - [Setting default project for manual run](#Setting-default-project-for-manual-run)
-    - [Variable configuration](#variable-configuration)
-    - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
-    - [Running the stage](#running-the-stage)
-    - [Post-deployment activities](#post-deployment-activities)
-      - [Private Google Access](#private-google-access)
-  - [Customizations](#customizations)
-    - [Changing default regions](#changing-default-regions)
-  - [Files](#files)
-  - [Variables](#variables)
-  - [Outputs](#outputs)
+<!-- BEGIN TOC -->
+- [Design overview and choices](#design-overview-and-choices)
+  - [Palo Alto NGFW](#palo-alto-ngfw)
+  - [Multi-regional deployment](#multi-regional-deployment)
+  - [VPC design](#vpc-design)
+  - [Internal connectivity](#internal-connectivity)
+  - [IP ranges, subnetting, routing](#ip-ranges-subnetting-routing)
+  - [Internet egress](#internet-egress)
+  - [VPC and Hierarchical Firewall](#vpc-and-hierarchical-firewall)
+  - [DNS](#dns)
+- [Stage structure and files layout](#stage-structure-and-files-layout)
+  - [VPCs](#vpcs)
+  - [VPNs](#vpns)
+  - [Routing and BGP](#routing-and-bgp)
+  - [Firewall](#firewall)
+  - [DNS architecture](#dns-architecture)
+    - [Cloud environment](#cloud-environment)
+- [How to run this stage](#how-to-run-this-stage)
+  - [Provider and Terraform variables](#provider-and-terraform-variables)
+  - [Impersonating the automation service account](#impersonating-the-automation-service-account)
+  - [Setting default Pproject for manual run](#setting-default-pproject-for-manual-run)
+  - [Variable configuration](#variable-configuration)
+  - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
+  - [Running the stage](#running-the-stage)
+    - [Private Google Access](#private-google-access)
+- [Customizations](#customizations)
+  - [Changing default regions](#changing-default-regions)
+- [Configuring Palo Alto NGFWs](#configuring-palo-alto-ngfws)
+  - [Reaching the Management Console](#reaching-the-management-console)
+  - [Updating configuration](#updating-configuration)
+- [Variables](#variables)
+- [Outputs](#outputs)
+<!-- END TOC -->
 
 ## Design overview and choices
 
@@ -352,47 +352,34 @@ There is currently no way to automate this process, but take the version of the 
 * `ssh_pubkey`: Used 2 times, once near the top and once near the middle
 * `healthcheck_cidrs`: Used 1 time as part of a Jinja template loop. Make sure to copy the entire loop starting with `%{ for` and ending with `%{ endfor`
 * `iap_cidrs`: Used 1 time as part of a Jinja template loop. Make sure to copy the entire loop starting with `%{ for` and ending with `%{ endfor`
-
-<!-- TFDOC OPTS files:1 show_extra:1 -->
 <!-- BEGIN TFDOC -->
-## Files
-
-| name | description | modules | resources |
-|---|---|---|---|
-| [bastion.tf](./bastion.tf) | None | <code>compute-vm</code> |  |
-| [branch-net-envs.tf](./branch-net-envs.tf) | Dev spoke VPC and related resources. | <code>net-vpc</code> · <code>net-vpc-firewall</code> · <code>net-vpc-peering</code> · <code>project</code> | <code>google_compute_subnetwork</code> · <code>google_network_connectivity_internal_range</code> |
-| [main.tf](./main.tf) | Networking folder and hierarchical policy. | <code>folder</code> · <code>net-firewall-policy</code> |  |
-| [net-vdss.tf](./net-vdss.tf) | Landing VPC and related resources. | <code>net-cloudnat</code> · <code>net-vpc</code> · <code>net-vpc-firewall</code> · <code>project</code> | <code>google_compute_route</code> |
-| [ngfw.tf](./ngfw.tf) | None | <code>compute-mig</code> · <code>gcs</code> · <code>iam-service-account</code> · <code>kms</code> · <code>net-lb-int</code> | <code>google_compute_region_instance_template</code> · <code>google_compute_route</code> · <code>google_project_iam_custom_role</code> · <code>google_storage_bucket_iam_binding</code> · <code>google_storage_bucket_object</code> · <code>random_password</code> · <code>time_sleep</code> · <code>tls_private_key</code> |
-| [outputs.tf](./outputs.tf) | Module outputs. |  | <code>google_storage_bucket_object</code> · <code>local_file</code> |
-| [variables.tf](./variables.tf) | Module variables. |  |  |
-
 ## Variables
 
-| name | description | type | required | default | producer |
-|---|---|:---:|:---:|:---:|:---:|
-| [automation](variables.tf#L17) | Automation resources created by the bootstrap stage. | <code title="object&#40;&#123;&#10;  outputs_bucket &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  | <code>0-bootstrap</code> |
-| [billing_account](variables.tf#L25) | Billing account id. If billing account is not part of the same org set `is_org_level` to false. | <code title="object&#40;&#123;&#10;  id           &#61; string&#10;  is_org_level &#61; optional&#40;bool, true&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  | <code>0-bootstrap</code> |
-| [envs_folders](variables.tf#L48) | List of environments to be created for projects to go into. | <code title="map&#40;object&#40;&#123;&#10;  admin &#61; string&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |  |
-| [folder_ids](variables.tf#L82) | Folders to be used for the networking resources in folders/nnnnnnnnnnn format. If null, folder will be created. | <code title="object&#40;&#123;&#10;  networking &#61; string&#10;  envs       &#61; optional&#40;map&#40;string&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  | <code>1-resman</code> |
-| [organization](variables.tf#L91) | Organization details. | <code title="object&#40;&#123;&#10;  domain      &#61; string&#10;  id          &#61; number&#10;  customer_id &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  | <code>0-bootstrap</code> |
-| [prefix](variables.tf#L107) | Prefix used for resources that need unique names. Use 9 characters or less. | <code>string</code> | ✓ |  | <code>0-bootstrap</code> |
-| [tenant_accounts](variables.tf#L162) | Base Tenant accounts that are created for each folder, provided as a combination of environment and tenant. | <code title="map&#40;object&#40;&#123;&#10;  tenant &#61; string&#10;  env    &#61; string&#10;main_project &#61; string &#125;&#41;&#41;">&#8230;</code> | ✓ |  |  |
-| [dns](variables.tf#L38) | DNS configuration. | <code title="object&#40;&#123;&#10;  enable_logging &#61; optional&#40;bool, true&#41;&#10;  resolvers      &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |  |
-| [essential_contacts](variables.tf#L55) | Email used for essential contacts, unset if null. | <code>string</code> |  | <code>null</code> |  |
-| [factories_config](variables.tf#L61) | Configuration for network resource factories. | <code title="object&#40;&#123;&#10;  data_dir              &#61; optional&#40;string, &#34;data&#34;&#41;&#10;  dns_policy_rules_file &#61; optional&#40;string, &#34;data&#47;dns-policy-rules.yaml&#34;&#41;&#10;  firewall_policy_name  &#61; optional&#40;string, &#34;net-default&#34;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  data_dir &#61; &#34;data&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
-| [outputs_location](variables.tf#L101) | Path where providers and tfvars files for the following stages are written. Leave empty to disable. | <code>string</code> |  | <code>null</code> |  |
-| [psa_ranges](variables.tf#L118) | IP ranges used for Private Service Access (e.g. CloudSQL). Ranges is in name => range format. | <code title="object&#40;&#123;&#10;  dev &#61; optional&#40;list&#40;object&#40;&#123;&#10;    ranges         &#61; map&#40;string&#41;&#10;    export_routes  &#61; optional&#40;bool, false&#41;&#10;    import_routes  &#61; optional&#40;bool, false&#41;&#10;    peered_domains &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  &#125;&#41;&#41;, &#91;&#93;&#41;&#10;  prod &#61; optional&#40;list&#40;object&#40;&#123;&#10;    ranges         &#61; map&#40;string&#41;&#10;    export_routes  &#61; optional&#40;bool, false&#41;&#10;    import_routes  &#61; optional&#40;bool, false&#41;&#10;    peered_domains &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  &#125;&#41;&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |  |
-| [regions](variables.tf#L138) | Region definitions. | <code title="object&#40;&#123;&#10;  primary &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  primary &#61; &#34;us-east4&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |  |
-| [service_accounts](variables.tf#L148) | Automation service accounts in name => email format. | <code title="object&#40;&#123;&#10;  data-platform-dev    &#61; string&#10;  data-platform-prod   &#61; string&#10;  gke-dev              &#61; string&#10;  gke-prod             &#61; string&#10;  project-factory-dev  &#61; string&#10;  project-factory-prod &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>null</code> | <code>1-resman</code> |
-| [vmseries_image](variables.tf#L174) | The image name from which to boot an instance, including a license type (bundle/flex) and version. | <code>string</code> |  | <code>&#34;vmseries-112&#34;</code> |  |
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [alert_email](variables.tf#L16) | Email to receive log alerts. | <code>string</code> | ✓ |  |
+| [automation](variables.tf#L21) | Automation resources created by the bootstrap stage. | <code title="object&#40;&#123;&#10;  outputs_bucket &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [billing_account](variables.tf#L29) | Billing account id. If billing account is not part of the same org set `is_org_level` to false. | <code title="object&#40;&#123;&#10;  id           &#61; string&#10;  is_org_level &#61; optional&#40;bool, true&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [envs_folders](variables.tf#L52) | List of environments to be created for projects to go into. | <code title="map&#40;object&#40;&#123;&#10;  admin &#61; string&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |
+| [folder_ids](variables.tf#L86) | Folders to be used for the networking resources in folders/nnnnnnnnnnn format. If null, folder will be created. | <code title="object&#40;&#123;&#10;  networking &#61; string&#10;  envs       &#61; optional&#40;map&#40;string&#41;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [organization](variables.tf#L95) | Organization details. | <code title="object&#40;&#123;&#10;  domain      &#61; string&#10;  id          &#61; number&#10;  customer_id &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
+| [prefix](variables.tf#L111) | Prefix used for resources that need unique names. Use 9 characters or less. | <code>string</code> | ✓ |  |
+| [tenant_accounts](variables.tf#L166) | Base Tenant accounts that are created for each folder, provided as a combination of environment and tenant. | <code title="map&#40;object&#40;&#123;&#10;  tenant &#61; string&#10;  env    &#61; string&#10;main_project &#61; string &#125;&#41;&#41;">&#8230;</code> | ✓ |  |
+| [dns](variables.tf#L42) | DNS configuration. | <code title="object&#40;&#123;&#10;  enable_logging &#61; optional&#40;bool, true&#41;&#10;  resolvers      &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [essential_contacts](variables.tf#L59) | Email used for essential contacts, unset if null. | <code>string</code> |  | <code>null</code> |
+| [factories_config](variables.tf#L65) | Configuration for network resource factories. | <code title="object&#40;&#123;&#10;  data_dir              &#61; optional&#40;string, &#34;data&#34;&#41;&#10;  dns_policy_rules_file &#61; optional&#40;string, &#34;data&#47;dns-policy-rules.yaml&#34;&#41;&#10;  firewall_policy_name  &#61; optional&#40;string, &#34;net-default&#34;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  data_dir &#61; &#34;data&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |
+| [outputs_location](variables.tf#L105) | Path where providers and tfvars files for the following stages are written. Leave empty to disable. | <code>string</code> |  | <code>null</code> |
+| [psa_ranges](variables.tf#L122) | IP ranges used for Private Service Access (e.g. CloudSQL). Ranges is in name => range format. | <code title="object&#40;&#123;&#10;  dev &#61; optional&#40;list&#40;object&#40;&#123;&#10;    ranges         &#61; map&#40;string&#41;&#10;    export_routes  &#61; optional&#40;bool, false&#41;&#10;    import_routes  &#61; optional&#40;bool, false&#41;&#10;    peered_domains &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  &#125;&#41;&#41;, &#91;&#93;&#41;&#10;  prod &#61; optional&#40;list&#40;object&#40;&#123;&#10;    ranges         &#61; map&#40;string&#41;&#10;    export_routes  &#61; optional&#40;bool, false&#41;&#10;    import_routes  &#61; optional&#40;bool, false&#41;&#10;    peered_domains &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  &#125;&#41;&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [regions](variables.tf#L142) | Region definitions. | <code title="object&#40;&#123;&#10;  primary &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  primary &#61; &#34;us-east4&#34;&#10;&#125;">&#123;&#8230;&#125;</code> |
+| [service_accounts](variables.tf#L152) | Automation service accounts in name => email format. | <code title="object&#40;&#123;&#10;  data-platform-dev    &#61; string&#10;  data-platform-prod   &#61; string&#10;  gke-dev              &#61; string&#10;  gke-prod             &#61; string&#10;  project-factory-dev  &#61; string&#10;  project-factory-prod &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>null</code> |
+| [vmseries_image](variables.tf#L178) | The image name from which to boot an instance, including a license type (bundle/flex) and version. | <code>string</code> |  | <code>&#34;vmseries-112&#34;</code> |
 
 ## Outputs
 
-| name | description | sensitive | consumers |
-|---|---|:---:|---|
-| [host_project_ids](outputs.tf#L60) | Network project ids. |  |  |
-| [host_project_numbers](outputs.tf#L65) | Network project numbers. |  |  |
-| [ngfw_password](outputs.tf#L80) | Password for authenticating to the NGFW. | ✓ |  |
-| [tfvars](outputs.tf#L86) | Terraform variables file for the following stages. | ✓ |  |
+| name | description | sensitive |
+|---|---|:---:|
+| [host_project_ids](outputs.tf#L60) | Network project ids. |  |
+| [host_project_numbers](outputs.tf#L65) | Network project numbers. |  |
+| [ngfw_password](outputs.tf#L80) | Password for authenticating to the NGFW. | ✓ |
+| [tfvars](outputs.tf#L86) | Terraform variables file for the following stages. | ✓ |
 <!-- END TFDOC -->

@@ -58,7 +58,7 @@ variable "dns" {
 }
 
 variable "envs_folders" {
-  description = "List of environments to be created for projects to go into"
+  description = "List of environments to be created for projects to go into."
   type = map(object({
     admin = string
   }))
@@ -184,7 +184,7 @@ variable "service_accounts" {
 
 variable "tenant_accounts" {
   # tfdoc:variable:soruce 1-resman
-  description = "Base Tenant accounts that are created for each folder, provided as a combination of environment and tenant"
+  description = "Base Tenant accounts that are created for each folder, provided as a combination of environment and tenant."
   type = map(object({
     tenant = string
     env    = string

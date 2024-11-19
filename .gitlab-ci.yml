@@ -98,7 +98,6 @@ validate-blueprints:
 
 check-docs-stages-aw:
   stage: test
-  allow_failure: true
   image:
     name: python:3.9.19
     entrypoint:
@@ -119,9 +118,7 @@ check-docs-blueprints:
   script:
     - cd tools
     - pip install click marko
-    - python check_documentation.py blueprints/il5
-    - python check_documentation.py blueprints/fedramp-high
-  allow_failure: true
+    - python check_documentation.py blueprints
 
 checkov-stages-aw:
   stage: test
