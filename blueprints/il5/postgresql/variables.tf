@@ -77,18 +77,18 @@ variable "iac_core_project_id" {
   type        = string
 }
 
-variable "keyring" {
-  description = "The name of the KMS keyring."
-  type        = string
-}
-
 variable "key" {
   description = "The name of the KMS key."
   type        = string
 }
 
+variable "keyring" {
+  description = "The name of the KMS keyring."
+  type        = string
+}
+
 variable "landing_project_id" {
-  description = "Project that the Compute Engine VPC is located"
+  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 
