@@ -15,6 +15,21 @@ variable "file" {
   type        = string
 }
 
+variable "iam" {
+  description = "IAM bindings in {KEY => {role = ROLE, members = [], condition = {}}}. Keys are arbitrary."
+  type = map(object({
+    member = string
+    role   = string
+    condition = optional(object({
+      expression  = string
+      title       = string
+      description = optional(string)
+    }))
+  }))
+  nullable = false
+  default  = {}
+}
+
 variable "key" {
   description = "The CMEK used to encrypt the workflow."
   type        = string
@@ -41,14 +56,7 @@ variable "region" {
   type        = string
 }
 
-variable "roles" {
-  description = "Additional roles to grant to the workflows service account."
-  type        = list(string)
-  default     = ["roles/workflows.invoker"]
-  nullable    = false
-}
-
 variable "service_account" {
   description = "Service account for Wokflow."
-  type = string  
+  type        = string
 }

@@ -1,14 +1,6 @@
-resource "google_project_iam_member" "roles" {
-  for_each   = toset(var.roles)
-  project    = var.project
-  role       = each.key
-  member     = "serviceAccount:${var.service_account}"
-}
-
-resource "google_workflows_workflow" "default" {
+resource "google_workflows_workflow" "workflow" {
   depends_on = [
-    google_project_iam_member.required,
-    google_project_iam_member.optional,
+    google_project_iam_member.bindings,
   ]
   name                = var.name
   region              = var.region

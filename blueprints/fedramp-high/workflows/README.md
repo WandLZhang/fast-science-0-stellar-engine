@@ -25,12 +25,24 @@ By incorporating Workflows into solutions, you can make service dependencies exp
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` only if you wish to destroy the built infrastructure<br />
 
-3. To verify a successful deployment, search for "Workflows" in the Google Cloud Console. From here, you will be able to view your newly created workflow.
+3. If this is the first time you are using workflows in your project, you will likely recieve the following error:
+
+```
+Error: Error applying IAM policy for KMS CryptoKey "projects/your-project/locations/your-location/keyRings/your-keyring/cryptoKeys/your-key": Error setting IAM policy for KMS CryptoKey "projects/your-project/locations/your-location/keyRings/your-keyring/cryptoKeys/your-key": googleapi: Error 400: Service account service-123456789@gcp-sa-workflows.iam.gserviceaccount.com does not exist., badRequest
+│ 
+│   with google_kms_crypto_key_iam_member.workflows_key_user,
+│   on iam.tf line 17, in resource "google_kms_crypto_key_iam_member" "workflows_key_user":
+│   17: resource "google_kms_crypto_key_iam_member" "workflows_key_user" {
+```
+
+4. Attempt to run terraform apply again. If this doesn't work, you should also manually enable the [workflows api](https://console.developers.google.com/apis/api/workflows.googleapis.com). After enabling the API, you may need to wait a few minutes for the changes to propagate.
+5. If none of the previous steps work, manually create a workflow in your project (you do not need to configure anything in this workflow, GCP will create the necessary service agent after you deploy at least one workflow).
+5. To verify a successful deployment, search for "Workflows" in the Google Cloud Console. From here, you will be able to view your newly created workflow.
 
 ## Demo
 1. Click on your newly created workflow.
 2. Click the ```Execute``` button.
-3. For this demo, you can leave the input and logging level empty, then click ```execute``` at the bottom of the screen.
+3. For this demo, you can leave the input and logging level empty, then click ```Execute``` at the bottom of the screen.
 4. Wait for the workflow to run, then view the output in the output box.
 
 ## Next Steps
