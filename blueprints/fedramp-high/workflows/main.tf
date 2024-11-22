@@ -22,18 +22,9 @@ module "workflows" {
   service_account = google_service_account.workflow_sa.email
 
   iam = {
-    "1" = {
-      role   = "roles/workflows.invoker"
-      member = google_service_account.workflow_sa.member
-    }
-    "2" = {
-      role   = "roles/logging.logWriter"
-      member = google_service_account.workflow_sa.member
-    }
-    "3" = {
-      role   = "roles/serviceusage.serviceUsageConsumer"
-      member = google_service_account.workflow_sa.member
-    }
+    "roles/workflows.invoker"                 = [google_service_account.workflow_sa.member],
+    "roles/logging.logWriter"                 = [google_service_account.workflow_sa.member],
+    "roles/serviceusage.serviceUsageConsumer" = [google_service_account.workflow_sa.member],
   }
   depends_on = [
     google_project_service.workflows,

@@ -29,15 +29,15 @@ module "workflows" {
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
 | [file](variables.tf#L13) | File path to the instructions for the workflow. | <code>string</code> | ✓ |  |
-| [key](variables.tf#L33) | The CMEK used to encrypt the workflow. | <code>string</code> | ✓ |  |
-| [name](variables.tf#L44) | Name of the workflow. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L49) | The Google Project ID. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L54) | The Google Cloud region. | <code>string</code> | ✓ |  |
-| [service_account](variables.tf#L59) | Service account for Wokflow. | <code>string</code> | ✓ |  |
+| [key](variables.tf#L25) | The CMEK used to encrypt the workflow. | <code>string</code> | ✓ |  |
+| [name](variables.tf#L36) | Name of the workflow. | <code>string</code> | ✓ |  |
+| [project](variables.tf#L41) | The Google Project ID. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L46) | The Google Cloud region. | <code>string</code> | ✓ |  |
+| [service_account](variables.tf#L51) | Service account for Wokflow. | <code>string</code> | ✓ |  |
 | [description](variables.tf#L1) | Description of the workflow. | <code>string</code> |  | <code>null</code> |
 | [env_vars](variables.tf#L7) | Environment variables made available to your workflow execution. | <code>map&#40;string&#41;</code> |  | <code>null</code> |
-| [iam](variables.tf#L18) | IAM bindings in {KEY => {role = ROLE, members = [], condition = {}}}. Keys are arbitrary. | <code title="map&#40;object&#40;&#123;&#10;  member &#61; string&#10;  role   &#61; string&#10;  condition &#61; optional&#40;object&#40;&#123;&#10;    expression  &#61; string&#10;    title       &#61; string&#10;    description &#61; optional&#40;string&#41;&#10;  &#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
-| [logging_level](variables.tf#L38) | Logging level of workflow executions. | <code>string</code> |  | <code>&#34;LOG_ERRORS_ONLY&#34;</code> |
+| [iam](variables.tf#L18) | Keyring IAM bindings in {ROLE => [MEMBERS]} format. | <code>map&#40;list&#40;string&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [logging_level](variables.tf#L30) | Logging level of workflow executions. | <code>string</code> |  | <code>&#34;LOG_ERRORS_ONLY&#34;</code> |
 
 ## Outputs
 
