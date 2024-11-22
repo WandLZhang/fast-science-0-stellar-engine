@@ -1,6 +1,6 @@
 resource "google_workflows_workflow" "workflow" {
   depends_on = [
-    google_project_iam_member.bindings,
+    google_project_iam_binding.bindings,
   ]
   name                = var.name
   region              = var.region
