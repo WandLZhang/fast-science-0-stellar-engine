@@ -128,3 +128,10 @@ compute.skipDefaultNetworkCreation:
 #   - allow:
 #       values:
 #         - IPSEC
+
+
+# Utilize our custom constraint to prevent users from creating overly permissive firewalls
+
+custom.restrictFirewallRanges:
+  rules:
+    - enforce: true
