@@ -275,6 +275,7 @@ module "organization" {
     org_policies = (
       var.bootstrap_user != null ? null : var.factories_config.org_policy
     )
+    org_policy_custom_constraints = "./data/custom-constraint-policies/"
   }
   logging_sinks = {
     for name, attrs in var.log_sinks : name => {
