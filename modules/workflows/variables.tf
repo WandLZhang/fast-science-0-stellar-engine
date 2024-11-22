@@ -47,3 +47,8 @@ variable "roles" {
   default     = ["roles/workflows.invoker"]
   nullable    = false
 }
+
+variable "service_account" {
+  description = "Service account for Wokflow."
+  type = string  
+}

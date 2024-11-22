@@ -1,6 +1,6 @@
 output "service_account" {
   description = "The workflow service account."
-  value       = google_service_account.default
+  value       = var.service_account
 }
 
 output "workflow" {
