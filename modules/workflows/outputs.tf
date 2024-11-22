@@ -5,5 +5,5 @@ output "service_account" {
 
 output "workflow" {
   description = "The newly created workflow."
-  value       = google_workflows_workflow.default
+  value       = google_workflows_workflow.workflow
 }
