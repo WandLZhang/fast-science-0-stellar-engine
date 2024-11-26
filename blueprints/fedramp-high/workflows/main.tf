@@ -38,7 +38,7 @@ module "workflows" {
   }
   depends_on = [
     google_project_service.workflows,
-    google_service_account.workflow_sa.
+    google_service_account.workflow_sa,
     time_sleep.wait_30_seconds
   ]
 }

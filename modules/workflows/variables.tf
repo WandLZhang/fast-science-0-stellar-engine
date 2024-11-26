@@ -44,6 +44,6 @@ variable "region" {
 }
 
 variable "service_account" {
-  description = "Service account for Wokflow."
+  description = "Service account for Workflows."
   type        = string
 }
