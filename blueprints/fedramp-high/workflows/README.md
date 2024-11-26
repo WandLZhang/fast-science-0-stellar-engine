@@ -1,14 +1,19 @@
-# Workflows Blueprint
-This blueprint demonstrates how to create a workflow on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS.
+
+
 <!-- BEGIN TOC -->
 - [Introduction to Workflows](#introduction-to-workflows)
 - [Disclaimer](#disclaimer)
 - [Deployment Steps](#deployment-steps)
 - [Demo](#demo)
 - [Next Steps](#next-steps)
+- [Note](#note)
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
+
+# Workflows Blueprint
+This blueprint demonstrates how to create a workflow on Google Cloud Platform (GCP) with Customer-Managed Encryption Keys (CMEK) using Cloud KMS.
+
 ## Introduction to Workflows
 Workflows is a fully managed orchestration platform that executes services in an order that you define. These workflows can combine services including custom services hosted on Cloud Run or Cloud Run functions, Google Cloud services such as Cloud Vision AI and BigQuery, and any HTTP-based API.
 By incorporating Workflows into solutions, you can make service dependencies explicit and observable end-to-end. A workflow that specifies an application, operational, or business process provides a source-of-truth or canonical narrative for the process.
@@ -18,26 +23,16 @@ By incorporating Workflows into solutions, you can make service dependencies exp
 
 ## Deployment Steps
 1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file.
-2. The usual terraform commands will be used to deploy the workflow. To provision this example, run the following from within this directory:
+1. The usual terraform commands will be used to deploy the workflow. To provision this example, run the following from within this directory:
 
 ```terraform init ```<br />
 ```terraform plan``` to see the infrastructure plan<br />
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` only if you wish to destroy the built infrastructure<br />
 
-3. If this is the first time you are using workflows in your project, you will likely recieve the following error:
-
-```
-Error: Error applying IAM policy for KMS CryptoKey "projects/your-project/locations/your-location/keyRings/your-keyring/cryptoKeys/your-key": Error setting IAM policy for KMS CryptoKey "projects/your-project/locations/your-location/keyRings/your-keyring/cryptoKeys/your-key": googleapi: Error 400: Service account service-123456789@gcp-sa-workflows.iam.gserviceaccount.com does not exist., badRequest
-│ 
-│   with google_kms_crypto_key_iam_member.workflows_key_user,
-│   on iam.tf line 17, in resource "google_kms_crypto_key_iam_member" "workflows_key_user":
-│   17: resource "google_kms_crypto_key_iam_member" "workflows_key_user" {
-```
-
-4. Attempt to run terraform apply again. If this doesn't work, you should also manually enable the [workflows api](https://console.developers.google.com/apis/api/workflows.googleapis.com). After enabling the API, you may need to wait a few minutes for the changes to propagate.
-5. If none of the previous steps work, manually create a workflow in your project (you do not need to configure anything in this workflow, GCP will create the necessary service agent after you deploy at least one workflow).
-5. To verify a successful deployment, search for "Workflows" in the Google Cloud Console. From here, you will be able to view your newly created workflow.
+1. Attempt to run terraform apply again. If this doesn't work, you should also manually enable the [workflows api](https://console.developers.google.com/apis/api/workflows.googleapis.com). After enabling the API, you may need to wait a few minutes for the changes to propagate.
+1. If none of the previous steps work, manually create a workflow in your project (you do not need to configure anything in this workflow, GCP will create the necessary service agent after you deploy at least one workflow).
+1. To verify a successful deployment, search for "Workflows" in the Google Cloud Console. From here, you will be able to view your newly created workflow.
 
 ## Demo
 1. Click on your newly created workflow.
@@ -48,19 +43,21 @@ Error: Error applying IAM policy for KMS CryptoKey "projects/your-project/locati
 ## Next Steps
 Workflows can be used to automate various processes, connect different GCP services, and create end to end solutions. View the [workflow documentation](https://cloud.google.com/workflows/docs/best-practice) to learn about some of the capabilities of workflows.
 You can also start a workflow execution through Eventarc triggers, Cloud Scheduler, Cloud Tasks, or even another workflow. Configure the workflow for your specific use case.
+
+## Note
+KMS/CMEK is not currently working for Workflows in Terraform as a cyclical dependency is created; the Workflow instance creates the Workflow Service Account, but the Service Account must have proper KMS permissions prior to the instance creation.
 <!-- BEGIN TFDOC -->
 ## Variables
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [key](variables.tf#L19) | The CMEK used to encrypt the workflow. | <code>string</code> | ✓ |  |
-| [name](variables.tf#L30) | Name of the workflow. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L35) | The Google Project ID. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L40) | The Google Cloud region. | <code>string</code> | ✓ |  |
+| [name](variables.tf#L25) | Name of the workflow. | <code>string</code> | ✓ |  |
+| [project](variables.tf#L30) | The Google Project ID. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L35) | The Google Cloud region. | <code>string</code> | ✓ |  |
 | [description](variables.tf#L1) | Description of the workflow. | <code>string</code> |  | <code>null</code> |
 | [env_vars](variables.tf#L7) | Environment variables made available to your workflow execution. | <code>map&#40;string&#41;</code> |  | <code>null</code> |
 | [file](variables.tf#L13) | File path to the instructions for the workflow. | <code>string</code> |  | <code>&#34;code&#47;example.yaml&#34;</code> |
-| [logging_level](variables.tf#L24) | Logging level of workflow executions. | <code>string</code> |  | <code>&#34;LOG_ERRORS_ONLY&#34;</code> |
+| [logging_level](variables.tf#L19) | Logging level of workflow executions. | <code>string</code> |  | <code>&#34;LOG_ERRORS_ONLY&#34;</code> |
 
 ## Outputs
 
