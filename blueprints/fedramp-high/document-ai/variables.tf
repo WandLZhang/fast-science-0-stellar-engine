@@ -1,3 +1,9 @@
+variable "deletion_protection" {
+  description = "Deletion proteciton."
+  type        = bool
+  default     = true
+}
+
 variable "file" {
   description = "File path of the yaml instructions for the workflow."
   type        = string

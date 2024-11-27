@@ -1,3 +1,9 @@
+variable "deletion_protection" {
+  description = "Deletion proteciton."
+  type        = bool
+  default     = true
+}
+
 variable "description" {
   description = "Description of the workflow."
   type        = string
