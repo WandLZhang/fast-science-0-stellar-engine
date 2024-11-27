@@ -54,13 +54,14 @@ module "output_bucket" {
 }
 
 module "workflows" {
-  source          = "../../../modules/workflows"
-  project         = var.project
-  name            = "doc-ai-workflow"
-  region          = var.region
-  description     = "Document AI example workflow."
-  file            = var.file
-  service_account = google_service_account.workflow_sa.email
+  source              = "../../../modules/workflows"
+  project             = var.project
+  name                = "doc-ai-workflow"
+  region              = var.region
+  deletion_protection = var.deletion_protection
+  description         = "Document AI example workflow."
+  file                = var.file
+  service_account     = google_service_account.workflow_sa.email
   env_vars = {
     project_id    = var.project
     input_bucket  = module.input_bucket.url

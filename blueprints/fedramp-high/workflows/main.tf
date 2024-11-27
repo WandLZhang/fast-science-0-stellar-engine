@@ -21,15 +21,16 @@ resource "time_sleep" "wait_30_seconds" {
 }
 
 module "workflows" {
-  source          = "../../../modules/workflows"
-  project         = var.project
-  name            = var.name
-  region          = var.region
-  description     = var.description
-  logging_level   = var.logging_level
-  env_vars        = var.env_vars
-  file            = var.file
-  service_account = google_service_account.workflow_sa.email
+  source              = "../../../modules/workflows"
+  project             = var.project
+  name                = var.name
+  region              = var.region
+  description         = var.description
+  logging_level       = var.logging_level
+  env_vars            = var.env_vars
+  file                = var.file
+  service_account     = google_service_account.workflow_sa.email
+  deletion_protection = var.deletion_protection
 
   iam = {
     "roles/workflows.invoker"                 = [google_service_account.workflow_sa.member],

@@ -63,11 +63,12 @@ If you would still like to use CMEKs with Document AI, you can manually create a
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [name](variables.tf#L7) | Name of the Document AI processor. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L12) | The Google Project ID. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L17) | The Google Cloud region. | <code>string</code> | ✓ |  |
-| [file](variables.tf#L1) | File path of the yaml instructions for the workflow. | <code>string</code> |  | <code>&#34;code&#47;example.yaml&#34;</code> |
-| [type](variables.tf#L22) | Type of Document AI model. | <code>string</code> |  | <code>&#34;OCR_PROCESSOR&#34;</code> |
+| [name](variables.tf#L13) | Name of the Document AI processor. | <code>string</code> | ✓ |  |
+| [project](variables.tf#L18) | The Google Project ID. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L23) | The Google Cloud region. | <code>string</code> | ✓ |  |
+| [deletion_protection](variables.tf#L1) | Deletion proteciton. | <code>bool</code> |  | <code>true</code> |
+| [file](variables.tf#L7) | File path of the yaml instructions for the workflow. | <code>string</code> |  | <code>&#34;code&#47;example.yaml&#34;</code> |
+| [type](variables.tf#L28) | Type of Document AI model. | <code>string</code> |  | <code>&#34;OCR_PROCESSOR&#34;</code> |
 
 ## Outputs
 
