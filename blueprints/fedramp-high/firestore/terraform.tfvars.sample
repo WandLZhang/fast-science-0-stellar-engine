@@ -1,0 +1,10 @@
+database_name = "my-firestore-db"
+location_id   = "us-central1"
+project_id    = "my-gcp-project"
+
+backup_schedule = {
+  retention         = "86400s"
+  weekly_recurrence = "SUNDAY" # Example: Backup every Sunday.  See documentation for other options.
+
+  # daily_recurrence = true # Uncomment if needed - backups daily at the default time.
+}
