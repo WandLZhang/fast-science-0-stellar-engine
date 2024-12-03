@@ -1,8 +1,11 @@
-
+# Cloud Spanner
+This blueprint deploys an Assured Workloads FedRAMP compliant Cloud Spanner instance.
 
 <!-- BEGIN TOC -->
+- [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
+
 <!-- BEGIN TFDOC -->
 ## Variables
 
