@@ -1,0 +1,6 @@
+region             = "us-east4"
+project_id         = "project-id"
+landing_project_id = "net-project-id"
+composer_env_name  = "composer-env"
+network            = "projects/<your-project>/global/networks/<your-network>"
+subnet             = "projects/<your-project>/regions/us-east4/subnetworks/<your-subnet>"
