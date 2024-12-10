@@ -1,0 +1,10 @@
+region          = "us-east4"
+project_id      = "your-project"
+schedule        = "*/2 * * * *" # cron syntax
+description     = "desc"
+name            = "test-job"
+kms_key_name    = "kms-key-if-creating-new-pubsub-instance"
+retry_count     = 1
+topic_id        = "projects/<your-project>/topics/<your-topic>"
+new_topic_name  = "new-topic-name-if-creating-one"
+data            = "test
