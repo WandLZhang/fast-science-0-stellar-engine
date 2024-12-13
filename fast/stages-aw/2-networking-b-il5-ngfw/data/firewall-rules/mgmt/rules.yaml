@@ -5,18 +5,20 @@
 
 ingress:
   allow-hc-nva-ssh-mgmt:
-      description: "Allow traffic from Google healthchecks to NVA appliances"
-      source_ranges:
-        - healthchecks
-        - iap
-      rules:
-        - protocol: tcp
-          ports:
-            - 22
+    description: "Allow traffic from Google healthchecks to NVA appliances"
+    source_ranges:
+      - healthchecks
+      - iap
+    rules:
+      - protocol: tcp
+        ports:
+          - 22
   allow-ssh-bastion-nva-mgmt:
     description: "We expect the bastion host to be able to SSH into the NGFWs"
     sources:
       - bastion
+    source_ranges:
+      - internal
     targets:
       - nva
     rules:
