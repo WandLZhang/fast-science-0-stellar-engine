@@ -34,8 +34,8 @@ variable "project_id" {
 variable "pubsub_target" {
   description = "Pubsub target for job."
   type = object({
-    topic_id = optional(string)
-    data     = optional(string)
+    topic_id   = optional(string)
+    data       = optional(string)
     attributes = optional(map(string))
     new_topic = optional(object({
       create       = optional(bool)
