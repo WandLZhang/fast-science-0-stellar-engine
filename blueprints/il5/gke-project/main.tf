@@ -25,8 +25,19 @@ data "google_project" "current" {}
 # }
 
 resource "google_service_account" "gke" {
-  account_id = var.gke_service_account_id
+  account_id = "gke-${var.project_id}"
   project    = var.project_id
+}
+
+resource "google_project_iam_member" "gke_cluster_admin" {
+  project = data.google_project.current.project_id
+  role    = "roles/container.developer"
+  member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_service" "storagetransfer_api" {
+  project = var.project_id
+  service = "storagetransfer.googleapis.com"
 }
 
 module "kms" {
@@ -37,7 +48,9 @@ module "kms" {
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.gke.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
+      "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     ]
   }
 }
@@ -65,7 +78,6 @@ module "vpc" {
       }
     }
   ]
-  depends_on = [module.kms]
 }
 
 module "cluster" {
@@ -137,5 +149,182 @@ module "cluster_nodepool" {
       enable_integrity_monitoring = true
     }
   }
-  depends_on = [module.vpc, module.cluster, module.kms]
+  depends_on = [module.cluster]
+}
+
+module "bucket" {
+  source         = "../../../modules/gcs"
+  project_id     = var.project_id
+  name           = var.bucket_name
+  location       = var.region
+  encryption_key = module.kms.keys.default.id
+  objects_to_upload = tomap({
+    for file in fileset("./policies", "*.yaml") :
+    basename(file) => {
+      name         = file
+      source       = "./policies/${file}"
+      content_type = "application/x-yaml"
+    }
+  })
+  iam = {
+    "roles/storage.objectUser" = [
+      google_service_account.gke.member,
+      "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
+      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
+    ]
+  }
+}
+
+module "compute-vm" {
+  source        = "../../../modules/compute-vm"
+  name          = "bastion-vm"
+  project_id    = var.project_id
+  zone          = "us-east4-a"
+  instance_type = "e2-medium"
+  service_account = {
+    scopes = ["cloud-platform"]
+  }
+  boot_disk = {
+    initialize_params = {
+      image = "projects/cos-cloud/global/images/cos-105-17412-495-45"
+      image = "projects/cos-cloud/global/images/cos-105-17412-495-45"
+    }
+  }
+  network_interfaces = [
+    {
+      network    = "projects/${var.project_id}/global/networks/${var.vpc_name}"
+      subnetwork = "projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnet_name}"
+    }
+  ]
+  metadata = {
+    gce-container-declaration = <<-EOT
+spec:
+  containers:
+  - name: bastion-vm
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:502.0.0
+    command:
+      - "/bin/bash"
+      - "-c"
+      - |
+        echo "Starting script execution..."
+        # Authenticate with the GKE cluster
+        gcloud container clusters get-credentials ${var.gke_cluster_name} --region ${var.region} --project ${var.project_id}
+    gce-container-declaration = <<-EOT
+spec:
+  containers:
+  - name: bastion-vm
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:502.0.0
+    command:
+      - "/bin/bash"
+      - "-c"
+      - |
+        echo "Starting script execution..."
+        # Authenticate with the GKE cluster
+        gcloud container clusters get-credentials ${var.gke_cluster_name} --region ${var.region} --project ${var.project_id}
+
+        # Set GCS Bucket Variables and Create Local Directory to Hold YAML Files
+        GCS_BUCKET=${var.bucket_name}
+        LOCAL_DIR="/tmp/gcs-yaml-files"
+        if [ ! -d "$LOCAL_DIR" ]; then
+          mkdir -p "$LOCAL_DIR"
+        fi
+
+        # List all YAML files in bucket
+        echo "Listing YAML Files"
+        FILES=$(gsutil ls gs://$GCS_BUCKET/*.yaml)
+
+        # Download and apply each YAML file
+        for FILE in $FILES; do
+            FILENAME=$(basename $FILE)
+            LOCAL_PATH="$LOCAL_DIR/$FILENAME"
+
+            echo "Downloading $FILENAME..."
+            gsutil cp $FILE $LOCAL_PATH
+
+            echo "Applying $FILENAME..."
+            kubectl apply -f $LOCAL_PATH
+
+            echo "Applied $FILENAME successfully."
+        done
+
+        # Clean up local directory
+        echo "Cleaning up local files..."
+        rm -rf $LOCAL_DIR
+
+        # Verify kubectl access
+        echo "Testing kubectl access..."
+        kubectl get namespaces
+
+        # Don't apply policy to critical namespaces
+        EXCLUDED_NAMESPACES=("gke-managed-system" "gmp-public" "gmp-system" "kube-node-lease" "kube-public" "kube-system")
+
+        # Disable privileged pods on all namespaces
+        echo "Disabling privileged pods on all namespaces..."
+        for namespace in $(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'); do
+          echo "Exclude critical GKE namespaces"
+          # Check if the namespace is in the exclusion list
+          if [[ " ${"$"}{EXCLUDED_NAMESPACES[@]} " =~ " ${"$"}{namespace} " ]]; then
+            echo "Skipping excluded namespace: ${"$"}{namespace}"
+            continue
+          fi
+
+          echo "Applying 'restricted' policy to namespace: $namespace"
+          kubectl label namespace "$namespace" pod-security.kubernetes.io/enforce=restricted --overwrite
+
+          echo "Validating pods in namespace: $namespace"
+          for pod in $(kubectl get pods -n $namespace -o jsonpath='{.items[*].metadata.name}'); do
+            echo "Validating pod: $pod in namespace: $namespace"
+            validation_output=$(kubectl get pod $pod -n $namespace -o yaml | kubectl apply --dry-run=server -f - 2>&1)
+            if echo "$validation_output" | grep -q "violates"; then
+              echo "Pod $pod in namespace $namespace violates the policy. Deleting..."
+              kubectl delete pod $pod -n $namespace
+            else
+              echo "Pod $pod in namespace $namespace complies with the policy."
+            fi
+          done
+        done
+        # Disable privileged pods on all namespaces
+        echo "Disabling privileged pods on all namespaces..."
+        for namespace in $(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'); do
+          echo "Applying 'restricted' policy to namespace: $namespace"
+          kubectl label namespace "$namespace" pod-security.kubernetes.io/enforce=restricted --overwrite
+
+          echo "Validating pods in namespace: $namespace"
+          for pod in $(kubectl get pods -n $namespace -o jsonpath='{.items[*].metadata.name}'); do
+            echo "Validating pod: $pod in namespace: $namespace"
+            validation_output=$(kubectl get pod $pod -n $namespace -o yaml | kubectl apply --dry-run=server -f - 2>&1)
+            if echo "$validation_output" | grep -q "violates"; then
+              echo "Pod $pod in namespace $namespace violates the policy. Deleting..."
+              kubectl delete pod $pod -n $namespace
+            else
+              echo "Pod $pod in namespace $namespace complies with the policy."
+            fi
+          done
+        done
+
+        echo "Verifying namespace labels..."
+        kubectl get namespaces --show-labels
+        echo "Verifying namespace labels..."
+        kubectl get namespaces --show-labels
+
+        echo "Script execution completed successfully!"
+
+        echo "Shutting down the VM..."
+        shutdown -h now
+    securityContext:
+      privileged: true
+    stdin: false
+    tty: false
+  restartPolicy: Never
+EOT
+    startup-script            = <<-EOT
+#!/bin/bash
+echo "Startup script executed for containerized VM."
+EOT
+  }
+  encryption = {
+    kms_key_self_link = module.kms.keys.default.id
+  }
+  depends_on = [module.cluster_nodepool, module.bucket]
 }

@@ -1,8 +1,8 @@
-# variable "email" {
-#   description = "Email address of the user."
-#   type        = string
-#   # default     = "email address @ domain . com"
-# }
+variable "bucket_name" {
+  description = "The bucket that holds the policy yaml files."
+  type        = string
+  default     = "gke-yaml-files"
+}
 
 variable "gke_cluster_enable_private_endpoint" {
   description = "The Private Cluster configuration to enable private end point."
@@ -32,12 +32,6 @@ variable "gke_nodepool_name" {
   description = "The GKE Kubernetes Cluster Name."
   type        = string
   # default     = "gke-nodepool-k8s"
-}
-
-variable "gke_service_account_id" {
-  description = "The GKE Service account."
-  type        = string
-  # default     = "gke-service_account_1"
 }
 
 variable "gke_vpc_master_ipv4_cidr_block" {
