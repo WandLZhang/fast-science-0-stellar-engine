@@ -1,0 +1,15 @@
+# This prevents users from creating keys that are not CIS compliant
+# Keys must be rotated within a period of 90 days (CIS IAM 1.10)
+# SHOULD HAVE
+
+custom.kmsRotation:
+  name: Enforce maximum rotation period for KMS keys
+  display_name: Enforce maximum rotation period for KMS keys
+  action_type: ALLOW
+  resource_types:
+    - cloudkms.googleapis.com/CryptoKey
+  method_types:
+    - CREATE
+    - UPDATE
+  condition: "((resource.rotationPeriod != duration('0s')) && (resource.rotationPeriod <= duration('7776000s')))"
+  description: The rotation period for Cloud KMS keys must be set to 90 days or less.
