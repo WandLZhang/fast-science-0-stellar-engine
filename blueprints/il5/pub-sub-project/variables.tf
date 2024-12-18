@@ -85,11 +85,6 @@ variable "keys" {
   nullable = false
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
-}
-
 variable "project_id" {
   description = "Project ID."
   type        = string
