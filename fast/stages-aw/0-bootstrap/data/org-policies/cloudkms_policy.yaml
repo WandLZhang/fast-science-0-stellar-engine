@@ -70,3 +70,10 @@
 #         - bigquery.googleapis.com
 #         - composer.googleapis.com
 #         - <more apis>
+
+# Utilize our custom constraint to prevent users from creating KMS keys without
+# the proper rotation period.
+
+custom.kmsRotation:
+  rules:
+    - enforce: true
