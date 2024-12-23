@@ -55,6 +55,9 @@ module "vpc" {
       }
     }
   ]
+  dns_policy = {
+    logging = true # CIS Compliance Benchmark 2.12
+  }
 }
 
 module "kms" {

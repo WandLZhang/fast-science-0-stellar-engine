@@ -90,6 +90,7 @@ module "vdss-vpc" {
   }
   dns_policy = {
     inbound = true
+    logging = var.dns.enable_logging
   }
   # Set explicit routes for googleapis in case the default route is deleted
   create_googleapis_routes = {

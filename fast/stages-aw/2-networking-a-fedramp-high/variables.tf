@@ -50,7 +50,7 @@ variable "custom_roles" {
 variable "dns" {
   description = "DNS configuration."
   type = object({
-    enable_logging = optional(bool, true)
+    enable_logging = optional(bool, true) # CIS Compliance Benchmark 2.12
     resolvers      = optional(list(string), [])
   })
   default  = {}
