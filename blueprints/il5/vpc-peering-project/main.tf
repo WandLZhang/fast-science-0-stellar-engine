@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-# Get Peering Network Information with Peer Host Project 
+# Get Peering Network Information with Peer Host Project
 data "google_compute_network" "peer_vpc" {
   project = var.current_project_id
   name    = var.vpc_network_name
@@ -78,10 +78,13 @@ module "vpc" {
     }
 
   ]
+  dns_policy = {
+    logging = true # CIS Compliance Benchmark 2.12
+  }
 }
 
-# Create VPC peering using Google Module 
-# Google Cloud Platform (GCP) VPC peering has a maximum of 25 connections per project to a single VPC network. 
+# Create VPC peering using Google Module
+# Google Cloud Platform (GCP) VPC peering has a maximum of 25 connections per project to a single VPC network.
 module "peering" {
   source        = "../../../modules/net-vpc-peering"
   prefix        = "peer"

@@ -18,7 +18,7 @@
 # Work on the Current Project
 data "google_project" "current" {}
 
-# Custom service account with compute engine role  
+# Custom service account with compute engine role
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
   project    = var.project_id
@@ -108,4 +108,7 @@ module "vpc" {
       }
     }
   ]
+  dns_policy = {
+    logging = true # CIS Compliance Benchmark 2.12
+  }
 }
