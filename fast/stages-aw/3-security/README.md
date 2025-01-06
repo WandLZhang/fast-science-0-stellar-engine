@@ -27,6 +27,7 @@ The following diagram illustrates the high-level design of created resources and
   - [Using delayed billing association for projects](#using-delayed-billing-association-for-projects)
   - [Running the stage](#running-the-stage)
   - [Disabling overpermissive service accounts](#disabling-overpermissive-service-accounts)
+  - [Deleting the bootstrap project](#deleting-the-bootstrap-project)
 - [Customizations](#customizations)
   - [KMS keys](#kms-keys)
   - [VPC Service Controls configuration](#vpc-service-controls-configuration)
@@ -165,11 +166,26 @@ You can also run this script with the following flags:
 ```
 
 Some common troubleshooting steps:
-- Ensure the file is executable by running 
+- Ensure the file is executable by running
 ```bash
 chmod +x sa_lockdown.sh
 ```
 - Ensure the user running the command has the Service Account Admin role
+
+### Deleting the bootstrap project
+
+Once Stellar Engine has been deployed, the bootstrap project is no longer necessary. You can delete the bootstrap project by running the following script within the "3-security" directory.  Be sure to insert your appropriate boostrap Project ID.
+
+```bash
+./delete_gcp_project.sh --project-id=<bootstrap-project-id>
+```
+
+Troubleshooting Steps
+- Ensure that you are authenticated with `gcloud auth login`
+- Ensure the file is executable by running
+```bash
+chmod +x delete_gcp_project.sh
+```
 
 ## Customizations
 
