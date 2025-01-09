@@ -52,7 +52,7 @@ variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
-    rotation_period               = optional(string, "7776000s") # Compliant with CIS IAM 1.10
+    rotation_period               = optional(string, "7776000s") # CIS Compliance Benchmark 1.10
     labels                        = optional(map(string))
     purpose                       = optional(string, "ENCRYPT_DECRYPT")
     skip_initial_version_creation = optional(bool, false)

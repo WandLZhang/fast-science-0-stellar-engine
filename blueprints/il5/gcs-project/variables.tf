@@ -38,7 +38,7 @@ variable "keys" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
-    rotation_period               = optional(string, "7776000s") # Compliant with CIS IAM 1.10
+    rotation_period               = optional(string, "7776000s") # CIS Compliance Benchmark 1.10
     labels                        = optional(map(string))
     purpose                       = optional(string, "ENCRYPT_DECRYPT")
     skip_initial_version_creation = optional(bool, false)
@@ -114,7 +114,7 @@ variable "project_id" {
 }
 
 variable "public_access_prevention" {
-  description = "This provides the ability to toggle Public Access Prevention for the GCS Storage bucket. By settng this variable to enforced, the CIS Benchmark 5.1 compliance control is satsified."
+  description = "This provides the ability to toggle Public Access Prevention for the GCS Storage bucket. By settng this variable to enforced, the CIS Compliance Benchmark 5.1 control is satsified."
   type        = string
   default     = "enforced"
   validation {
@@ -147,7 +147,7 @@ variable "storage_class" {
 }
 
 variable "uniform_bucket_level_access" {
-  description = "This provides the ability to toggle Uniform Bucket Level Acess for the GCS Storage bucket. By settng this variable to true, the CIS Benchmark 5.2 compliance control is satsified."
+  description = "This provides the ability to toggle Uniform Bucket Level Acess for the GCS Storage bucket. By settng this variable to true, the CIS Compliance Benchmark 5.2 control is satsified."
   type        = bool
   default     = true
 }

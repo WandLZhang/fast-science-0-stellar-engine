@@ -73,7 +73,8 @@ resource "google_compute_region_instance_template" "cos-template" {
   metadata = {
     user-data = module.cos-demo-config[each.key].cloud_config
   }
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account {
     email  = google_service_account.compute.email
     scopes = ["cloud-platform"]
@@ -142,7 +143,7 @@ module "kms" {
   project_id = data.google_project.project.project_id
   keys = {
     "default" = {
-      rotation_period = "7776000s" # Compliant with CIS IAM 1.10
+      rotation_period = "7776000s" # CIS Compliance Benchmark 1.10
       purpose         = "ENCRYPT_DECRYPT"
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"

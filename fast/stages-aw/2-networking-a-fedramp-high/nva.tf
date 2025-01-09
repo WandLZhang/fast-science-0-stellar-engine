@@ -86,7 +86,8 @@ module "nva-template" {
     block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
   }
 
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account = {
     email = google_service_account.compute.email
   }
@@ -193,7 +194,7 @@ module "kms" {
   project_id = module.vdss-host-project.project_id
   keys = {
     "default" = {
-      rotation_period = "7776000s" # Compliant with CIS IAM 1.10
+      rotation_period = "7776000s" # CIS Compliance Benchmark 1.10
       purpose         = "ENCRYPT_DECRYPT"
       version_template = {
         algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"

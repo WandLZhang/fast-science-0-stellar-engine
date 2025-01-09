@@ -50,7 +50,8 @@ module "compute-engine-vm" {
     block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
   }
 
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account = {
     email = google_service_account.consumer.email
   }

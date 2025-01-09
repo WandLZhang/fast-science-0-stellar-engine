@@ -69,7 +69,7 @@ module "vpc" {
         pods     = var.subnet_secondary_ip_range_pods_1
         services = var.subnet_secondary_ip_range_services_1
       }
-      # Compliant with CIS 3.8
+      # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
         flow_sampling        = 1.0
@@ -109,7 +109,8 @@ module "cluster" {
     }
     boot_disk_kms_key = module.kms.keys.default.id
 
-    # CIS Compliance Benchmark 4.1/4.2
+    # CIS Compliance Benchmark 4.1
+    # CIS Compliance Benchmark 4.2
     service_account = google_service_account.gke.email
 
     tags = var.node_config_tags
@@ -139,7 +140,8 @@ module "cluster_nodepool" {
   name         = var.gke_nodepool_name
   node_count   = var.nodepool_node_count
 
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account = {
     email = google_service_account.gke.email
   }

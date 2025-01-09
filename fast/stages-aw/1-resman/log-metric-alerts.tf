@@ -1,4 +1,11 @@
-# CIS Compliance Benchmark 2.4, 2.5, 2.6, 2.7, 2.8, 2.0, 2.10, 2.11
+# CIS Compliance Benchmark 2.4
+# CIS Compliance Benchmark 2.5
+# CIS Compliance Benchmark 2.6
+# CIS Compliance Benchmark 2.7
+# CIS Compliance Benchmark 2.8
+# CIS Compliance Benchmark 2.9
+# CIS Compliance Benchmark 2.10
+# CIS Compliance Benchmark 2.11
 
 module "core_log_metrics" {
   source = "../../../modules/cis-log-metrics"
