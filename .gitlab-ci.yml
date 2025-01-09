@@ -18,6 +18,7 @@
 
 stages:          # List of stages for jobs, and their order of execution
   - lint
+  - sonarqube-check
   - test
   - deploy
 
@@ -31,6 +32,9 @@ stages-aw-formatting:
   script:
     - cd "fast/stages-aw/"
     - terraform fmt -check --recursive
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 blueprints-formatting:
   stage: lint
@@ -42,6 +46,9 @@ blueprints-formatting:
   script:
     - cd "blueprints"
     - terraform fmt -check --recursive
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 tflint-stages-aw:
   stage: lint
@@ -55,6 +62,9 @@ tflint-stages-aw:
     - cd fast/stages-aw
     - tflint --recursive
   allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 tflint-blueprints:
   stage: lint
@@ -67,6 +77,24 @@ tflint-blueprints:
     - cd blueprints/
     - tflint --recursive
   allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
+
+sonarqube-check:
+  stage: sonarqube-check
+  image:
+    name: sonarsource/sonar-scanner-cli:11
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  script:
+    - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 validate-stages-aw:
   stage: test
@@ -80,6 +108,9 @@ validate-stages-aw:
   script:
     - cd fast/stages-aw
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 validate-blueprints:
   stage: test
@@ -91,10 +122,13 @@ validate-blueprints:
   dependencies:
     - tflint-blueprints
   script:
-    - cd blueprints/fedramp-high    
+    - cd blueprints/fedramp-high
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
     - cd ../il5
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 check-docs-stages-aw:
   stage: test
@@ -107,6 +141,9 @@ check-docs-stages-aw:
     - cd tools
     - pip install click marko
     - python check_documentation.py fast/stages-aw
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 check-docs-blueprints:
   stage: test
@@ -131,6 +168,9 @@ checkov-stages-aw:
     - cd fast/stages-aw
     - checkov -d .
   allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 checkov-blueprints:
   stage: test
@@ -143,5 +183,8 @@ checkov-blueprints:
     - cd blueprints/fedramp-high
     - checkov -d .
     - cd ../il5
-    - checkov -d .   
+    - checkov -d .
   allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
