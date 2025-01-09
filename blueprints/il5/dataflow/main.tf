@@ -46,7 +46,7 @@ module "vpc" {
       region                = var.region
       enable_private_access = true
       ip_cidr_range         = var.ip_cidr_range
-      # Compliant with CIS 3.8
+      # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
         flow_sampling        = 1.0
@@ -89,13 +89,13 @@ module "gcs" {
 
   iam = {
 
-    # CIS Compliance Benmark 1.5 - Read Access
+    # CIS Compliance Benchmark 1.5 - Read Access
     "roles/storage.objectViewer" = concat( # Read Access
       [
         "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service Account
       ]
     )
-    # CIS Compliance Benmark 1.5 - Write Access
+    # CIS Compliance Benchmark 1.5 - Write Access
     "roles/storage.objectCreator" = concat(
       [
         "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service Account
@@ -123,7 +123,8 @@ resource "google_dataflow_job" "job" {
   template_gcs_path = var.template_gcs_path
   temp_gcs_location = "gs://${module.gcs.bucket.name}/temp"
 
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account_email = google_service_account.dataflow_worker.email
 
   parameters = var.parameters

@@ -25,7 +25,7 @@ data "google_compute_subnetwork" "my_subnet" {
   name = var.my_subnet
 }
 
-# Custom service account with compute engine role  
+# Custom service account with compute engine role
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
   project    = var.project_id
@@ -58,7 +58,7 @@ resource "google_compute_firewall" "default" {
   source_ranges = var.allowed_source_ranges
 }
 
-#Bastion compute instance 
+#Bastion compute instance
 module "bastion-vm" {
   source     = "../../../modules/compute-vm"
   project_id = var.project_id
@@ -82,7 +82,8 @@ module "bastion-vm" {
     subnetwork = data.google_compute_subnetwork.my_subnet.self_link
   }]
 
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account = {
     email = google_service_account.compute.email
   }

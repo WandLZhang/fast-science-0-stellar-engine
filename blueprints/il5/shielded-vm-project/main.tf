@@ -51,7 +51,8 @@ module "shielded-vm" {
     kms_key_self_link = module.kms.keys.default.id
   }
 
-  # CIS Compliance Benchmark 4.1/4.2
+  # CIS Compliance Benchmark 4.1
+  # CIS Compliance Benchmark 4.2
   service_account = {
     email = google_service_account.compute.email
   }
@@ -100,7 +101,7 @@ module "vpc" {
       name          = var.subnet_name
       region        = var.location
       ip_cidr_range = var.ip_cidr_range
-      # Compliant with CIS 3.8
+      # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
         flow_sampling        = 1.0

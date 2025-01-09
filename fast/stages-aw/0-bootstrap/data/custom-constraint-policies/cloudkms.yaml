@@ -1,5 +1,5 @@
 # This prevents users from creating keys that are not CIS compliant
-# Keys must be rotated within a period of 90 days (CIS IAM 1.10)
+# Keys must be rotated within a period of 90 days (CIS Compliance Benchmark 1.10)
 # SHOULD HAVE
 
 custom.kmsRotation:

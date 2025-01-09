@@ -35,7 +35,7 @@ module "vpc" {
       region        = var.location
       description   = "Subnet a simple subnet"
       ip_cidr_range = var.subnets_cidr_a
-      # Compliant with CIS 3.8
+      # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
         flow_sampling        = 1.0
@@ -50,7 +50,7 @@ module "vpc" {
       ip_cidr_range         = var.subnets_cidr_b
       description           = "Subnet b with no PGA"
       enable_private_access = false
-      # Compliant with CIS 3.8
+      # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
         flow_sampling        = 1.0
@@ -68,7 +68,7 @@ module "vpc" {
         a = var.secondary_ip_ranges_cidr_a
         b = var.secondary_ip_ranges_cidr_b
       }
-      # Compliant with CIS 3.8
+      # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
         flow_sampling        = 1.0

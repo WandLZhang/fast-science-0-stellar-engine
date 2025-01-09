@@ -24,7 +24,7 @@ keyring = {
 }
 keys = {
   "default" = {
-    rotation_period            = "7776000s"    # Compliant with CIS IAM 1.10
+    rotation_period            = "7776000s"    # CIS Compliance Benchmark 1.10
     destroy_scheduled_duration = "2592000s"
     labels = {
       "team" = "gke-team"
