@@ -1,0 +1,9 @@
+project  = "LANDING_PROJECT_ID"
+region   = "us-east4"
+topology = "MESH"
+psc_prop = true
+
+spokes = {
+  "SPOKE_NAME"         = "VPC_SELF_LINK",
+  "ncc-test-spoke-0"   = "projects/PROJECT_ID/global/networks/VPC"
+}
