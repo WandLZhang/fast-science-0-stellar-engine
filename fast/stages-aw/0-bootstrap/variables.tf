@@ -219,7 +219,7 @@ variable "log_sinks" {
       type   = "logging"
     }
 
-    # CIS Compliance Benchmark 4.2
+    # CIS Compliance Benchmark 2.2
     empty-audit-logs = {
       filter = ""
       type   = "logging"
