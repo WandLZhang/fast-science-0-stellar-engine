@@ -34,7 +34,7 @@ Implemented directly in stage 1 for lightweight tenants, and for complex tenancy
 
 ## Shared resources (2)
 
-- [Security](2-security/README.md)  
+- [Security](3-security/README.md)  
   Manages centralized security configurations in a separate stage, and is typically owned by the security team. This stage implements VPC Security Controls via separate perimeters for environments and central services, and creates projects to host centralized KMS keys used by the whole organization. It's meant to be easily extended to include other security-related resources which are required, like Secret Manager.\
   Exports: KMS key ids
 - Networking ([Peering](2-networking-a-peering/README.md)/[VPN](2-networking-b-vpn/README.md)/[NVA](2-networking-c-nva/README.md)/[NVA with BGP support](2-networking-e-nva-bgp/README.md)/[Separate environments](2-networking-d-separate-envs/README.md))  

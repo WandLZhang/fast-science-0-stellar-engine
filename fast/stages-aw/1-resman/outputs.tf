@@ -122,8 +122,8 @@ locals {
         plan  = try(module.branch-security-r-sa-cicd[0].email, null)
       }
       tf_providers_files = {
-        apply = "2-security-providers.tf"
-        plan  = "2-security-r-providers.tf"
+        apply = "3-security-providers.tf"
+        plan  = "3-security-r-providers.tf"
       }
       tf_var_files = local.cicd_workflow_var_files.stage_2
     }
@@ -185,13 +185,13 @@ locals {
         name          = "networking"
         sa            = module.branch-network-r-sa.email
       })
-      "2-security" = templatefile(local._tpl_providers, {
+      "3-security" = templatefile(local._tpl_providers, {
         backend_extra = null
         bucket        = module.branch-security-gcs.name
         name          = "security"
         sa            = module.branch-security-sa.email
       })
-      "2-security-r" = templatefile(local._tpl_providers, {
+      "3-security-r" = templatefile(local._tpl_providers, {
         backend_extra = null
         bucket        = module.branch-security-gcs.name
         name          = "security"
@@ -497,7 +497,7 @@ output "project_factories" {
 
 # ready to use provider configurations for subsequent stages
 output "providers" {
-  # tfdoc:output:consumers 02-networking 02-security 03-dataplatform xx-sandbox xx-teams
+  # tfdoc:output:consumers 02-networking 03-security 03-dataplatform xx-sandbox xx-teams
   description = "Terraform provider files for this stage and dependent stages."
   sensitive   = true
   value       = local.providers
@@ -518,7 +518,7 @@ output "sandbox" {
 }
 
 output "security" {
-  # tfdoc:output:consumers 02-security
+  # tfdoc:output:consumers 03-security
   description = "Data for the networking stage."
   value = {
     folder          = module.branch-security-folder.id

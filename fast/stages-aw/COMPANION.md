@@ -208,11 +208,11 @@ terraform apply
 This stage sets up security resources (KMS and VPC-SC) and configurations which impact the whole organization, or are shared across the hierarchy to other projects and teams.
 
 ```bash
-# move to the 02-security directory
-cd $FAST_PWD/02-security
+# move to the 03-security directory
+cd $FAST_PWD/03-security
 
 # link providers and variables from previous stages
-ln -s ~/fast-config/providers/2-security-providers.tf .
+ln -s ~/fast-config/providers/3-security-providers.tf .
 ln -s ~/fast-config/tfvars/0-bootstrap.auto.tfvars.json .
 ln -s ~/fast-config/tfvars/1-resman.auto.tfvars.json .
 ln -s ~/fast-config/tfvars/0-globals.auto.tfvars.json .
@@ -221,7 +221,7 @@ ln -s ~/fast-config/tfvars/0-globals.auto.tfvars.json .
 edit terraform.tfvars
 ```
 
-Some examples of terraform.tfvars configurations for KMS and VPC-SC can be found [here](2-security#customizations)
+Some examples of terraform.tfvars configurations for KMS and VPC-SC can be found [here](3-security#customizations)
 
 ```bash
 # run init and apply

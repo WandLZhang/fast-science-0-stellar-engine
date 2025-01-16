@@ -3,8 +3,8 @@ data "google_access_context_manager_access_policy" "policy" {
 }
 
 resource "google_access_context_manager_access_level" "access_levels" {
-  provider    =  google-beta
-  for_each    = { for level in var.access_levels : level.name => level }
+  provider = google-beta
+  for_each = { for level in var.access_levels : level.name => level }
 
   parent      = "accessPolicies/${data.google_access_context_manager_access_policy.policy.id}"
   name        = each.value.name

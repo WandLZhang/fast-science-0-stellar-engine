@@ -35,10 +35,9 @@ echo 'terraform {
   }
 }' | tee ${SCRIPT_DIR}/fast/stages-aw/0-bootstrap/mock-versions.tf \
          ${SCRIPT_DIR}/fast/stages-aw/1-resman/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-c-nva/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-f-ngfw/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-security/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/3-project-factory/dev/mock-versions.tf
+         ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
+         ${SCRIPT_DIR}/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
+         ${SCRIPT_DIR}/fast/stages-aw/3-security/mock-versions.tf
 
 echo '{
     "automation": {
@@ -79,12 +78,11 @@ echo '{
             "allowed-policy-member-domains-all": "tagValues/123456789012345"
         }
     }
-}' | tee ${SCRIPT_DIR}/fast/stages-aw/1-resman/mock-variables.auto.tfvars.json \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/mock-variables.auto.tfvars.json \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-c-nva/mock-variables.auto.tfvars.json \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-f-ngfw/mock-variables.auto.tfvars.json \
-         ${SCRIPT_DIR}/fast/stages-aw/2-security/mock-variables.auto.tfvars.json \
-         ${SCRIPT_DIR}/fast/stages-aw/3-project-factory/dev/mock-variables.auto.tfvars.json
-
+}' | tee ${SCRIPT_DIR}/fast/stages-aw/0-bootstrap/mock-versions.tf \
+         ${SCRIPT_DIR}/fast/stages-aw/1-resman/mock-versions.tf \
+         ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
+         ${SCRIPT_DIR}/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
+         ${SCRIPT_DIR}/fast/stages-aw/3-security/mock-versions.tf
+         
 # Generate mock tfvars file
 echo 'host_project_ids = { prod-landing = "" }' >>  "${SCRIPT_DIR}/fast/stages-aw/3-project-factory/dev/terraform.tfvars"

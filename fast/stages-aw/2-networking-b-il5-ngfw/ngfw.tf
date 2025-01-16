@@ -23,7 +23,8 @@ locals {
 }
 
 data "google_storage_project_service_account" "gcs_account" {
-  project = module.vdss-host-project.project_id
+  project    = module.vdss-host-project.project_id
+  depends_on = [module.vdss-host-project]
 }
 
 data "google_compute_image" "vmseries" {
@@ -38,6 +39,7 @@ data "google_compute_zones" "available" {
   project  = module.vdss-host-project.project_id
   status   = "UP"
 
+  depends_on = [module.vdss-host-project]
 }
 
 resource "tls_private_key" "ngfw-ssh" {
