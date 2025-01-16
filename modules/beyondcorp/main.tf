@@ -23,7 +23,7 @@ resource "google_access_context_manager_access_level" "endpoint_verified" {
     conditions {
       device_policy {
         allowed_encryption_statuses = ["ENCRYPTION_UNSUPPORTED", "ENCRYPTED"]
-        require_screen_lock          = true
+        require_screen_lock         = true
       }
     }
   }
@@ -39,8 +39,8 @@ resource "google_compute_backend_service" "iap_backend" {
     enabled              = true
     oauth2_client_id     = var.oauth_client_id
     oauth2_client_secret = var.oauth_client_secret
-    }
   }
+}
 
 # IAM Binding for IAP Secured Resources
 resource "google_project_iam_member" "iap_user" {

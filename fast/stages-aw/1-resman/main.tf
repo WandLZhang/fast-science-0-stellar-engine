@@ -86,7 +86,7 @@ locals {
       "1-resman.auto.tfvars.json",
       "0-globals.auto.tfvars.json",
       "2-networking.auto.tfvars.json",
-      "2-security.auto.tfvars.json"
+      "3-security.auto.tfvars.json"
     ]
   }
   custom_roles = coalesce(var.custom_roles, {})

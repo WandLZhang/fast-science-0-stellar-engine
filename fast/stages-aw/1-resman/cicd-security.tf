@@ -32,7 +32,7 @@ module "branch-security-cicd-repo" {
     "roles/source.reader" = [module.branch-security-sa-cicd[0].iam_email]
   }
   triggers = {
-    fast-02-security = {
+    fast-03-security = {
       filename        = ".cloudbuild/workflow.yaml"
       included_files  = ["**/*tf", ".cloudbuild/workflow.yaml"]
       service_account = module.branch-security-sa-cicd[0].id

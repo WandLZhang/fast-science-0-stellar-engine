@@ -48,7 +48,7 @@ terraform destroy
 ## Stage 2 (Security)
 
 ```bash
-cd $FAST_PWD/2-security/
+cd $FAST_PWD/3-security/
 terraform destroy
 ```
 

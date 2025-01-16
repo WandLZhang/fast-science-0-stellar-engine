@@ -3,14 +3,14 @@ variable "access_levels" {
   type = list(object({
     name        = string
     description = string
-    conditions  = list(object({
-      ip_subnetworks             = list(string)
-      members                    = list(string)
-      negate                     = bool
-      device_policy              = object({
+    conditions = list(object({
+      ip_subnetworks = list(string)
+      members        = list(string)
+      negate         = bool
+      device_policy = object({
         require_screen_lock = bool
       })
-      regions                    = list(string)
+      regions = list(string)
     }))
   }))
 }
@@ -44,7 +44,7 @@ variable "service_perimeters" {
   type = list(object({
     name        = string
     description = string
-    status      = object({
+    status = object({
       restricted_services = list(string)
       resources           = list(string)
     })
