@@ -83,6 +83,3 @@ echo '{
          ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
          ${SCRIPT_DIR}/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
          ${SCRIPT_DIR}/fast/stages-aw/3-security/mock-versions.tf
-         
-# Generate mock tfvars file
-echo 'host_project_ids = { prod-landing = "" }' >>  "${SCRIPT_DIR}/fast/stages-aw/3-project-factory/dev/terraform.tfvars"

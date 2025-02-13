@@ -15,11 +15,10 @@
 # https://docs.gitlab.com/ee/development/cicd/templates.html
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-
 stages:          # List of stages for jobs, and their order of execution
   - lint
-  - sonarqube-check
   - test
+  - sonarqube-check
   - deploy
 
 stages-aw-formatting:
@@ -53,15 +52,19 @@ blueprints-formatting:
 tflint-stages-aw:
   stage: lint
   image:
-    name: ghcr.io/terraform-linters/tflint:v0.52.0
+    name: ghcr.io/terraform-linters/tflint:v0.55.0
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
     - ./generate-mocks.sh
-    - cd fast/stages-aw
-    - tflint --recursive
+    - mkdir reports/
+    - tflint --recursive --format=sarif --chdir=fast/stages-aw/ | tee reports/stages-tflint.sarif
   allow_failure: true
+  artifacts:
+    paths:
+      - reports/stages-tflint.sarif
+    when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
@@ -69,29 +72,18 @@ tflint-stages-aw:
 tflint-blueprints:
   stage: lint
   image:
-    name: ghcr.io/terraform-linters/tflint:v0.52.0
+    name: ghcr.io/terraform-linters/tflint:v0.55.0
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
-    - cd blueprints/
-    - tflint --recursive
+    - mkdir reports/
+    - tflint --recursive --format=sarif --chdir=blueprints/ | tee reports/blueprints-tflint.sarif
   allow_failure: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == 'master'
-
-sonarqube-check:
-  stage: sonarqube-check
-  image:
-    name: sonarsource/sonar-scanner-cli:11
-    entrypoint: [""]
-  variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
-  script:
-    - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"
-  allow_failure: true
+  artifacts:
+    paths:
+      - reports/blueprints-tflint.sarif
+    when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
@@ -99,7 +91,7 @@ sonarqube-check:
 validate-stages-aw:
   stage: test
   image:
-    name: hashicorp/terraform:1.9.2
+    name: hashicorp/terraform:1.9
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -115,7 +107,7 @@ validate-stages-aw:
 validate-blueprints:
   stage: test
   image:
-    name: hashicorp/terraform:1.9.2
+    name: hashicorp/terraform:1.9
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -148,7 +140,7 @@ check-docs-stages-aw:
 check-docs-blueprints:
   stage: test
   image:
-    name: python:3.9.19
+    name: python:3.9
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -163,14 +155,17 @@ check-docs-blueprints:
 checkov-stages-aw:
   stage: test
   image:
-    name: bridgecrew/checkov:3.2.238
+    name: bridgecrew/checkov:3.2.353
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
-    - cd fast/stages-aw
-    - checkov -d .
+    - checkov -o cli -o sarif --output-file-path console,"reports/stages-checkov.sarif" --framework terraform --directory fast/stages-aw/
   allow_failure: true
+  artifacts:
+    paths:
+      - reports/stages-checkov.sarif
+    when: always
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     - if: $CI_COMMIT_BRANCH == 'master'
@@ -178,15 +173,37 @@ checkov-stages-aw:
 checkov-blueprints:
   stage: test
   image:
-    name: bridgecrew/checkov:3.2.238
+    name: bridgecrew/checkov:3.2.353
     entrypoint:
       - '/usr/bin/env'
       - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
   script:
-    - cd blueprints/fedramp-high
-    - checkov -d .
-    - cd ../il5
-    - checkov -d .
+    - checkov -o cli -o sarif --output-file-path console,"reports/blueprints-checkov.sarif" --framework terraform --directory blueprints/
+  allow_failure: true
+  artifacts:
+    paths:
+      - reports/blueprints-checkov.sarif
+    when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
+
+sonarqube-check:
+  needs:
+    - checkov-stages-aw
+    - checkov-blueprints
+    - tflint-stages-aw
+    - tflint-blueprints
+  stage: sonarqube-check
+  image:
+    name: sonarsource/sonar-scanner-cli:11
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  script:
+    - cat reports/stages-tflint.sarif
+    - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
