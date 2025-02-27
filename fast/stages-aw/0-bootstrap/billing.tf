@@ -68,6 +68,7 @@ module "billing-export-project" {
 }
 
 resource "google_compute_project_metadata" "metadata-billing" {
+  count   = local.billing_mode == "org" ? 1 : 0
   project = module.billing-export-project[0].project_id
   metadata = {
     block-project-ssh-keys = "TRUE" # CIS Compliance Benchmark 4.3
