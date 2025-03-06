@@ -207,7 +207,7 @@ module "no-compliance-folder" {
 
 module "branch-common-services-folder" {
   source = "../../../modules/folder"
-  parent = var.assured_workloads.regime != "NO_COMPLIANCE_REGIME" ? "{folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}"
+  parent = var.assured_workloads.regime != "NO_COMPLIANCE_REGIME" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}"
   name   = "${var.assured_workloads.regime} Common Services"
 }
 
