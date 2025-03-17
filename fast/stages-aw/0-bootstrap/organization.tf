@@ -139,7 +139,6 @@ locals {
       ]
     }
   }
-
 }
 
 # TODO: add a check block to ensure our custom roles exist in the factory files
@@ -179,7 +178,7 @@ module "organization-logging" {
 }
 
 resource "google_assured_workloads_workload" "primary" {
-  count                        = var.assured_workloads.regime != "NO_COMPLIANCE_REGIME" ? 1 : 0
+  count                        = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
   compliance_regime            = var.assured_workloads.regime
   display_name                 = "StellarEngine-${var.prefix}"
   location                     = var.assured_workloads.location
@@ -199,7 +198,7 @@ resource "google_assured_workloads_workload" "primary" {
 }
 
 module "no-compliance-folder" {
-  count  = var.assured_workloads.regime == "NO_COMPLIANCE_REGIME" ? 1 : 0
+  count  = var.assured_workloads.regime == "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
   source = "../../../modules/folder"
   parent = "organizations/${var.organization.id}"
   name   = "StellarEngine-${var.prefix}"
@@ -207,8 +206,8 @@ module "no-compliance-folder" {
 
 module "branch-common-services-folder" {
   source = "../../../modules/folder"
-  parent = var.assured_workloads.regime != "NO_COMPLIANCE_REGIME" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}"
-  name   = "${var.assured_workloads.regime} Common Services"
+  parent = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}"
+  name   = "${lookup(var.regime_mapping, var.assured_workloads.regime, var.assured_workloads.regime)} Common Services"
 }
 
 

@@ -40,7 +40,7 @@ module "branch-envs-folders" {
   source   = "../../../modules/folder"
   for_each = var.envs_folders
   parent   = var.assured_workloads.folder
-  name     = "${var.assured_workloads.regime} ${each.key}"
+  name     = "${lookup(var.regime_mapping, var.assured_workloads.regime, var.assured_workloads.regime)} ${each.key}"
   iam      = local._envs_folder_iam
   tag_bindings = {
     context = try(

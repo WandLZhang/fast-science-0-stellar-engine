@@ -277,7 +277,7 @@ variable "prefix" {
   type        = string
   validation {
     condition     = try(length(var.prefix), 0) < 10
-    error_message = "Use a maximum of 9 characters for prefix."
+    error_message = "Use a maximum of 7 characters for prefix."
   }
 }
 
@@ -290,6 +290,39 @@ variable "project_parent_ids" {
   })
   default  = {}
   nullable = false
+}
+
+variable "regime_mapping" {
+  description = "Mapping of compliance regime names to short codes."
+  type        = map(string)
+  default = {
+    "COMPLIANCE_REGIME_UNSPECIFIED" = "CRU"
+    "IL2"                           = "IL2"
+    "IL4"                           = "IL4"
+    "IL5"                           = "IL5"
+    "FEDRAMP_HIGH"                  = "FRH"
+    "FEDRAMP_MODERATE"              = "FRM"
+    # other compliance regimes supported by google
+    "CJIS"                                              = "CJIS"
+    "US_REGIONAL_ACCESS"                                = "USRE"
+    "HIPAA"                                             = "HIPAA"
+    "HITRUST"                                           = "HITRUST"
+    "EU_REGIONS_AND_SUPPORT"                            = "EURS"
+    "CA_REGIONS_AND_SUPPORT"                            = "CARS"
+    "ITAR"                                              = "ITAR"
+    "AU_REGIONS_AND_US_SUPPORT"                         = "AUUSRS"
+    "ASSURED_WORKLOADS_FOR_PARTNERS"                    = "PART"
+    "ISR_REGIONS"                                       = "ISR"
+    "ISR_REGIONS_AND_SUPPORT"                           = "ISRSUPP"
+    "CA_PROTECTED_B"                                    = "CA_PROT_B"
+    "JP_REGIONS_AND_SUPPORT"                            = "JP_REGIONS"
+    "KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS" = "KSA_SOV"
+    "REGIONAL_CONTROLS"                                 = "REGIONAL"
+    "HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS"             = "HCLS"
+    "HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT"  = "HCLS_US"
+    "IRS_1075"                                          = "IRS_1075"
+    "CANADA_CONTROLLED_GOODS"                           = "CAGOODS"
+  }
 }
 
 variable "workforce_identity_providers" {
