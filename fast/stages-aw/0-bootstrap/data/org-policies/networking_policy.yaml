@@ -60,11 +60,12 @@ compute.disableVpcInternalIpv6:
 #   COMPREHENSIVE (allows values == 1.0)
 # ].
 # COULD HAVE
-compute.requireVpcFlowLogs:
-  rules:
-    - allow:
-        values:
-          - COMPREHENSIVE
+# TODO: Resolve issue in 2-networking-a-fedramp-high and uncomment out below
+# compute.requireVpcFlowLogs:
+#   rules:
+#     - allow:
+#         values:
+#           - COMPREHENSIVE
 
 # This list constraint defines the type of protocol forwarding rule objects
 # with target instance that a user can create. When this constraint is enforced,
