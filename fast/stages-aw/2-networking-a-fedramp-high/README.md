@@ -1,10 +1,13 @@
 # FedRAMP High Network
-This stage deploys the networking infrastructure compatibile with an Assured Workload FedRAMP High environment.
+
+This stage deploys the networking infrastructure compatible with an Assured Workload FedRAMP High environment.
 
 <!-- BEGIN TOC -->
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
+
+---
 <!-- BEGIN TFDOC -->
 ## Variables
 

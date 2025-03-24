@@ -1,5 +1,6 @@
 # FAST Stages
-Each of the folders contained here is a separate "stage", or Terraform root module.
+
+Each of the git folders contained here is a separate "stage", or Terraform root module.
 
 Each stage can be run in isolation (for example to only bring up a hub and spoke VPC in an existing environment), but when combined together they form a modular setup that allows top-down configuration of a whole GCP organization.
 
@@ -19,21 +20,25 @@ Refer to each stage's documentation for a detailed description of its purpose, t
 To destroy a previous FAST deployment follow the instructions detailed in [cleanup](CLEANUP.md).
 
 ## Fast Stages Diagram
+
 ![Stellar Engine Fast Stages](../stages.png)
 
 ## Organization (0 and 1)
+
 - [Bootstrap](0-bootstrap/README.md)  
-  Enables critical organization-level functionality, including the provsioining of a top-level Assured Workloads folder, that depends on broad permissions. It has two primary purposes. The first is to bootstrap the resources needed for automation of this and the following stages (service accounts, GCS buckets). Secondly, it applies the minimum amount of configuration needed at the organization level to avoid the need of broad permissions later on, and to implement from the start critical auditing or security features like organization policies, sinks and exports.\
+  Enables critical Google Cloud Organization level functionality, including the provisioning of a top-level Assured Workloads Google Cloud Folder, that depends on broad permissions. It has two primary purposes. The first is to bootstrap the resources needed for automation of this and the following stages (service accounts, GCS buckets). Secondly, it applies the minimum amount of configuration needed at the Google Cloud Organization level to avoid the need of broad permissions later on, and to implement from the start critical auditing or security features like organization policies, sinks and exports.\
   Exports: automation variables, organization-level custom roles
 - [Resource Management](1-resman/README.md)  
-  Creates the base resource hierarchy (folders) and the automation resources that will be required later to delegate deployment of each part of the hierarchy to separate stages. This stage also configures resource management tags used in scoping specific IAM roles on the resource hierarchy. Note that the project factory takes place in this stage to ensure consistency with the architecture established by Cloud One. To add, modify, or delete users, please modify the tfvars file in this stage and rerun the terraform.
+  Creates the base resource hierarchy (Google Cloud Folders) and the automation resources that will be required later to delegate deployment of each part of the hierarchy to separate stages. This stage also configures resource management tags used in scoping specific IAM roles on the resource hierarchy. Note that the project factory takes place in this stage to ensure consistency with the architecture established by Cloud One. To add, modify, or delete users, please modify the tfvars file in this stage and rerun the terraform.
 
 ## Networking (2)
+
 - [IL5 Compliant](2-networking-b-il5-ngfw/README.md)
 - [FedRAMP High Compliant](2-networking-a-fedramp-high/README.md)
-  Manages centralized network resources in a separate stage, and is typically owned by the networking team. This stage implements a hub-and-spoke design, and includes connectivity via VPN to on-premises, and YAML-based factories for firewall rules (hierarchical and VPC-level) and subnets. Currently, two networking options (IL5 and FedRAMP High Compliant) are available, with a third lightweight networking option currently being developed, with reccomended usage in IL2 and FedRAMP Moderate environments.
+  Manages centralized network resources in a separate stage, and is typically owned by the networking team. This stage implements a hub-and-spoke design, and includes connectivity via VPN to on-premises, and YAML-based factories for firewall rules (hierarchical and VPC-level) and subnets. Currently, two networking options (IL5 and FedRAMP High Compliant) are available, with a third lightweight networking option currently being developed, with recommended usage in IL2 and FedRAMP Moderate environments.
 
 ## Security (3)
+
 - [Security](3-security/README.md)
 This stage provides an added layer of security to deployment. To further secure your environment, please see the [Security Best Practices Guide](https://docs.google.com/document/d/1uv62Fqg73r9oJNP-NPZebpzoBom8rOgLoHkiMZPutbo/edit?tab=t.0#heading=h.gjdgxs). You will need to request access if you do not already have it.
 
