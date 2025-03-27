@@ -53,10 +53,6 @@ locals {
     OR protoPayload.methodName:"cloudsql.instances.create"
     OR protoPayload.methodName:"cloudsql.instances.delete"
     EOH
-
-    dns-logging = <<EOH
-    gcloud compute networks list --format="table[box,title='All VPC Networks'](name:label='VPC Network Name')"
-    EOH
   }
 }
 
