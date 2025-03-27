@@ -53,6 +53,18 @@
             "user:{USER}"
         ],
         "role": "roles/orgpolicy.policyAdmin"
-    }   
+    },
+    {
+        "members": [
+            "user:{USER}"
+        ],
+        "role": "roles/iam.serviceAccountAdmin"
+    },
+    {
+        "members": [
+            "user:{USER}"
+        ],
+        "role": "roles/billing.admin"
+    }
 ]
 }
