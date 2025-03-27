@@ -1,24 +1,28 @@
 ## Introduction
+
 Stellar Engine is a fork of the Google Cloud Foundation Fabric (CFF) repository, aimed at providing Infrastructure as Code (IaC) for Google Cloud Platform (GCP) customers who need to create a landing zone environment with the Assured Workload overlays. In addition to the IaC, there is documentation available for both the IL5 and FedRAMP High compliance regimes that provide a mapping of National Institute of Standards and Technology (NIST) 800-53r5 controls to enable projects that leverage the Stellar Engine codebase to accelerate the speed at which an Authorization to Operate (ATO) can be attained.
 
 ## Getting Started
+
 This repository provides **end-to-end blueprints** and a **suite of Terraform modules** for Google Cloud, which support different use cases:
 
-- organization-wide [landing zone blueprint](fast/) used to bootstrap real-world cloud foundations
-- reference [blueprints](./blueprints/) used to deep dive into network patterns or product features
-- a comprehensive source of lean [modules](./modules/) that lend themselves well to changes
+- Google Cloud Organization-wide [landing zone blueprint](fast/) used to bootstrap real-world cloud foundations
+- Reference [blueprints](./blueprints/) used to deep dive into network patterns or product features
+- A comprehensive source of lean [modules](./modules/) that lend themselves well to changes
 
-## Target Audience and Beneifits
+## Target Audience and Benefits
+
 The target audience for Stellar Engine is organizations and teams that operate in regulated industries or require robust compliance and security frameworks. Below are a few examples of these such users:
 
-<mark>Government Agencies:</mark> Agencies and contractors, such as those that work with DISA FedRAMP High, Impact Level 4 (IL4), and Impact Level 5 (IL5) environments.  <br />
+<mark>Government Agencies:</mark> Agencies and contractors, such as those that work with DISA FedRAMP High, and DoD Impact Level 4 (IL4) and Impact Level 5 (IL5) environments.  <br />
 <mark>Regulated Industries:</mark> Regulated industries often face overlapping compliance and security requirements; Stellar Engine can simplify that.  <br />
 <mark>Educational and Research Institutions:</mark> Universities and research organizations working on government-funded projects that require secure and compliant cloud environments.  <br />
 
-## Benefits of Stellar Engine:
+## Benefits of Stellar Engine
+
 Stellar Engine offers several significant benefits, particularly for organizations operating in regulated environments or requiring high levels of compliance and security. Here are the key advantages based on the summary:
 
-<mark>Pre-Built Compliance Mappings:</mark> The inclusion of documentation mapping NIST 800-53r5 controls for IL5, IL4, and FedRAMP High simplifies the process of achieving compliance. This allows organizations to fast-track their Authorization to Operate (ATO) processes by leveraging pre-validated configurations.  <br />
+<mark>Pre-Built Compliance Mappings:</mark> The inclusion of documentation mapping NIST 800-53r5 controls for IL4, IL5, and FedRAMP High simplifies the process of achieving compliance. This allows organizations to fast-track their Authorization to Operate (ATO) processes by leveraging pre-validated configurations.  <br />
 <mark>IaC for Compliance:</mark> By embedding compliance requirements into Infrastructure as Code (IaC), Stellar Engine ensures that key controls are implemented consistently and automatically.   <br />
 <mark>Consistency and Scalability:</mark> Utilizing IaC enables repeatable and reliable deployment of landing zones, ensuring that infrastructure adheres to best practices and compliance standards.  <br />
 <mark>Flexibility:</mark> While tailored for Assured Workload overlays, Stellar Engine serves as a foundation for other compliance regimes, making it adaptable to various regulatory requirements.  <br />
@@ -28,13 +32,16 @@ Stellar Engine offers several significant benefits, particularly for organizatio
 <mark>Comprehensive Documentation:</mark> The availability of detailed guidance helps teams navigate the complexities of compliance and understand the implementation of controls.  <br />
 
 ## Assured Workloads
-Google Cloud Platform (GCP) Assured Workloads is a service designed to help organizations meet regulatory and compliance requirements when using cloud resources. It simplifies the process of creating and managing cloud environments that align with specific compliance frameworks, such as FedRAMP, HIPAA, CJIS, or GDPR. By leveraging GCP Assured Workloads, organizations can confidently deploy and manage workloads in the cloud while meeting strict compliance requirements, all without compromising on security or operational efficiency.
+
+Google Cloud Assured Workloads is a service designed to help organizations meet regulatory and compliance requirements when using cloud resources. It simplifies the process of creating and managing cloud environments that align with specific compliance frameworks, such as FedRAMP, HIPAA, CJIS, or GDPR. By leveraging GCP Assured Workloads, organizations can confidently deploy and manage workloads in the cloud while meeting strict compliance requirements, all without compromising on security or operational efficiency.
 
 
-## FAST Stages (Organization Blueprints)
-Setting up a production-ready GCP organization is often a time-consuming process. Stellar Engine's [FAST](fast/) stages aim to speed up this process via two complementary goals. On the one hand, FAST provides a design of a GCP organization that includes the typical elements required by enterprise customers. Secondly, we provide a reference implementation of the FAST design using Terraform. For pricing and other information about Assured Workloads, please see Google's documentation [here](https://cloud.google.com/security/products/assured-workloads?hl=en).
+## FAST Stages - GCP Organization Blueprints
+
+Setting up a production-ready GCP Organization is often a time-consuming process. Stellar Engine's [FAST](fast/) stages aim to speed up this process via two complementary goals. On the one hand, FAST provides a design of a GCP Organization that includes the typical elements required by enterprise customers. Secondly, we provide a reference implementation of the FAST design using Terraform. For pricing and other information about Assured Workloads, please see Google's documentation [here](https://cloud.google.com/security/products/assured-workloads?hl=en).
 
 ## Modules
+
 The suite of modules in this repository is designed for rapid composition and reuse, and to be reasonably simple and readable so that they can be forked and changed where the use of third-party code and sources is not allowed. Modules that end with "se" have been modified from the original CFF versions to allow for use cases specific to Stellar Engine, while still allowing for upstream updates from CFF. Modifications to modules should continue to follow this paradigm.
 
 All modules share a similar interface where each module tries to stay close to the underlying provider resources, support IAM together with resource creation and modification, offer the option of creating multiple resources where it makes sense (e.g. not for projects), and be completely free of side-effects (e.g. no external commands).
@@ -44,32 +51,37 @@ The current modules support most of the core foundational and networking compone
 For more information and usage examples see each module's README file, as well as any associated blueprints.
 
 ## End-to-End Blueprints
-Stellar Engine currently offers blueprints that are compliant with [FedRAMP-High](https://code.stellarengine.dev/stellar-engine/codebase.git) and [IL5](https://code.stellarengine.dev/stellar-engine/codebase.git) baselines. </br>
+
+Stellar Engine currently offers blueprints that are compliant with [FedRAMP High](https://code.stellarengine.dev/stellar-engine/codebase.git) and [IL5](https://code.stellarengine.dev/stellar-engine/codebase.git) baselines. </br>
 These blueprints range from full end-to-end services like a Cloud Native Access Point (CNAP), to ad-hoc services that are designed to be molded to users' individual use cases.
 
 For more information, please look at each blueprint's README file.
 
 ## Cybersecurity Documentation
+
 In addition to the IaC, Stellar Engine provides supporting documentation that maps NIST 800-53r5 controls for users leveraging the IaC. This documentation is designed to streamline achieving Authorization to Operate (ATO) by providing generalized templates. All documentation is provided [here](https://drive.google.com/drive/folders/1NeWZcOuxysi7kUNRCFDd8CeHnxF14ywp). For how to utilize these documents, please see the following [Path to Authorization](https://docs.google.com/document/d/1vyrWgLIXWkZO3c5qkqLhltmo4LMrVfDHx0EQCuQMYac/edit?tab=t.0#heading=h.qyoze3epkux8) guide. NOTE: you will need to request permissions for it.
 
-## Detailed Deployment Guide (DDG)
-The Stellar Engine Cloud Foundation Fabric Detailed Deployment Guide (v2.6.0) outlines a structured process for deploying a secure, compliant infrastructure on Google Cloud Platform (GCP) using Infrastructure as Code (IaC). Designed to support compliance with standards such as DISA IL4/IL5 and FedRAMP High, the guide enables organizations to create a foundational "landing zone" with Assured Workload overlays. It includes mappings of NIST 800-53r5 controls to streamline achieving Authorization to Operate (ATO). The deployment process is divided into stages, each focusing on specific components like resource management, networking, and security configuration.
+## Detailed Deployment Guide
+
+The Stellar Engine Cloud Foundation Fabric Detailed Deployment Guide (DDG) outlines a structured process for deploying a secure, compliant infrastructure on GCP using IaC. Designed to support compliance with standards such as FedRAMP High, IL4, and IL5, the guide enables organizations to create a foundational "landing zone" with Assured Workload overlays. It includes mappings of NIST 800-53r5 controls to streamline achieving ATO. The deployment process is divided into stages, each focusing on specific components like resource management, networking, and security configuration.
 
 Key stages include Stage 0 (Bootstrap), which initializes the infrastructure, creates core projects, and sets up service accounts; Stage 1 (Resource Management), which organizes projects and folders for tenants; and Stage 2 (Network Creation), which configures networking, including advanced setups like Palo Alto NGFWs for IL5 environments. The final stage, Stage 3 (Security and Audit Account Configuration), establishes security protocols, including CMEK requirements and logging for audit purposes. Each stage requires detailed configuration of Terraform variables and adherence to prerequisites like IAM roles, service account setups, and enabling Google Cloud services.
 
-The guide emphasizes the importance of compliance, providing instructions for enabling Access Transparency and managing IAM roles effectively. Appendices include steps for creating new GCP organizations and troubleshooting common issues like KMS key errors. Overall, the document serves as a comprehensive manual for deploying compliant, scalable, and secure cloud environments tailored to government and regulated industry requirements.
+The guide emphasizes the importance of compliance, providing instructions for enabling Access Transparency and managing IAM roles effectively. Appendices include steps for creating new GCP Organizations and troubleshooting common issues like KMS key errors. Overall, the document serves as a comprehensive manual for deploying compliant, scalable, and secure cloud environments tailored to government and regulated industry requirements.
 
 For more information, please look at the [Detailed Deployment Guide](https://docs.google.com/document/d/1UOaHefcxHCl2C4CbYsTl37ZRxB4xmDHbWmfLcF0VY70/edit?pli=1&tab=t.0#heading=h.7axmtvj2exmb). NOTE: you will need to request permissions for it.
 
-## Technical Design Document (TDD)
-The Stellar Engine Technical Design Document outlines a comprehensive framework for deploying secure, compliant, and scalable Google Cloud Platform (GCP) infrastructure, particularly tailored for Federal Authorization to Operate (ATO) processes. This document highlights a structured approach to building a cloud foundation using Infrastructure-as-Code (IaC) principles.
+## Technical Design Document
 
-The document delves into key aspects such as Identity and Access Management (IAM), project organization, networking, and security. It emphasizes principles like least privilege for IAM, structured role group management, and secure service account configurations. The networking section introduces a hub-and-spoke VPC architecture, leveraging shared VPCs and service controls to ensure isolation and secure interservice communications. Additionally, it provides guidelines for implementing encryption at rest and in transit, logging and monitoring strategies, and robust access control mechanisms to meet compliance needs. This document is a vital resource for teams aiming to adopt GCP with a focus on security, compliance, and scalability. The TDD is used in conjunction with the Security Best Practices Guide for hardening the deployment against real-world cyber threats and attacks.
+The Stellar Engine Technical Design Document (TDD) outlines a comprehensive framework for deploying secure, compliant, and scalable GCP infrastructure, particularly tailored for Federal ATO processes. This document highlights a structured approach to building a cloud foundation using IaC principles.
+
+The document delves into key aspects such as Identity and Access Management (IAM), Google Cloud Organization configuration, Google Cloud Project hierarchy, networking, and security. It emphasizes principles like least privilege for IAM, structured role group management, and secure service account configurations. The networking section introduces a hub-and-spoke VPC architecture, leveraging shared VPCs and service controls to ensure isolation and secure interservice communications. Additionally, it provides guidelines for implementing encryption at rest and in transit, logging and monitoring strategies, and robust access control mechanisms to meet compliance needs. This document is a vital resource for teams aiming to adopt GCP with a focus on security, compliance, and scalability. The TDD is used in conjunction with the Security Best Practices Guide for hardening the deployment against real-world cyber threats and attacks.
 
 For more information, please look at the [Technical Design Document](https://docs.google.com/document/d/15WMwslyCrkmuI7EutGBd7YXH3K8P3KrwzLOGcv-W4t8/edit?resourcekey=0-mjoA_PGM2MkIMPpr75SQbQ&tab=t.0). NOTE: you will need to request permissions for it.
 
-## Security Best Practices Guide (SBPG)
-The Stellar Engine Technical Design Document outlines a robust framework for deploying secure and compliant Google Cloud Platform (GCP) infrastructure. Designed for organizations requiring adherence to FedRAMP High and Department of Defense (DoD) Impact Level 5 (IL5) standards, it employs Infrastructure-as-Code (IaC) principles via Terraform. The Stellar Engine facilitates the automated creation of a baseline GCP environment, supporting modular deployment of both Google and approved third-party services. Its hierarchical architecture ensures effective organization, leveraging role-based access control (RBAC), strict IAM policies, and a hub-and-spoke VPC networking design for isolation and scalability.
+## Security Best Practices Guide
+
+The Stellar Engine Security Best Practices Guide (SBPG) outlines a robust framework for deploying secure and compliant Google Cloud Platform (GCP) infrastructure. Designed for organizations requiring adherence to FedRAMP High and Department of Defense (DoD) Impact Level 5 (IL5) standards, it employs Infrastructure-as-Code (IaC) principles via Terraform. The Stellar Engine facilitates the automated creation of a baseline GCP environment, supporting modular deployment of both Google and approved third-party services. Its hierarchical architecture ensures effective organization, leveraging role-based access control (RBAC), strict IAM policies, and a hub-and-spoke VPC networking design for isolation and scalability.
 
 The document emphasizes best practices in identity and access management, security monitoring, and compliance. IAM configurations focus on the principle of least privilege, with automation enabling minimal human interaction during setup. Security features include encryption-at-rest, TLS enforcement, and centralized logging and monitoring through audit logs, VPC flow logs, and other diagnostics. The system supports Assured Workloads, providing region-specific data residency and compliance settings to meet regulatory requirements.
 
