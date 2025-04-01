@@ -21,14 +21,17 @@ Compute Engine is an Infrastructure-as-a-Service product offering flexible, self
 |---|---|:---:|:---:|:---:|
 | [auto_delete](variables.tf#L17) | Persistent Disk auto delete options. | <code>bool</code> | ✓ |  |
 | [compute_service_account_id](variables.tf#L23) | The Service Account for Compute Engine. | <code>string</code> | ✓ |  |
-| [instance_name](variables.tf#L29) | Provide the name of the Compute Instance. | <code>string</code> | ✓ |  |
-| [ip_cidr_range](variables.tf#L42) | The IP CIDR range for the VPC. | <code>string</code> | ✓ |  |
-| [keyring](variables.tf#L48) | Keyring attributes. | <code title="object&#40;&#123;&#10;  location &#61; string&#10;  name     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> | ✓ |  |
-| [project_id](variables.tf#L122) | Project ID. | <code>string</code> | ✓ |  |
-| [instance_type](variables.tf#L35) | The Machine Type for the Compute Engine VM. | <code>string</code> |  | <code>&#34;n2d-standard-2&#34;</code> |
-| [keys](variables.tf#L62) | Key names and base attributes. Set attributes to null if not needed. | <code title="map&#40;object&#40;&#123;&#10;  destroy_scheduled_duration    &#61; optional&#40;string&#41;&#10;  rotation_period               &#61; optional&#40;string, &#34;7776000s&#34;&#41; &#35; CIS Compliance Benchmark 1.10&#10;  labels                        &#61; optional&#40;map&#40;string&#41;&#41;&#10;  purpose                       &#61; optional&#40;string, &#34;ENCRYPT_DECRYPT&#34;&#41;&#10;  skip_initial_version_creation &#61; optional&#40;bool, false&#41;&#10;  version_template &#61; optional&#40;object&#40;&#123;&#10;    algorithm        &#61; string&#10;    protection_level &#61; optional&#40;string, &#34;HSM&#34;&#41;&#10;  &#125;&#41;&#41;&#10;&#10;&#10;  iam &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings &#61; optional&#40;map&#40;object&#40;&#123;&#10;    members &#61; list&#40;string&#41;&#10;    role    &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;  iam_bindings_additive &#61; optional&#40;map&#40;object&#40;&#123;&#10;    member &#61; string&#10;    role   &#61; string&#10;    condition &#61; optional&#40;object&#40;&#123;&#10;      expression  &#61; string&#10;      title       &#61; string&#10;      description &#61; optional&#40;string&#41;&#10;    &#125;&#41;&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code title="&#123;&#10;  &#34;default&#34; &#61; &#123;&#10;    destroy_scheduled_duration    &#61; null&#10;    rotation_period               &#61; null&#10;    labels                        &#61; null&#10;    purpose                       &#61; &#34;ENCRYPT_DECRYPT&#34;&#10;    skip_initial_version_creation &#61; false&#10;    version_template &#61; &#123;&#10;      algorithm        &#61; &#34;GOOGLE_SYMMETRIC_ENCRYPTION&#34;&#10;      protection_level &#61; &#34;HSM&#34;&#10;    &#125;&#10;&#10;&#10;    iam                   &#61; &#123;&#125;&#10;    iam_bindings          &#61; &#123;&#125;&#10;    iam_bindings_additive &#61; &#123;&#125;&#10;  &#125;&#10;&#125;">&#123;&#8230;&#125;</code> |
-| [location](variables.tf#L115) | Location of the Compute Engine VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
-| [zone](variables.tf#L128) | Zone of the Compute Engine VM us-east4-c , us-east4-a, us-east4-b. | <code>string</code> |  | <code>&#34;us-east4-c&#34;</code> |
+| [core_project_id](variables.tf#L29) | Core project ID. | <code>string</code> | ✓ |  |
+| [instance_name](variables.tf#L34) | Provide the name of the Compute Instance. | <code>string</code> | ✓ |  |
+| [kms_key](variables.tf#L47) | The full self-link (projects/../locations/../keyRings/../cryptoKeys/..) of the existing KMS key to use for disk encryption. | <code>string</code> | ✓ |  |
+| [kms_keyring](variables.tf#L53) | KMS Keyring. | <code>string</code> | ✓ |  |
+| [landing_project_id](variables.tf#L58) | Project that the Compute Engine VPC is located. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L63) | Main project ID. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L68) | The name of the existing VPC network to use. | <code>string</code> | ✓ |  |
+| [subnetwork_name](variables.tf#L79) | The name of the existing subnetwork to use within the specified VPC network and region. | <code>string</code> | ✓ |  |
+| [instance_type](variables.tf#L40) | The Machine Type for the Compute Engine VM. | <code>string</code> |  | <code>&#34;n2d-standard-2&#34;</code> |
+| [region](variables.tf#L73) | Location of the Compute Engine VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [zone](variables.tf#L84) | Zone of the Compute Engine VM us-east4-c , us-east4-a, us-east4-b. | <code>string</code> |  | <code>&#34;us-east4-c&#34;</code> |
 
 ## Outputs
 
@@ -40,11 +43,6 @@ Compute Engine is an Infrastructure-as-a-Service product offering flexible, self
 | [compute-engine-vm-internal_ips](outputs.tf#L33) | Instance interfaces internal IP addresses. |  |
 | [compute-engine-vm-service_account](outputs.tf#L38) | Service account resource. |  |
 | [compute-engine-vm-service_account_email](outputs.tf#L43) | Service account email. |  |
-| [keyring-id](outputs.tf#L48) | Fully qualified keyring id. |  |
-| [keyring-location](outputs.tf#L53) | Keyring location. |  |
-| [keyring-name](outputs.tf#L58) | Keyring name. |  |
-| [keyring-resource](outputs.tf#L63) | Keyring resource. |  |
-| [keyrings-keys](outputs.tf#L68) | Key resources. |  |
 <!-- END TFDOC -->
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in either a FedRAMP-High or IL5 (Impact Level 5) environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.

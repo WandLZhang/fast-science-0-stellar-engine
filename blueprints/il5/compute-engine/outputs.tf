@@ -44,28 +44,3 @@ output "compute-engine-vm-service_account_email" {
   description = "Service account email."
   value       = module.compute-engine-vm.service_account_email
 }
-
-output "keyring-id" {
-  description = "Fully qualified keyring id."
-  value       = module.kms.id
-}
-
-output "keyring-location" {
-  description = "Keyring location."
-  value       = module.kms.location
-}
-
-output "keyring-name" {
-  description = "Keyring name."
-  value       = module.kms.name
-}
-
-output "keyring-resource" {
-  description = "Keyring resource."
-  value       = module.kms.keyring
-}
-
-output "keyrings-keys" {
-  description = "Key resources."
-  value       = module.kms.keys
-}

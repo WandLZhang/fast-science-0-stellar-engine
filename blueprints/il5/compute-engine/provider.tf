@@ -12,8 +12,7 @@ terraform {
   }
 }
 
-
 provider "google" {
-  project = var.project_id
-  region  = var.location
+  project = var.main_project_id
+  region  = var.region
 }
