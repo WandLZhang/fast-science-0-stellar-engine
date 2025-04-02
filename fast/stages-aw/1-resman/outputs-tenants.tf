@@ -49,8 +49,7 @@ locals {
         main_project    = module.tenant-self-main-projects[k].id
       }
       folder_ids = {
-        core = module.tenant-core-folders[k].id
-        self = module.tenant-self-folders[k].id
+        self = module.tenant-top-folders[k].id
       }
       shortname  = k
       prefix     = "${var.prefix}-${k}"

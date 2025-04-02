@@ -71,17 +71,10 @@ module "tenant-top-folders-iam" {
   )
 }
 
-module "tenant-core-folders" {
-  source   = "../../../modules/folder"
-  for_each = local.tenant_envs
-  parent   = module.tenant-top-folders[each.key].id
-  name     = "${each.value.tenant_info.descriptive_name} - Core"
-}
-
 module "tenant-core-folders-iam" {
   source        = "../../../modules/folder"
   for_each      = local.tenant_envs
-  id            = module.tenant-core-folders[each.key].id
+  id            = module.tenant-top-folders[each.key].id
   folder_create = false
   iam = merge(
     {
@@ -97,17 +90,10 @@ module "tenant-core-folders-iam" {
   )
 }
 
-module "tenant-self-folders" {
-  source   = "../../../modules/folder"
-  for_each = local.tenant_envs
-  parent   = module.tenant-top-folders[each.key].id
-  name     = "${each.value.tenant_info.descriptive_name} - Main"
-}
-
 module "tenant-self-folders-iam" {
   source        = "../../../modules/folder"
   for_each      = local.tenant_envs
-  id            = module.tenant-self-folders[each.key].id
+  id            = module.tenant-top-folders[each.key].id
   folder_create = false
   iam = merge(
     {
@@ -169,7 +155,7 @@ module "tenant-self-iac-projects" {
     : var.billing_account.id
   )
   name   = lower("${each.key}-iac-core-0")
-  parent = module.tenant-core-folders[each.key].id
+  parent = module.tenant-top-folders[each.key].id
   prefix = var.prefix
   iam_by_principals = {
     (each.value.tenant_info.admin_principal) = [
@@ -278,7 +264,7 @@ module "tenant-self-main-projects" {
     : var.billing_account.id
   )
   name   = lower("${each.key}-main-0")
-  parent = module.tenant-self-folders[each.key].id
+  parent = module.tenant-top-folders[each.key].id
   prefix = var.prefix
   iam_by_principals = {
     (each.value.tenant_info.admin_principal) = [
