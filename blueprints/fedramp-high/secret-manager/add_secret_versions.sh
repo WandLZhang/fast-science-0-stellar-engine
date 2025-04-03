@@ -10,14 +10,11 @@ for SECRET_ID in "${SECRET_IDS[@]}"; do
   DATA_FILE="secrets/$SECRET_ID.txt" #Example file path, change as needed
 
   #Add the secret version
-  gcloud secrets versions add "$SECRET_NAME" \
-  --data-file="$DATA_FILE" \
-  --project="$PROJECT_ID"
-
-  #Check for errors
-  if [[ $? -ne 0 ]]; then
-  echo "Error adding version to secret $SECRET_ID"
-  exit 1
+  if ! gcloud secrets versions add "$SECRET_NAME" \
+    --data-file="$DATA_FILE" \
+    --project="$PROJECT_ID"; then
+    echo "Error adding version to secret $SECRET_ID"
+    exit 1
   fi
 
 done 

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Generate mock provider files for all stages in stages-aw
@@ -33,11 +35,11 @@ echo 'terraform {
       version = ">=3.0.0"
     }
   }
-}' | tee ${SCRIPT_DIR}/fast/stages-aw/0-bootstrap/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/1-resman/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/3-security/mock-versions.tf
+}' | tee "${SCRIPT_DIR}"/fast/stages-aw/0-bootstrap/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/1-resman/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/3-security/mock-versions.tf
 
 echo '{
     "automation": {
@@ -78,8 +80,8 @@ echo '{
             "allowed-policy-member-domains-all": "tagValues/123456789012345"
         }
     }
-}' | tee ${SCRIPT_DIR}/fast/stages-aw/0-bootstrap/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/1-resman/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
-         ${SCRIPT_DIR}/fast/stages-aw/3-security/mock-versions.tf
+}' | tee "${SCRIPT_DIR}"/fast/stages-aw/0-bootstrap/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/1-resman/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/2-networking-a-fedramp-high/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/2-networking-b-il5-ngfw/mock-versions.tf \
+         "${SCRIPT_DIR}"/fast/stages-aw/3-security/mock-versions.tf

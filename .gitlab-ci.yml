@@ -15,19 +15,34 @@
 # https://docs.gitlab.com/ee/development/cicd/templates.html
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-stages:          # List of stages for jobs, and their order of execution
+stages: # List of stages for jobs, and their order of execution
   - lint
   - test
   - sonarqube-check
   - deploy
+
+shellcheck-lint:
+  stage: test
+  image: koalaman/shellcheck-alpine:stable
+  script:
+    - echo "Running ShellCheck..."
+    # Find all files ending with .sh recursively from the current directory (.)
+    # -print0 and xargs -0 are used to correctly handle filenames
+    # that might contain spaces or special characters.
+    # Skip modules directory
+    - find . -path ./modules -prune -o -type f -name "*.sh" -print0 | xargs -0 shellcheck
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master'
 
 stages-aw-formatting:
   stage: lint
   image:
     name: hashicorp/terraform:1.11.1
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - cd "fast/stages-aw/"
     - terraform fmt -check --recursive
@@ -40,8 +55,8 @@ blueprints-formatting:
   image:
     name: hashicorp/terraform:1.11.1
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - cd "blueprints"
     - terraform fmt -check --recursive
@@ -54,8 +69,8 @@ tflint-stages-aw:
   image:
     name: ghcr.io/terraform-linters/tflint:v0.55.0
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - ./generate-mocks.sh
     - mkdir reports/
@@ -74,8 +89,8 @@ tflint-blueprints:
   image:
     name: ghcr.io/terraform-linters/tflint:v0.55.0
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - mkdir reports/
     - tflint --recursive --format=sarif --chdir=blueprints/ | tee reports/blueprints-tflint.sarif
@@ -93,8 +108,8 @@ validate-stages-aw:
   image:
     name: hashicorp/terraform:1.11.1
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   dependencies:
     - tflint-stages-aw
   script:
@@ -109,8 +124,8 @@ validate-blueprints:
   image:
     name: hashicorp/terraform:1.11.1
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   dependencies:
     - tflint-blueprints
   script:
@@ -127,8 +142,8 @@ check-docs-stages-aw:
   image:
     name: python:3.9.19
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - cd tools
     - pip install click marko
@@ -142,8 +157,8 @@ check-docs-blueprints:
   image:
     name: python:3.9
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - cd tools
     - pip install click marko
@@ -157,8 +172,8 @@ checkov-stages-aw:
   image:
     name: bridgecrew/checkov:3.2.353
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - checkov -o cli -o sarif --output-file-path console,"reports/stages-checkov.sarif" --framework terraform --directory fast/stages-aw/
   allow_failure: true
@@ -175,8 +190,8 @@ checkov-blueprints:
   image:
     name: bridgecrew/checkov:3.2.353
     entrypoint:
-      - '/usr/bin/env'
-      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+      - "/usr/bin/env"
+      - "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   script:
     - checkov -o cli -o sarif --output-file-path console,"reports/blueprints-checkov.sarif" --framework terraform --directory blueprints/
   allow_failure: true
@@ -199,8 +214,8 @@ sonarqube-check:
     name: sonarsource/sonar-scanner-cli:11
     entrypoint: [""]
   variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
-    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar" # Defines the location of the analysis task cache
+    GIT_DEPTH: "0" # Tells git to fetch all the branches of the project, required by the analysis task
   script:
     - cat reports/stages-tflint.sarif
     - sonar-scanner -Dsonar.host.url="${SONAR_HOST_URL}"

@@ -102,7 +102,7 @@ case $STAGE_NAME in
 *)
   # check for a "dev" stage 3
   echo "no stage found, trying for parent stage 3..."
-  STAGE_NAME=$(basename $(dirname "$(pwd)"))
+  STAGE_NAME=$(basename "$(dirname "$(pwd)")")
   if [[ "$STAGE_NAME" == "3-"* ]]; then
     if [[ "$STAGE_NAME" == "3-gke-multitenant"* ]]; then
       STAGE_NAME="3-gke"
@@ -127,7 +127,7 @@ echo "$PROVIDER_CMD/$PROVIDER ./"
 
 # if [[ -v GLOBALS ]]; then
 # OSX uses an old bash version
-if [[ ! -z ${GLOBALS+x} ]]; then
+if [[ -n ${GLOBALS+x} ]]; then
   echo "$CMD/$GLOBALS ./"
 fi
 
@@ -135,6 +135,6 @@ for f in $TFVARS; do
   echo "$CMD/$f ./"
 done
 
-if [[ ! -z ${MESSAGE+x} ]]; then
+if [[ -n ${MESSAGE+x} ]]; then
   echo -e "\n# ---> $MESSAGE <---"
 fi

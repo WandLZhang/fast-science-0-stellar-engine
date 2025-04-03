@@ -42,9 +42,7 @@ fi
 echo -e "${BLUE}Fetching current IAM policy for organization $ORG_ID...${NC}"
 
 # Get current IAM policy
-CURRENT_POLICY=$(gcloud organizations get-iam-policy $ORG_ID --format=json)
-
-if [ $? -ne 0 ]; then
+if ! CURRENT_POLICY=$(gcloud organizations get-iam-policy "$ORG_ID" --format=json); then
   echo -e "${RED}Error: Failed to get current IAM policy${NC}"
   exit 1
 fi
@@ -53,7 +51,7 @@ echo -e "${GREEN}Current IAM policy fetched successfully${NC}"
 
 # Parse the roles to be added from sample file
 echo -e "${BLUE}Parsing roles from template file...${NC}"
-ROLES_TO_ADD=$(cat "$SAMPLE_PATH" | sed "s/{USER}/$USER_EMAIL/g" | jq '.bindings')
+ROLES_TO_ADD=$(sed "s/{USER}/$USER_EMAIL/g" "$SAMPLE_PATH" | jq '.bindings')
 
 # Display current user's roles
 echo -e "${YELLOW}Current roles for $USER_EMAIL:${NC}"
@@ -114,9 +112,7 @@ if [ ${#NEW_ROLES[@]} -gt 0 ]; then
   echo -e "${BLUE}Applying updated IAM policy...${NC}"
 
   # Apply the updated policy by piping directly to gcloud
-  echo "$UPDATED_POLICY" | gcloud organizations set-iam-policy $ORG_ID /dev/stdin --format=json
-
-  if [ $? -eq 0 ]; then
+  if echo "$UPDATED_POLICY" | gcloud organizations set-iam-policy "$ORG_ID" /dev/stdin --format=json; then
     echo -e "${GREEN}Successfully updated IAM policy for organization $ORG_ID${NC}"
   else
     echo -e "${RED}Failed to update IAM policy${NC}"
