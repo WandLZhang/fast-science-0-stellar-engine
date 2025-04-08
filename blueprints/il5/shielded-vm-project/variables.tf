@@ -50,22 +50,7 @@ variable "ip_cidr_range" {
   type        = string
   #Example  default     = "10.0.1.0/24"
 }
-
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-  # Example
-  # default = {
-  #  location = "us-east4"
-  #  name     = "name-of-keyring"
-  #}
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -118,15 +103,28 @@ variable "keys" {
   nullable = false
 }
 
-variable "location" {
-  description = "Location of the Shielded Compute VM."
-  type        = string
-  default     = "us-east4"
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
 }
 
-variable "project_id" {
+variable "main_project_id" {
   description = "Project ID."
   type        = string
+}
+
+variable "network_name" {
+  description = "The name of the VPC."
+  type        = string
+}
+
+variable "region" {
+  description = "Region of the Shielded Compute VM."
+  type        = string
+  default     = "us-east4"
 }
 
 variable "source_ranges_allowed" {
@@ -135,16 +133,9 @@ variable "source_ranges_allowed" {
   # #Example   default     = ["10.0.1.0/24"]
 }
 
-variable "subnet_name" {
+variable "subnetwork_name" {
   description = "The name of the subnet."
   type        = string
-  #default     = "subnet-one"
-}
-
-variable "vpc_name" {
-  description = "The name of the VPC."
-  type        = string
-  #default     =  "vpc-shieledvm"
 }
 
 variable "zone" {

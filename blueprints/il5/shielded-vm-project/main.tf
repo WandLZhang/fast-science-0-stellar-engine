@@ -21,13 +21,13 @@ data "google_project" "current" {}
 # Custom service account with compute engine role
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
-  project    = var.project_id
+  project    = var.main_project_id
 }
 
 # Google Compute Shielded VM Module
 module "shielded-vm" {
   source     = "../../../modules/compute-vm"
-  project_id = var.project_id
+  project_id = var.main_project_id
   zone       = var.zone
   name       = var.instance_name
   shielded_config = {
@@ -45,7 +45,7 @@ module "shielded-vm" {
 
   network_interfaces = [{
     network    = module.vpc.network.self_link
-    subnetwork = module.vpc.subnet_self_links["${var.location}/${var.subnet_name}"]
+    subnetwork = module.vpc.subnet_self_links["${var.region}/${var.subnetwork_name}"]
   }]
   encryption = {
     kms_key_self_link = module.kms.keys.default.id
@@ -77,29 +77,29 @@ module "shielded-vm" {
 # Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.compute.member,
       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
     ]
   }
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }
 
 # Google VPC Module
 module "vpc" {
   source                          = "../../../modules/net-vpc"
-  project_id                      = var.project_id
-  name                            = var.vpc_name
+  project_id                      = var.main_project_id
+  name                            = var.network_name
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "GLOBAL"
   subnets = [
     {
-      name          = var.subnet_name
-      region        = var.location
+      name          = var.subnetwork_name
+      region        = var.region
       ip_cidr_range = var.ip_cidr_range
       # CIS Compliance Benchmark 3.8
       flow_logs_config = {

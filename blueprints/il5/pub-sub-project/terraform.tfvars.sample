@@ -1,16 +1,20 @@
-project_id                  = "your-project"
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+pubsub_topic                = "topic-name-00"
+publisher_name              = "publisher-sa"
+publisher_account_id        = "publisher-account-id"
+subscriber_account_id       = "subscriber-account-od"
+subscriber_name             = "subscriber-sa"
 region                      = "us-east4"
-pubsub_topic                = "topic"
 allowed_persistence_regions = ["us-east4"]
-publisher_name              = "publisher-service-account"
-publisher_account_id        = "publisher"
-subscriber_account_id       = "subscriber"
-subscriber_name             = "subscriber-service-account"
-keyring = {
-  name     = "pubsub-keyring"
+
+kms_keyring_name = {
   location = "us-east4"
+  name     = "xxxx-xxxx-keyring"
+
 }
-keys = {
+
+kms_key_names = {
   "default" = {
     destroy_scheduled_duration    = null
     rotation_period               = "7776000s"    # CIS Compliance Benchmark 1.10

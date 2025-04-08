@@ -16,13 +16,13 @@ variable "ip_name" {
   default     = "psconnect-ip"
 }
 
-variable "network" {
-  description = "The network ID where the PSC will be created."
+variable "main_project_id" {
+  description = "The GCP Project ID where the PSC will be created."
   type        = string
 }
 
-variable "project" {
-  description = "The GCP Project ID where the PSC will be created."
+variable "network_name" {
+  description = "The network ID where the PSC will be created."
   type        = string
 }
 

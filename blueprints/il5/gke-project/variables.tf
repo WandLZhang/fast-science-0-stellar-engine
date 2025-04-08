@@ -40,15 +40,7 @@ variable "gke_vpc_master_ipv4_cidr_block" {
   # default     = "192.168.0.0/28"
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -99,9 +91,28 @@ variable "keys" {
   nullable = false
 }
 
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
+}
+
+variable "main_project_id" {
+  description = "The ID of the project in which to create the GKE cluster."
+  type        = string
+}
+
 variable "master_authorized_ranges_ip_ranges" {
   description = "The CIDR Range for the GKE Nodes Pool when enabled Private End Point with master aurhotized ranges of CIDR."
   type        = string
+}
+
+variable "network_name" {
+  description = "The VPC Name."
+  type        = string
+  # default     = "vpc-gke-kubernetes"
 }
 
 variable "node_config_tags" {
@@ -130,11 +141,6 @@ variable "nodepool_node_count" {
   nullable = false
 }
 
-variable "project_id" {
-  description = "The ID of the project in which to create the GKE cluster."
-  type        = string
-}
-
 variable "region" {
   description = "The GCP region to use for the resources."
   type        = string
@@ -147,32 +153,26 @@ variable "remove_default_node_pool" {
   # default     = false
 }
 
-variable "subnet_ip_cidr_range_1" {
+variable "subnetwork_ip_cidr_range_1" {
   description = "The CIDR Range for the VPC Subnet."
   type        = string
   # default     = "10.0.4.0/22"
 }
 
-variable "subnet_name" {
+variable "subnetwork_name" {
   description = "The Subnet Name."
   type        = string
   # default     = "subnet-gke-kubernetes"
 }
 
-variable "subnet_secondary_ip_range_pods_1" {
+variable "subnetwork_secondary_ip_range_pods_1" {
   description = "The CIDR Range for the secondary IP CIDR Ranges for the k8s pods."
   type        = string
   # default     = "10.4.0.0/14"
 }
 
-variable "subnet_secondary_ip_range_services_1" {
+variable "subnetwork_secondary_ip_range_services_1" {
   description = "The CIDR Range for the secondary IP CIDR Ranges for the k8s services."
   type        = string
   # default     = "10.0.32.0/20"
-}
-
-variable "vpc_name" {
-  description = "The VPC Name."
-  type        = string
-  # default     = "vpc-gke-kubernetes"
 }

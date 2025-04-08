@@ -18,23 +18,23 @@ data "google_project" "current" {}
 
 data "google_compute_network" "network" {
   name    = var.network_name
-  project = var.landing_project_id
+  project = var.network_project_id
 }
 
 resource "google_project_service_identity" "cloudsql_sa" {
   provider = google-beta
-  project  = var.project_id
+  project  = var.main_project_id
   service  = "sqladmin.googleapis.com"
 }
 
 resource "google_kms_crypto_key_iam_member" "sql_sa" {
-  crypto_key_id = var.kms_key
+  crypto_key_id = var.kms_key_name
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = google_project_service_identity.cloudsql_sa.member
 }
 
 resource "google_compute_firewall" "postgres" {
-  project = var.landing_project_id
+  project = var.network_project_id
   name    = var.firewall_name
   network = data.google_compute_network.network.self_link
   allow {
@@ -46,7 +46,7 @@ resource "google_compute_firewall" "postgres" {
 
 module "postgres" {
   source     = "../../../modules/cloudsql-instance"
-  project_id = var.project_id
+  project_id = var.main_project_id
   network_config = {
     connectivity = {
       psa_config = {
@@ -59,7 +59,7 @@ module "postgres" {
   database_version = var.database_version
   tier             = var.database_instance_tier
 
-  encryption_key_name = var.kms_key
+  encryption_key_name = var.kms_key_name
 
   backup_configuration = {
     enabled  = true

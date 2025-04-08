@@ -1,22 +1,26 @@
-project_id             = "my-project"
+main_project_id    = "xxxx-xxxx-xxxx-main-0"
+network_project_id = "xxxx-xxxx-xxxx-main-0"
+
+instance_name              = "bastion-instance-00"
+compute_service_account_id = "compute-engine-sa"
+disk_name                  = "data-00"
+region                     = "us-east4"
+zone                       = "us-east4-a"
+
+network_name           = "xxxx-spoke-0"       # Must already exist
+subnetwork_name        = "default-us-east4"   # Must already exist
 allowed_firewall_ports = ["80", "22", "443"]
-instance_name          = "sample-bastion"
-disk_name              = "data-disk"
-zone                   = "us-east4-a"
-region      = "us-east4"
-my_vpc                 = "my-vpc"
-keyring = {
-  location = "us-east4"
-  name     = "my-keyring"
-}
-my_subnet                  = "my-subnet"
-compute_service_account_id = "compute-one"
-allowed_source_ranges = [
+allowed_source_ranges  = [
   "192.168.1.0/24"
 ]
 
+kms_keyring_name = {
+  location = "us-east4"
+  name     = "xxxx-xxxx-keyring"
+}
+
 # Only uncomment and use if creating a key for the first time
-# keys = {
+# kms_key_names = {
 #   "bastion" = {
 #     destroy_scheduled_duration    = null
 #     rotation_period               = "7776000s"    # CIS Compliance Benchmark 1.10

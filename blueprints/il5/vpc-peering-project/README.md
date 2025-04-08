@@ -27,18 +27,16 @@ You should see this README and some terraform files.
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [current_project_id](variables.tf#L17) | Project ID. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L29) | GCP Project to deploy into. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L34) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
-| [secondary_ip_ranges_cidr_a](variables.tf#L39) | The Secondary IP CIDR. | <code>string</code> | ✓ |  |
-| [secondary_ip_ranges_cidr_b](variables.tf#L45) | The Secondary IP CIDR. | <code>string</code> | ✓ |  |
-| [subnet_prefix_name](variables.tf#L51) | The name of the Subnet Prefix. | <code>string</code> | ✓ |  |
-| [subnets_cidr_a](variables.tf#L57) | The Subnet CIDR. | <code>string</code> | ✓ |  |
-| [subnets_cidr_b](variables.tf#L63) | The Subnet CIDR. | <code>string</code> | ✓ |  |
-| [subnets_cidr_c](variables.tf#L69) | The Subnet CIDR. | <code>string</code> | ✓ |  |
-| [vpc_name](variables.tf#L75) | The name of the VPC. | <code>string</code> | ✓ |  |
-| [vpc_network_name](variables.tf#L81) | The name of the VPC. | <code>string</code> | ✓ |  |
-| [location](variables.tf#L23) | Location of the Shielded Compute VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [main_project_id](variables.tf#L17) | The Main Project ID. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L22) | The name of the VPC. | <code>string</code> | ✓ |  |
+| [network_project_id](variables.tf#L28) | Project that the VPC is located. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L33) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
+| [secondary_ip_ranges_cidr_a](variables.tf#L38) | The Secondary IP CIDR. | <code>string</code> | ✓ |  |
+| [secondary_ip_ranges_cidr_b](variables.tf#L44) | The Secondary IP CIDR. | <code>string</code> | ✓ |  |
+| [subnetwork_cidr_a](variables.tf#L50) | The Subnet CIDR. | <code>string</code> | ✓ |  |
+| [subnetwork_cidr_b](variables.tf#L56) | The Subnet CIDR. | <code>string</code> | ✓ |  |
+| [subnetwork_cidr_c](variables.tf#L62) | The Subnet CIDR. | <code>string</code> | ✓ |  |
+| [subnetwork_prefix_name](variables.tf#L68) | The name of the Subnet Prefix. | <code>string</code> | ✓ |  |
 
 ## Outputs
 

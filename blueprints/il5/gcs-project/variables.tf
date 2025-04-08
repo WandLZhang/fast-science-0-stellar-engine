@@ -21,20 +21,17 @@ variable "autoclass" {
   default     = true
 }
 
+variable "bucket-name" {
+  description = "Bucket name suffix."
+  type        = string
+}
+
 variable "email" {
   description = "Email address of the user."
   type        = string
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -87,14 +84,16 @@ variable "keys" {
   nullable = false
 }
 
-variable "location" {
-  description = "Bucket location."
-  type        = string
-  default     = "us-east4"
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
 }
 
-variable "name" {
-  description = "Bucket name suffix."
+variable "main_project_id" {
+  description = "Project ID."
   type        = string
 }
 
@@ -108,11 +107,6 @@ variable "prefix" {
   }
 }
 
-variable "project_id" {
-  description = "Project ID."
-  type        = string
-}
-
 variable "public_access_prevention" {
   description = "This provides the ability to toggle Public Access Prevention for the GCS Storage bucket. By settng this variable to enforced, the CIS Compliance Benchmark 5.1 control is satsified."
   type        = string
@@ -122,6 +116,13 @@ variable "public_access_prevention" {
     error_message = "public_access_prevention must be either 'enforced' or 'inherited'."
   }
 }
+
+variable "region" {
+  description = "Bucket region."
+  type        = string
+  default     = "us-east4"
+}
+
 
 variable "retention_policy" {
   description = "Retention policy."

@@ -19,12 +19,12 @@
 # Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["user:${var.email}", "group:${var.group_email}"]
   }
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }
 
 

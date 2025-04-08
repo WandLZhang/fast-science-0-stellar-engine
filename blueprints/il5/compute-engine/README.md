@@ -23,11 +23,11 @@ Compute Engine is an Infrastructure-as-a-Service product offering flexible, self
 | [compute_service_account_id](variables.tf#L23) | The Service Account for Compute Engine. | <code>string</code> | ✓ |  |
 | [core_project_id](variables.tf#L29) | Core project ID. | <code>string</code> | ✓ |  |
 | [instance_name](variables.tf#L34) | Provide the name of the Compute Instance. | <code>string</code> | ✓ |  |
-| [kms_key](variables.tf#L47) | The full self-link (projects/../locations/../keyRings/../cryptoKeys/..) of the existing KMS key to use for disk encryption. | <code>string</code> | ✓ |  |
-| [kms_keyring](variables.tf#L53) | KMS Keyring. | <code>string</code> | ✓ |  |
-| [landing_project_id](variables.tf#L58) | Project that the Compute Engine VPC is located. | <code>string</code> | ✓ |  |
-| [main_project_id](variables.tf#L63) | Main project ID. | <code>string</code> | ✓ |  |
-| [network_name](variables.tf#L68) | The name of the existing VPC network to use. | <code>string</code> | ✓ |  |
+| [kms_key_name](variables.tf#L47) | The full self-link (projects/../locations/../keyRings/../cryptoKeys/..) of the existing KMS key to use for disk encryption. | <code>string</code> | ✓ |  |
+| [kms_keyring_name](variables.tf#L53) | KMS Keyring. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L58) | Main project ID. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L63) | The name of the existing VPC network to use. | <code>string</code> | ✓ |  |
+| [network_project_id](variables.tf#L68) | Project that the Compute Engine VPC is located. | <code>string</code> | ✓ |  |
 | [subnetwork_name](variables.tf#L79) | The name of the existing subnetwork to use within the specified VPC network and region. | <code>string</code> | ✓ |  |
 | [instance_type](variables.tf#L40) | The Machine Type for the Compute Engine VM. | <code>string</code> |  | <code>&#34;n2d-standard-2&#34;</code> |
 | [region](variables.tf#L73) | Location of the Compute Engine VM. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |

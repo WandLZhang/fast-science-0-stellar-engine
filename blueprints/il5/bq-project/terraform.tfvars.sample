@@ -1,18 +1,16 @@
-project_id = "my-project-id"
-email      = "admin.user@example.google.com"
-dataset_id = "dataset-id"
-location   = "the-gcp-region"
+main_project_id = "xxxx-xxxx-xxxx-main-0"
 
-keyring = {
-  location = "the-gcp-region"
-  name     = "my-keyring"
+dataset_id          = "dataset-id-00"
+dataset_description = "dataset-description"
+tables              = {}
+region              = "us-east4"
+
+kms_keyring_name = {
+  location = "us-east4"
+  name     = "xxxx-xxxx-keyring"
 }
 
-tables = {}
-
-dataset_description = "N/A"
-
-keys = {
+kms_key_names = {
   "default" = {
     destroy_scheduled_duration    = null
     rotation_period               = "7776000s"    # CIS Compliance Benchmark 1.10

@@ -17,25 +17,28 @@
 #Current Project
 data "google_project" "current" {}
 
-data "google_compute_network" "my_vpc" {
-  name = var.my_vpc
+data "google_compute_network" "network" {
+  name    = var.network_name
+  project = var.network_project_id
 }
 
-data "google_compute_subnetwork" "my_subnet" {
-  name = var.my_subnet
+data "google_compute_subnetwork" "subnetwork" {
+  name    = var.subnetwork_name
+  region  = var.region
+  project = var.network_project_id
 }
 
 # Custom service account with compute engine role
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
-  project    = var.project_id
+  project    = var.main_project_id
 }
 
 #Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
 
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
@@ -43,13 +46,14 @@ module "kms" {
       "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
     ]
   }
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }
 
 # Google Computer Firewall
 resource "google_compute_firewall" "default" {
+  project = var.network_project_id
   name    = "allow-web"
-  network = data.google_compute_network.my_vpc.self_link
+  network = data.google_compute_network.network.self_link
   allow {
     protocol = "tcp"
     ports    = var.allowed_firewall_ports
@@ -61,7 +65,7 @@ resource "google_compute_firewall" "default" {
 #Bastion compute instance
 module "bastion-vm" {
   source     = "../../../modules/compute-vm"
-  project_id = var.project_id
+  project_id = var.main_project_id
   zone       = var.zone
   name       = var.instance_name
 
@@ -78,8 +82,8 @@ module "bastion-vm" {
   }
   instance_type = var.instance_type
   network_interfaces = [{
-    network    = data.google_compute_network.my_vpc.self_link
-    subnetwork = data.google_compute_subnetwork.my_subnet.self_link
+    network    = data.google_compute_network.network.self_link
+    subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   }]
 
   # CIS Compliance Benchmark 4.1

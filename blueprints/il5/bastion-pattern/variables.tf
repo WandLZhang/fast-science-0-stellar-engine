@@ -51,15 +51,7 @@ variable "instance_type" {
   default     = "n2d-standard-2"
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -115,23 +107,36 @@ variable "keys" {
   nullable = false
 }
 
-variable "my_subnet" {
-  description = "Subnet to use."
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
+}
+
+variable "main_project_id" {
+  description = "This is the ID of project."
   type        = string
 }
 
-variable "my_vpc" {
+variable "network_name" {
   description = "VPC to use."
   type        = string
 }
 
-variable "project_id" {
-  description = "This is the ID of project."
+variable "network_project_id" {
+  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 
 variable "region" {
   description = "GCP Region to deploy into."
+  type        = string
+}
+
+variable "subnetwork_name" {
+  description = "Subnet to use."
   type        = string
 }
 

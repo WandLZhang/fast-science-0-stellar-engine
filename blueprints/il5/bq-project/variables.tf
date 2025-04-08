@@ -24,15 +24,7 @@ variable "dataset_id" {
   type        = string
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -87,19 +79,15 @@ variable "keys" {
   nullable = false
 }
 
-variable "location" {
-  description = "Location of the BigQuery Dataaset in GCP."
-  type        = string
-  default     = "us-east4"
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
-
-}
-
-variable "project_id" {
+variable "main_project_id" {
   description = "Project ID."
   type        = string
 }

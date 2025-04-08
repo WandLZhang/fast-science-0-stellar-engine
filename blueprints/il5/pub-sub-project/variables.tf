@@ -20,15 +20,7 @@ variable "allowed_persistence_regions" {
   default     = ["us-east4"]
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -85,7 +77,15 @@ variable "keys" {
   nullable = false
 }
 
-variable "project_id" {
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
+}
+
+variable "main_project_id" {
   description = "Project ID."
   type        = string
 }

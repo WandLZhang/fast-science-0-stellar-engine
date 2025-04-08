@@ -1,31 +1,32 @@
-project_id = "project-id"
 
-network_name = "dataflow-vpc"
-subnet_name = "dataflow-subnet"
-firewall_name = "allow-dataflow"
-ip_cidr_range = "10.2.0.0/16"
-allowed_source_ranges = ["192.168.1.0/24"]
+main_project_id    = "xxxx-xxxx-xxxx-main-0"
+network_project_id = "xxxx-xxxx-net-host"
 
-prefix        = "dev"
-storage_class = "STANDARD"
-dataflow_name = "dataflow-job"
-zone          = "us-east4-c"
-
-bucket_name       = "dataflow-bucket"
+prefix            = "xxxx"
+storage_class     = "STANDARD"
+dataflow_name     = "dataflow-name-00"
+zone              = "us-east4-c"
+bucket_name       = "dataflow-bucket-00"
 template_gcs_path = "gs://dataflow-templates/latest/Word_Count" # Dataflow Template
 
 parameters = {
   inputFile = "gs://dataflow-samples/shakespeare/kinglear.txt"
-  output    = "gs://dev-dataflow-bucket/output" # must match bucket_name w/ prefix (e.g. dev-bucket-name)
+  output    = "gs://dev-<BUCKET-NAME>/output" # Must match bucket_name w/ prefix (e.g. dev-bucket-name)
 }
 
-keyring = {
+network_name          = "xxxx-spoke-0"       # Must already exist
+subnetwork_name       = "default-us-east4"   # Must already exist
+firewall_name         = "allow-dataflow"
+ip_cidr_range         = "10.2.0.0/16"
+allowed_source_ranges = ["192.168.1.0/24"]
+
+kms_keyring_name = {
   location = "us-east4"
-  name     = "dataflow-job"
+  name     = "xxxx-xxxx-keyring"
 }
 
-keys = {
-  "dataflow-job" = {
+kms_key_names = {
+  "default" = {
     rotation_period            = "7776000s"    # CIS Compliance Benchmark 1.10
     destroy_scheduled_duration = "2592000s"
     version_template = {

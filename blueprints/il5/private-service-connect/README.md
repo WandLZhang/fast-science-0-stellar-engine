@@ -32,8 +32,8 @@ Look at the Private Service Connect tab under Network Services. You should see t
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [network](variables.tf#L19) | The network ID where the PSC will be created. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L24) | The GCP Project ID where the PSC will be created. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L19) | The GCP Project ID where the PSC will be created. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L24) | The network ID where the PSC will be created. | <code>string</code> | ✓ |  |
 | [region](variables.tf#L35) | The GCP region. | <code>string</code> | ✓ |  |
 | [address](variables.tf#L1) | The IP address of the private service connection. | <code>string</code> |  | <code>&#34;10.5.5.5&#34;</code> |
 | [dns_code](variables.tf#L7) | Code to identify DNS resources in the form of `{dns_code}-{dns_type}`. | <code>string</code> |  | <code>&#34;dz&#34;</code> |

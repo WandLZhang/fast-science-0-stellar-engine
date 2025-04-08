@@ -1,4 +1,9 @@
+main_project_id    = "xxxx-xxxx-xxxx-main-0"
+network_project_id = "xxxx-xxxx-net-host"
+
 region      = "us-east4"
-project     = "my-project"
-keyring     = "my-project-key"
-compute_vpc = "my-project-vpc"
+
+kms_keyring_name = "xxxx-xxxx-keyring" # Must already exist
+
+network_name    = "xxxx-spoke-0"       # Must already exist
+subnetwork_name = "default-us-east4"   # Must already exist

@@ -22,15 +22,15 @@ locals {
   cloud_storage_service_account = "service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
-# Google Cloud Storage Module 
+# Google Cloud Storage Module
 module "gcs" {
   source         = "../../../modules/gcs"
   prefix         = var.prefix
-  project_id     = var.project_id
-  location       = var.location
+  project_id     = var.main_project_id
+  location       = var.region
   storage_class  = var.storage_class
   encryption_key = module.kms.keys.default.id
-  name           = var.name
+  name           = var.bucket-name
   depends_on     = [module.kms]
 
   # CIS Compliance Benchmark 5.1
@@ -49,10 +49,10 @@ module "gcs" {
 # Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = ["serviceAccount:${local.cloud_storage_service_account}"]
   }
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }

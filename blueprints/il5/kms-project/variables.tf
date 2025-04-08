@@ -26,22 +26,7 @@ variable "group_email" {
   # Example default = "admins@example.com"
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-
-  # Example
-  # default = {
-  #  location = "us-east4"
-  #  name     = "update-name-of-keyring"
-  #}
-  # The name of the Key Ring, and location. The Location for IL5 can be us-east4 or us-central1
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -75,7 +60,7 @@ variable "keys" {
     })), {})
   }))
   default = {
-    "uupdate-the-keys-name" = {
+    "update-the-keys-name" = {
       rotation_period            = "7776000s"
       destroy_scheduled_duration = "2592000s"
       labels = {
@@ -97,12 +82,15 @@ variable "keys" {
   nullable = false
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
-  type        = string
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
 }
 
-variable "project_id" {
+variable "main_project_id" {
   description = "Project ID."
   type        = string
   # Example default = project-id-123

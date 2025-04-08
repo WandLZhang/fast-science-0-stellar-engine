@@ -25,8 +25,8 @@ data "google_project" "current" {}
 # }
 
 resource "google_service_account" "gke" {
-  account_id = "gke-${var.project_id}"
-  project    = var.project_id
+  account_id = "gke-${var.main_project_id}"
+  project    = var.main_project_id
 }
 
 resource "google_project_iam_member" "gke_cluster_admin" {
@@ -36,15 +36,15 @@ resource "google_project_iam_member" "gke_cluster_admin" {
 }
 
 resource "google_project_service" "storagetransfer_api" {
-  project = var.project_id
+  project = var.main_project_id
   service = "storagetransfer.googleapis.com"
 }
 
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
-  keyring    = var.keyring
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
+  keyring    = var.kms_keyring_name
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.gke.member,
@@ -57,17 +57,17 @@ module "kms" {
 
 module "vpc" {
   source                  = "../../../modules/net-vpc"
-  project_id              = var.project_id
-  name                    = var.vpc_name
+  project_id              = var.main_project_id
+  name                    = var.network_name
   auto_create_subnetworks = false
   subnets = [
     {
-      ip_cidr_range = var.subnet_ip_cidr_range_1
-      name          = var.subnet_name
+      ip_cidr_range = var.subnetwork_ip_cidr_range_1
+      name          = var.subnetwork_name
       region        = var.region
       secondary_ip_ranges = {
-        pods     = var.subnet_secondary_ip_range_pods_1
-        services = var.subnet_secondary_ip_range_services_1
+        pods     = var.subnetwork_secondary_ip_range_pods_1
+        services = var.subnetwork_secondary_ip_range_services_1
       }
       # CIS Compliance Benchmark 3.8
       flow_logs_config = {
@@ -85,14 +85,14 @@ module "vpc" {
 
 module "cluster" {
   source              = "../../../modules/gke-cluster-standard"
-  project_id          = var.project_id
+  project_id          = var.main_project_id
   name                = var.gke_cluster_name
   location            = var.region
   deletion_protection = false
   vpc_config = {
     master_ipv4_cidr_block = var.gke_vpc_master_ipv4_cidr_block
     network                = module.vpc.self_link
-    subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnet_name}"]
+    subnetwork             = module.vpc.subnet_self_links["${var.region}/${var.subnetwork_name}"]
     master_authorized_ranges = {
       internal-vms = var.master_authorized_ranges_ip_ranges
     }
@@ -130,7 +130,7 @@ module "cluster" {
 
 module "cluster_nodepool" {
   source       = "../../../modules/gke-nodepool"
-  project_id   = var.project_id
+  project_id   = var.main_project_id
   cluster_name = var.gke_cluster_name
   location     = var.region
   name         = var.gke_nodepool_name
@@ -155,7 +155,7 @@ module "cluster_nodepool" {
 
 module "bucket" {
   source         = "../../../modules/gcs"
-  project_id     = var.project_id
+  project_id     = var.main_project_id
   name           = var.bucket_name
   location       = var.region
   encryption_key = module.kms.keys.default.id
@@ -180,7 +180,7 @@ module "bucket" {
 module "compute-vm" {
   source        = "../../../modules/compute-vm"
   name          = "bastion-vm"
-  project_id    = var.project_id
+  project_id    = var.main_project_id
   zone          = "us-east4-a"
   instance_type = "e2-medium"
   service_account = {
@@ -194,8 +194,8 @@ module "compute-vm" {
   }
   network_interfaces = [
     {
-      network    = "projects/${var.project_id}/global/networks/${var.vpc_name}"
-      subnetwork = "projects/${var.project_id}/regions/${var.region}/subnetworks/${var.subnet_name}"
+      network    = "projects/${var.main_project_id}/global/networks/${var.network_name}"
+      subnetwork = "projects/${var.main_project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}"
     }
   ]
   metadata = {
@@ -210,7 +210,7 @@ spec:
       - |
         echo "Starting script execution..."
         # Authenticate with the GKE cluster
-        gcloud container clusters get-credentials ${var.gke_cluster_name} --region ${var.region} --project ${var.project_id}
+        gcloud container clusters get-credentials ${var.gke_cluster_name} --region ${var.region} --project ${var.main_project_id}
     gce-container-declaration = <<-EOT
 spec:
   containers:
@@ -222,7 +222,7 @@ spec:
       - |
         echo "Starting script execution..."
         # Authenticate with the GKE cluster
-        gcloud container clusters get-credentials ${var.gke_cluster_name} --region ${var.region} --project ${var.project_id}
+        gcloud container clusters get-credentials ${var.gke_cluster_name} --region ${var.region} --project ${var.main_project_id}
 
         # Set GCS Bucket Variables and Create Local Directory to Hold YAML Files
         GCS_BUCKET=${var.bucket_name}

@@ -8,13 +8,20 @@ resource "google_service_account" "consumer" {
 # IAM role for the consumer service account
 # The Default Compute service account also has readonly access by default
 resource "google_project_iam_member" "consumer-readonly" {
-  project = var.project
+  project = var.main_project_id
   role    = "roles/artifactregistry.reader"
   member  = google_service_account.consumer.member
 }
 
-data "google_compute_network" "my-network" {
-  name = var.compute_vpc
+data "google_compute_network" "network" {
+  name    = var.network_name
+  project = var.network_project_id
+}
+
+data "google_compute_subnetwork" "subnetwork" {
+  name    = var.subnetwork_name
+  region  = var.region
+  project = var.network_project_id
 }
 
 data "google_compute_image" "centos" {
@@ -25,7 +32,7 @@ data "google_compute_image" "centos" {
 # Google Compute Engine VM Module
 module "compute-engine-vm" {
   source     = "../../../modules/compute-vm"
-  project_id = var.project
+  project_id = var.main_project_id
   zone       = "${var.region}-b"
   name       = "rpm-consumer"
 
@@ -33,8 +40,8 @@ module "compute-engine-vm" {
   confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance type
 
   network_interfaces = [{
-    network    = data.google_compute_network.my-network.id
-    subnetwork = data.google_compute_network.my-network.subnetworks_self_links[0]
+    network    = data.google_compute_network.network.id
+    subnetwork = data.google_compute_network.network.subnetworks_self_links[0]
   }]
   encryption = {
     kms_key_self_link = module.kms.keys.artifact-registry.id
@@ -42,7 +49,7 @@ module "compute-engine-vm" {
   metadata = {
     startup-script = templatefile("./templates/userdata.tftpl",
       {
-        project          = var.project
+        project          = var.main_project_id
         region           = var.region
         yum_repositories = google_artifact_registry_repository.yum-repos
       },
@@ -50,8 +57,7 @@ module "compute-engine-vm" {
     block-project-ssh-keys = true # CIS Compliance Benchmark 4.3
   }
 
-  # CIS Compliance Benchmark 4.1
-  # CIS Compliance Benchmark 4.2
+  # CIS Compliance Benchmark 4.1/4.2
   service_account = {
     email = google_service_account.consumer.email
   }

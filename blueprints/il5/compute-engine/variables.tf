@@ -44,19 +44,14 @@ variable "instance_type" {
   #Example  default     = "e2-micro"
 }
 
-variable "kms_key" {
+variable "kms_key_name" {
   description = "The full self-link (projects/../locations/../keyRings/../cryptoKeys/..) of the existing KMS key to use for disk encryption."
   type        = string
   # Example: "projects/my-kms-project/locations/us-central1/keyRings/my-keyring/cryptoKeys/my-compute-key"
 }
 
-variable "kms_keyring" {
+variable "kms_keyring_name" {
   description = "KMS Keyring."
-  type        = string
-}
-
-variable "landing_project_id" {
-  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 
@@ -67,6 +62,11 @@ variable "main_project_id" {
 
 variable "network_name" {
   description = "The name of the existing VPC network to use."
+  type        = string
+}
+
+variable "network_project_id" {
+  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 

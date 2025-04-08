@@ -45,15 +45,7 @@ variable "ip_cidr_range" {
   type        = string
 }
 
-variable "keyring" {
-  description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -88,8 +80,26 @@ variable "keys" {
   }))
 }
 
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type = object({
+    location = string
+    name     = string
+  })
+}
+
+variable "main_project_id" {
+  description = "The ID of the project in which to provision resources."
+  type        = string
+}
+
 variable "network_name" {
   description = "The network name."
+  type        = string
+}
+
+variable "network_project_id" {
+  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 
@@ -100,16 +110,6 @@ variable "parameters" {
 
 variable "prefix" {
   description = "This is the prefix for all resources."
-  type        = string
-}
-
-variable "project" {
-  description = "GCP Project to deploy Google into."
-  type        = string
-}
-
-variable "project_id" {
-  description = "The ID of the project in which to provision resources."
   type        = string
 }
 
@@ -124,7 +124,7 @@ variable "storage_class" {
   type        = string
 }
 
-variable "subnet_name" {
+variable "subnetwork_name" {
   description = "The subnet name."
   type        = string
 }

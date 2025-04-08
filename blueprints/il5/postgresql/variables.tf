@@ -20,6 +20,11 @@ variable "allowed_firewall_ports" {
   default     = [5432]
 }
 
+variable "core_project_id" {
+  description = "This is the core project ID. Please set using a terraform.tfvars file."
+  type        = string
+}
+
 variable "database_instance_tier" {
   description = "This specifies the kind of machine-type that we will be running it from."
   type        = string
@@ -72,18 +77,8 @@ variable "google_compute_global_address_name" {
   default     = "postgres"
 }
 
-variable "iac_core_project_id" {
-  description = "This is the core project ID. Please set using a terraform.tfvars file."
-  type        = string
-}
-
-variable "kms_key" {
+variable "kms_key_name" {
   description = "Full path to KMS key."
-  type        = string
-}
-
-variable "landing_project_id" {
-  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 
@@ -175,13 +170,18 @@ variable "log_statement" {
   }
 }
 
+variable "main_project_id" {
+  description = "This is the project ID. Please set using a terraform.tfvars file."
+  type        = string
+}
+
 variable "network_name" {
   description = "This is the name of the network."
   type        = string
 }
 
-variable "project_id" {
-  description = "This is the project ID. Please set using a terraform.tfvars file."
+variable "network_project_id" {
+  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 

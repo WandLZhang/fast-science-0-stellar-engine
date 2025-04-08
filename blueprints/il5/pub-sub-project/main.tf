@@ -17,13 +17,13 @@
 # Work on the Current Project
 data "google_project" "current" {}
 
-#Create publisher account 
+#Create publisher account
 resource "google_service_account" "publisher" {
   account_id   = var.publisher_account_id
   display_name = var.publisher_name
 }
 
-#Create subscriber account 
+#Create subscriber account
 resource "google_service_account" "subscriber" {
   account_id   = var.subscriber_account_id
   display_name = var.subscriber_name
@@ -31,23 +31,23 @@ resource "google_service_account" "subscriber" {
 
 #IAM role for the publisher service account
 resource "google_project_iam_member" "pubsub_publisher" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/pubsub.publisher"
   member  = google_service_account.publisher.member
 }
 
 #IAM role for the subscriber service account
 resource "google_project_iam_member" "pubsub_subscriber" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/pubsub.subscriber"
   member  = google_service_account.subscriber.member
 }
 
-#Google KMS Module 
+#Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.publisher.member,
@@ -55,13 +55,13 @@ module "kms" {
       "serviceAccount:service-${data.google_project.current.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
     ]
   }
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }
 
 # Pub/Sub Module
 module "pubsub" {
   source     = "../../../modules/pubsub"
-  project_id = var.project_id
+  project_id = var.main_project_id
   name       = var.pubsub_topic
   regions    = var.allowed_persistence_regions
   kms_key    = module.kms.keys.default.id

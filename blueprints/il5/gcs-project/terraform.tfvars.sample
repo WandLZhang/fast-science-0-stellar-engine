@@ -1,15 +1,18 @@
-project_id = "my-project-id"
-email      = "admin.user@example.google.com"
-keyring = {
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+prefix        = "xxxx"
+bucket-name   = "bucket-name-00"
+region        = "us-east4"
+autoclass     = true
+storage_class = "STANDARD"
+email         = "admin.user@example.google.com"
+
+kms_keyring_name = {
   location = "us-east4"
-  name     = "todo-keyring"
+  name     = "xxxx-xxxx-keyring"
 }
-prefix                   = "prefix-name"
-name                     = "Name-of-the-Bucket"
-location                 = "us-east4"
-autoclass                = true
-storage_class            = "STANDARD"
-keys = {
+
+kms_key_names = {
   "default" = { # do not change
     destroy_scheduled_duration    = null
     rotation_period               = "7776000s"    # CIS Compliance Benchmark 1.10

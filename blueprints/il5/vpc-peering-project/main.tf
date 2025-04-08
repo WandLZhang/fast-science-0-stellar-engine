@@ -16,25 +16,25 @@
 
 # Get Peering Network Information with Peer Host Project
 data "google_compute_network" "peer_vpc" {
-  project = var.current_project_id
-  name    = var.vpc_network_name
+  project = var.network_project_id
+  name    = var.network_name
 }
 
 # Google VPC Module
 module "vpc" {
   source                          = "../../../modules/net-vpc"
-  project_id                      = var.current_project_id
-  name                            = var.vpc_name
+  project_id                      = var.network_project_id
+  name                            = var.network_name
   auto_create_subnetworks         = false
   delete_default_routes_on_create = true
   routing_mode                    = "REGIONAL"
   # Divided from 10.200.12.0/23
   subnets = [
     {
-      name          = "${var.subnet_prefix_name}-a"
-      region        = var.location
+      name          = "${var.subnetwork_prefix_name}-a"
+      region        = var.region
       description   = "Subnet a simple subnet"
-      ip_cidr_range = var.subnets_cidr_a
+      ip_cidr_range = var.subnetwork_cidr_a
       # CIS Compliance Benchmark 3.8
       flow_logs_config = {
         aggregation_interval = "INTERVAL_5_SEC"
@@ -45,9 +45,9 @@ module "vpc" {
     },
     # custom description and PGA disabled
     {
-      name                  = "${var.subnet_prefix_name}-b-no-pga"
-      region                = var.location
-      ip_cidr_range         = var.subnets_cidr_b
+      name                  = "${var.subnetwork_prefix_name}-b-no-pga"
+      region                = var.region
+      ip_cidr_range         = var.subnetwork_cidr_b
       description           = "Subnet b with no PGA"
       enable_private_access = false
       # CIS Compliance Benchmark 3.8
@@ -60,9 +60,9 @@ module "vpc" {
     },
     # secondary ranges
     {
-      name          = "${var.subnet_prefix_name}-c-secondary-ranges"
-      region        = var.location
-      ip_cidr_range = var.subnets_cidr_c
+      name          = "${var.subnetwork_prefix_name}-c-secondary-ranges"
+      region        = var.region
+      ip_cidr_range = var.subnetwork_cidr_c
       description   = "Subnet c with secondary ranges"
       secondary_ip_ranges = {
         a = var.secondary_ip_ranges_cidr_a

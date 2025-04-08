@@ -17,23 +17,23 @@ data "google_project" "current" {}
 
 data "google_compute_network" "network" {
   name    = var.network_name
-  project = var.landing_project_id
+  project = var.network_project_id
 }
 
 data "google_compute_subnetwork" "subnetwork" {
   name    = var.subnetwork_name
   region  = var.region # Assumes subnetwork is in the same region as the VM location variable
-  project = var.landing_project_id
+  project = var.network_project_id
 }
 
 data "google_kms_key_ring" "default" {
-  name     = var.kms_keyring
+  name     = var.kms_keyring_name
   location = var.region
   project  = var.core_project_id
 }
 
 data "google_kms_crypto_key" "default" {
-  name     = var.kms_key
+  name     = var.kms_key_name
   key_ring = data.google_kms_key_ring.default.id
 }
 

@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-variable "current_project_id" {
-  description = "Project ID."
+variable "main_project_id" {
+  description = "The Main Project ID."
   type        = string
-  #default     = "project-id"
 }
 
-variable "location" {
-  description = "Location of the Shielded Compute VM."
+variable "network_name" {
+  description = "The name of the VPC."
   type        = string
-  default     = "us-east4"
+  #Example   default     = "vpc-blueprint-connect"
 }
 
-variable "project" {
-  description = "GCP Project to deploy into."
+variable "network_project_id" {
+  description = "Project that the VPC is located."
   type        = string
 }
 
@@ -48,38 +47,26 @@ variable "secondary_ip_ranges_cidr_b" {
   #Example default ="192.168.1.0/24"
 }
 
-variable "subnet_prefix_name" {
+variable "subnetwork_cidr_a" {
+  description = "The Subnet CIDR."
+  type        = string
+  #Example default ="10.200.12.0/25"
+}
+
+variable "subnetwork_cidr_b" {
+  description = "The Subnet CIDR."
+  type        = string
+  #Example default ="10.200.12.0/25"
+}
+
+variable "subnetwork_cidr_c" {
+  description = "The Subnet CIDR."
+  type        = string
+  #Example default ="10.200.12.0/25"
+}
+
+variable "subnetwork_prefix_name" {
   description = "The name of the Subnet Prefix."
   type        = string
   #Example   default     = "subnet-blueprint"
-}
-
-variable "subnets_cidr_a" {
-  description = "The Subnet CIDR."
-  type        = string
-  #Example default ="10.200.12.0/25"
-}
-
-variable "subnets_cidr_b" {
-  description = "The Subnet CIDR."
-  type        = string
-  #Example default ="10.200.12.0/25"
-}
-
-variable "subnets_cidr_c" {
-  description = "The Subnet CIDR."
-  type        = string
-  #Example default ="10.200.12.0/25"
-}
-
-variable "vpc_name" {
-  description = "The name of the VPC."
-  type        = string
-  #Example   default     = "vpc-blueprint-connect"
-}
-
-variable "vpc_network_name" {
-  description = "The name of the VPC."
-  type        = string
-  #Example   default     = "vpc-blueprint-connect"
 }

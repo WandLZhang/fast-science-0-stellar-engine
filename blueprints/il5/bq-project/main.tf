@@ -18,8 +18,8 @@ data "google_bigquery_default_service_account" "bq_sa" {}
 
 module "bigquery-dataset" {
   source         = "../../../modules/bigquery-dataset"
-  location       = var.location
-  project_id     = var.project_id
+  location       = var.region
+  project_id     = var.main_project_id
   id             = var.dataset_id
   encryption_key = module.kms.keys.default.id
   description    = var.dataset_description
@@ -30,10 +30,10 @@ module "bigquery-dataset" {
 #Google KMS Module
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [data.google_bigquery_default_service_account.bq_sa.member]
   }
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }

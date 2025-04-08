@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-data "google_project" "current" {}
+data "google_project" "project" {}
+
+resource "google_project_service" "dataflow_api" {
+  project            = data.google_project.project.id
+  service            = "dataflow.googleapis.com"
+  disable_on_destroy = false
+}
 
 resource "google_service_account" "dataflow_worker" {
-  account_id   = var.project_id
+  account_id   = var.main_project_id
   display_name = "Dataflow Worker Storage Account"
 }
 
@@ -34,7 +40,7 @@ resource "google_compute_firewall" "dataflow" {
 # Google VPC Module
 module "vpc" {
   source                  = "../../../modules/net-vpc"
-  project_id              = var.project_id
+  project_id              = var.network_project_id
   name                    = var.network_name
   auto_create_subnetworks = false
 
@@ -42,7 +48,7 @@ module "vpc" {
 
   subnets = [
     {
-      name                  = var.subnet_name
+      name                  = var.subnetwork_name
       region                = var.region
       enable_private_access = true
       ip_cidr_range         = var.ip_cidr_range
@@ -62,26 +68,26 @@ module "vpc" {
 
 module "kms" {
   source     = "../../../modules/kms"
-  project_id = var.project_id
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
 
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
       [
-        "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account Required by Dataflow
-        "serviceAccount:service-${data.google_project.current.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
-        "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com"             # GCS Service Account
+        "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account Required by Dataflow
+        "serviceAccount:service-${data.google_project.project.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
+        "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"             # GCS Service Account
       ]
     )
   }
 
-  keyring = var.keyring
+  keyring = var.kms_keyring_name
 }
 
 module "gcs" {
   source         = "../../../modules/gcs"
   prefix         = var.prefix
-  project_id     = var.project_id
+  project_id     = var.main_project_id
   location       = var.region
   storage_class  = var.storage_class
   encryption_key = module.kms.keys.dataflow-job.id
@@ -109,13 +115,13 @@ module "gcs" {
 }
 
 resource "google_project_iam_member" "dataflow_worker" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/dataflow.worker"
   member  = "serviceAccount:${google_service_account.dataflow_worker.email}"
 }
 
 resource "google_dataflow_job" "job" {
-  project = var.project_id
+  project = var.main_project_id
   name    = var.dataflow_name
   region  = var.region
   zone    = var.zone
@@ -130,7 +136,7 @@ resource "google_dataflow_job" "job" {
   parameters = var.parameters
 
   network    = module.vpc.name
-  subnetwork = "regions/${var.region}/subnetworks/${var.subnet_name}"
+  subnetwork = "regions/${var.region}/subnetworks/${var.subnetwork_name}"
 
   ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 

@@ -1,16 +1,4 @@
-variable "compute_vpc" {
-  description = "VPC for deploying the compute VM which will access the registry."
-  type        = string
-  default     = ""
-  nullable    = false
-}
-
-variable "keyring" {
-  description = "Keyring attributes."
-  type        = string
-}
-
-variable "keys" {
+variable "kms_key_names" {
   description = "Key names and base attributes. Set attributes to null if not needed."
   type = map(object({
     destroy_scheduled_duration    = optional(string)
@@ -67,15 +55,35 @@ variable "keys" {
   nullable = false
 }
 
-### Variables required for the demo consumer VM
+variable "kms_keyring_name" {
+  description = "Keyring attributes."
+  type        = string
+}
 
-variable "project" {
+variable "main_project_id" {
   description = "GCP Project to deploy Google Artifact Registries into."
   type        = string
 
 }
 
+variable "network_name" {
+  description = "VPC for deploying the compute VM which will access the registry."
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "network_project_id" {
+  description = "Project that the Compute Engine VPC is located."
+  type        = string
+}
+
 variable "region" {
   description = "GCP Region to deploy Google Artifact Registries into."
+  type        = string
+}
+
+variable "subnetwork_name" {
+  description = "VPC Subnet to deploy Google Artifact Registries into."
   type        = string
 }

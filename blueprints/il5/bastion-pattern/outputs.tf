@@ -21,10 +21,10 @@ output "compute_service_account_email" {
 
 output "subnet_self_link" {
   description = "The self link of the subnet."
-  value       = data.google_compute_subnetwork.my_subnet.self_link
+  value       = data.google_compute_subnetwork.subnetwork.self_link
 }
 
 output "vpc_self_link" {
   description = "The self link of the VPC."
-  value       = data.google_compute_network.my_vpc.self_link
+  value       = data.google_compute_network.network.self_link
 }

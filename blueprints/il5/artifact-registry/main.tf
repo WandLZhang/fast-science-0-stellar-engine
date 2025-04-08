@@ -10,16 +10,17 @@ locals {
 data "google_project" "project" {}
 
 resource "google_project_service" "api" {
-  for_each = toset(["artifactregistry.googleapis.com", "containerscanning.googleapis.com"])
-  project  = data.google_project.project.id
-  service  = each.value
+  for_each           = toset(["artifactregistry.googleapis.com", "containerscanning.googleapis.com"])
+  project            = data.google_project.project.id
+  service            = each.value
+  disable_on_destroy = false
 }
 
 module "kms" {
   #checkov:skip=CKV_GCP_43: example of how to skip (in this case, a KMS deletion error) a check in checkov
   source     = "../../../modules/kms"
-  project_id = var.project
-  keys       = var.keys
+  project_id = var.main_project_id
+  keys       = var.kms_key_names
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
       google_service_account.consumer.member,
@@ -27,7 +28,7 @@ module "kms" {
     ]
   }
   keyring = {
-    name     = var.keyring
+    name     = var.kms_keyring_name
     location = var.region
   }
   depends_on = [
