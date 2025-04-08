@@ -52,16 +52,16 @@ class State(enum.IntEnum):
   def label(self):
     return {
         State.SKIP: '  ',
-        State.OK: '✓ ',
-        State.FAIL_STALE_README: '✗R',
-        State.FAIL_STALE_TOC: '✗T',
-        State.FAIL_UNSORTED_VARS: 'SV',
-        State.FAIL_UNSORTED_OUTPUTS: 'SO',
-        State.FAIL_VARIABLE_PERIOD: '.V',
-        State.FAIL_OUTPUT_PERIOD: '.O',
-        State.FAIL_VARIABLE_DESCRIPTION: 'DV',
-        State.FAIL_OUTPUT_DESCRIPTION: 'DO',
-        State.FAIL_MISSING_TYPES: 'TY',
+        State.OK: '✓',
+        State.FAIL_STALE_README: '✗FAIL_STALE_README',
+        State.FAIL_STALE_TOC: '✗FAIL_STALE_TOC',
+        State.FAIL_UNSORTED_VARS: '✗FAIL_UNSORTED_VARS',
+        State.FAIL_UNSORTED_OUTPUTS: '✗FAIL_UNSORTED_OUTPUTS',
+        State.FAIL_VARIABLE_PERIOD: '✗FAIL_VARIABLE_PERIOD',
+        State.FAIL_OUTPUT_PERIOD: '✗FAIL_OUTPUT_PERIOD',
+        State.FAIL_VARIABLE_DESCRIPTION: '✗FAIL_VARIABLE_DESCRIPTION',
+        State.FAIL_OUTPUT_DESCRIPTION: '✗FAIL_OUTPUT_DESCRIPTION',
+        State.FAIL_MISSING_TYPES: '✗FAIL_MISSING_TYPES',
     }[self.value]
 
 
