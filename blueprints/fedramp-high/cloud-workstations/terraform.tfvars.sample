@@ -1,20 +1,21 @@
-project = "your-project-id"
-region  = "us-east4"
+main_project_id    = "xxxx-xxxx-main-0"
+core_project_id    = "xxxx-xxxx-iac-core-0"
+network_project_id = "xxxx-xxxx-net-host"
 
-keyring = "test-keyring"
-key     = "test-key"
+kms_keyring_name = "xxxx-xxxx-keyring"
+kms_key_name     = "default"           # Must already exist
 
-landing_project = "your-landing-project-id"
-network         = "int-spoke-0"
-subnet          = "default-us-east4"
+network_name    = "xxxx-spoke-0"       # Must already exist
+subnetwork_name = "default-us-east4"   # Must already exist
+
+region = "us-east4"
 
 workstations = {
-  "station-1" = {
+  "<WORKSTATION-NAME>" = {
     env = {
       CONFIG = "TEST"
       FOO    = "BAR"
     }
-    users = ["user:steve@domain.com"] # change/delete this
+    users = ["user:<EMAIL-ADDRESS>>"] # change/delete this
   }
-  "station-2" = {}
 }

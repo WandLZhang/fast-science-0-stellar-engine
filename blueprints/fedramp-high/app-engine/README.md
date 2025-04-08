@@ -10,8 +10,8 @@ App Engine applications cannot be deleted once they're created; you have to dele
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [location_id](variables.tf#L1) | Region to create your App Engine resource. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L6) | Project to host app engine. App engine cannot be delete from the project once provisioned. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L1) | Main Project ID to host App Engine. App Engine cannot be delete from the project once provisioned. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L6) | Region to create your App Engine resource. | <code>string</code> | ✓ |  |
 
 ## Outputs
 

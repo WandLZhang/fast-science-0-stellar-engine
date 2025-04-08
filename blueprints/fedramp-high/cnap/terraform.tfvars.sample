@@ -1,9 +1,12 @@
+domain = "xxxx.example.com"
+
+main_project_id    = "xxxx-xxxx-xxxx-main-0"
+network_project_id = "xxxx-xxxx-net-host"
+
+prefix               = "xxxx"
 region               = "us-east4"
-project              = "my-cnap-project"
 default_backend      = "easy"
-domain               = "my.project.domain"
-oauth_brand_number   = 123456789123
-access_policy_number = 123456789123
-network              = "int-spoke-0"
-landing_project_id   = "prefix-int-net-host"
-prefix               = "snap"
+oauth_brand_number   = xxxxxxxxxxxx
+access_policy_number = xxxxxxxxxxxx
+
+network_name = "xxxx-spoke-0"

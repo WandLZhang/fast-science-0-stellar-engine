@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-variable "cluster_name" {
-  description = "Name of the Dataproc cluster."
+
+variable "core_project_id" {
+  description = "The ID of the iac core project where the KMS key is."
   type        = string
 }
 
 variable "dataproc_bucket_name" {
   description = "Name of the gcs bucket that will be created and used with Dataproc. This must be globally unique."
+  type        = string
+}
+
+variable "dataproc_cluster_name" {
+  description = "Name of the Dataproc cluster."
   type        = string
 }
 
@@ -33,23 +39,18 @@ variable "firewall_name" {
   type        = string
 }
 
-variable "iac_project_id" {
-  description = "The ID of the iac project where the KMS key is."
-  type        = string
-}
-
-variable "key" {
+variable "kms_key_name" {
   description = "KMS key name."
   type        = string
 }
 
-variable "keyring" {
+variable "kms_keyring_name" {
   description = "KMS keyring name."
   type        = string
 }
 
-variable "landing_project_id" {
-  description = "The ID of the landing zone project where the VPC is."
+variable "main_project_id" {
+  description = "The ID of the main project."
   type        = string
 }
 
@@ -58,8 +59,8 @@ variable "network_name" {
   type        = string
 }
 
-variable "project_id" {
-  description = "The ID of the main project."
+variable "network_project_id" {
+  description = "The ID of the landing zone project where the VPC is."
   type        = string
 }
 
@@ -69,7 +70,7 @@ variable "region" {
   default     = "us-east4"
 }
 
-variable "subnet_name" {
+variable "subnetwork_name" {
   description = "The subnet name."
   type        = string
 }

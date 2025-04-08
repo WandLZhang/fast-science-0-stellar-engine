@@ -1,8 +1,7 @@
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+function_name = "function-name-00"
+bucket_name   = "bucket-name-00"
 region        = "us-east4"
-project_id    = "<project_id>"
-bucket_name   = "<bucket that holds source code>"
-function_name = "function"
-kms_key       = "<path to kms key>"
-iam = {
-  "roles/run.invoker" = ["serviceAccount:<project-number>-compute@developer.gserviceaccount.com"]
-}
+
+kms_key_name = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"

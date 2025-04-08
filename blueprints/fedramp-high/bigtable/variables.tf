@@ -14,21 +14,21 @@ variable "instance_name" {
   type        = string
 }
 
-variable "key_name" {
+variable "kms_key_name" {
   description = "The name of the existing key (required if use_existing_keys is true)."
   type        = string
   default     = null
+}
+
+variable "main_project_id" {
+  description = "The project ID to deploy Bigtable to."
+  type        = string
 }
 
 variable "num_nodes" {
   description = "Number of nodes in the Bigtable cluster."
   type        = number
   default     = 1
-}
-
-variable "project_id" {
-  description = "The project ID to deploy Bigtable to."
-  type        = string
 }
 
 variable "region" {

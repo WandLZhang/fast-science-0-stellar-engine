@@ -1,11 +1,11 @@
-variable "kms_key" {
+variable "kms_key_name" {
   description = "Full path to KMS key for pubsub."
   type        = string
   default     = null
 }
 
-variable "landing_project_id" {
-  description = "Landing project id."
+variable "main_project_id" {
+  description = "Project id."
   type        = string
 }
 
@@ -14,13 +14,13 @@ variable "name" {
   type        = string
 }
 
-variable "network" {
+variable "network_name" {
   description = "Full path to VPC."
   type        = string
 }
 
-variable "project_id" {
-  description = "Project id."
+variable "network_project_id" {
+  description = "Landing project id."
   type        = string
 }
 
@@ -29,7 +29,7 @@ variable "region" {
   type        = string
 }
 
-variable "subnet" {
+variable "subnetwork_name" {
   description = "Full path to subnet."
   type        = string
 }

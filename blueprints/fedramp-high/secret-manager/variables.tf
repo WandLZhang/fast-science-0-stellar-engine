@@ -1,4 +1,10 @@
-variable "project_id" {
+variable "iam" {
+  description = "IAM bindings in {SECRET => {ROLE => [MEMBERS]}} format."
+  type        = map(map(list(string)))
+  default     = {}
+}
+
+variable "main_project_id" {
   description = "The Project ID where the secrets will be created."
   type        = string
 }
@@ -7,12 +13,6 @@ variable "region" {
   description = "The Google Cloud region."
   type        = string
   default     = "us-east4"
-}
-
-variable "zone" {
-  description = "The Google Cloud zone within the specified region."
-  type        = string
-  default     = "us-east4-a"
 }
 
 variable "secrets" {
@@ -24,8 +24,8 @@ variable "secrets" {
   default = {}
 }
 
-variable "iam" {
-  description = "IAM bindings in {SECRET => {ROLE => [MEMBERS]}} format."
-  type        = map(map(list(string)))
-  default     = {}
+variable "zone" {
+  description = "The Google Cloud zone within the specified region."
+  type        = string
+  default     = "us-east4-a"
 }

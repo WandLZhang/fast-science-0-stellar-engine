@@ -20,16 +20,29 @@ By using Access Levels and Service Perimeters, you can control access based on a
 
 <!-- BEGIN TOC -->
 - [Access Context Manager Blueprint](#access-context-manager-blueprint)
+- [Prerequisites Steps](#prerequisites-steps)
 - [Deployment Steps](#deployment-steps)
 - [Verification of a successful deployment?](#verification-of-a-successful-deployment)
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
 
+## Prerequisites Steps
+
+An organization-level Access Policy must already exist before deploying Access Context Manager.
+
+Note: Replace `ORGANIZATION_ID` (numeric ID of your organization) and `POLICY_TITLE` (human-readable title for your policy) with the appropriate values in the commands below where:
+
+1. Run the following gcloud command to get the name of the existing Access Policy to be used in the **terraform.tfvars** file below, if it exists.
+   * `gcloud access-context-manager policies list --organization=<ORGANIZATION_ID>`
+2. If no results were returned, then an Access Policy doesn't exist. Please follow the [Create an Organization-Level Access Policy](https://cloud.google.com/access-context-manager/docs/create-access-policy#organization-access-policy) instructions or use the gcloud command below before proceding to the [Deployment Steps](#deployment-steps).
+   * `gcloud access-context-manager policies create --organization="<ORGANIZATION_ID>" --title="<POLICY_TITLE>"`
+
 ## Deployment Steps
-1. Run ```cp terraform.tfvars.sample terraform.tfvars``` to copy the sample variables to your own tfvars file.
-2. Update the variables as necessary in your tfvars file.
-3. The usual terraform commands will do the work. To provision this example, run the following from within this directory:
+1. Review and follow the [Prerequisites Steps](#prerequisites-steps).
+2. Run ```cp terraform.tfvars.sample terraform.tfvars``` to copy the sample variables to your own tfvars file.
+3. Update the variables as necessary in your tfvars file.
+4. The usual terraform commands will do the work. To provision this example, run the following from within this directory:
 
 ```terraform init```<br />
 ```terraform plan``` to see the infrastructure plan<br />
@@ -49,8 +62,8 @@ To check service perimeters: Go to VPC Service Control and it should be listed i
 | [access_levels](variables.tf#L1) | List of access levels to create. Each access level is a map containing 'name', 'description', and 'conditions'. | <code title="list&#40;object&#40;&#123;&#10;  name        &#61; string&#10;  description &#61; string&#10;  conditions &#61; list&#40;object&#40;&#123;&#10;    ip_subnetworks &#61; list&#40;string&#41;&#10;    members        &#61; list&#40;string&#41;&#10;    negate         &#61; bool&#10;    device_policy &#61; object&#40;&#123;&#10;      require_screen_lock &#61; bool&#10;    &#125;&#41;&#10;    regions &#61; list&#40;string&#41;&#10;  &#125;&#41;&#41;&#10;&#125;&#41;&#41;">list&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |
 | [access_policy_title](variables.tf#L18) | The title for the Access Context Manager policy. | <code>string</code> | ✓ |  |
 | [domain](variables.tf#L23) | Domain of the project that you will be using. | <code>string</code> | ✓ |  |
-| [organization_id](variables.tf#L28) | The organization ID. | <code>string</code> | ✓ |  |
-| [project_id](variables.tf#L33) | The project ID where the Access Context Manager resources will be created. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L28) | The project ID where the Access Context Manager resources will be created. | <code>string</code> | ✓ |  |
+| [organization_id](variables.tf#L33) | The organization ID. | <code>string</code> | ✓ |  |
 | [region](variables.tf#L38) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
 | [service_perimeters](variables.tf#L43) | List of service perimeters to create. Each service perimeter is a map containing 'name', 'description', 'status', and 'resources'. | <code title="list&#40;object&#40;&#123;&#10;  name        &#61; string&#10;  description &#61; string&#10;  status &#61; object&#40;&#123;&#10;    restricted_services &#61; list&#40;string&#41;&#10;    resources           &#61; list&#40;string&#41;&#10;  &#125;&#41;&#10;&#125;&#41;&#41;">list&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |
 

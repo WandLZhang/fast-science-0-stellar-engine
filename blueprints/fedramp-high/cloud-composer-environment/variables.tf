@@ -10,18 +10,18 @@ variable "composer_version" {
   default     = "composer-3-airflow-2" # As of 4 DEC 2024 only Cloud Composer 3 supports private IPs
 }
 
-variable "landing_project_id" {
-  description = "The ID of the landing zone project where the VPC is."
+variable "main_project_id" {
+  description = "Project id."
   type        = string
 }
 
-variable "network" {
+variable "network_name" {
   description = "Full path to VPC."
   type        = string
 }
 
-variable "project_id" {
-  description = "Project id."
+variable "network_project_id" {
+  description = "The ID of the landing zone project where the VPC is."
   type        = string
 }
 
@@ -48,7 +48,7 @@ variable "service_agent_version" {
   default     = "roles/composer.ServiceAgentV2Ext"
 }
 
-variable "subnet" {
+variable "subnetwork_name" {
   description = "Full path to subnetwork."
   type        = string
 }

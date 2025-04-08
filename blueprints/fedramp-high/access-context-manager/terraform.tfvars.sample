@@ -1,19 +1,21 @@
-project_id          = "YOUR-PROJECT-ID"
-access_policy_title = "test-policy-title"
-region              = "us-east4"
-organization_id     = "YOUR-ORGANIZATION-ID"
-domain              = "domain.com"
+organization_id = "xxxxxxxxxxxx"
+domain          = "xxxx.example.com"
+
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+access_policy_title = "xxxx"
 access_levels = [
   {
-    name = "accessPolicies/<ACCESS-POLICY-ID>/accessLevels/<NAME OF ACCESS POLICY>"
+    # An organization-level Access Policy ID must already exist
+    name = "accessPolicies/<ACCESS-POLICY-ID>/accessLevels/<ACCESS-POLICY-NAME>"
 
     description = "An example access level"
     conditions = [
       {
         ip_subnetworks = ["203.0.113.0/24"]  # CANNOT BE A PRIVATE IP ADDRESS
-        members        = ["user:YOUR-EMAIL"]
+        members        = ["user:<EMAIL-ADDRESS>"]
         negate         = false
-        device_policy = {
+        device_policy  = {
           require_screen_lock = true
         }
         regions = ["US"]
@@ -21,13 +23,15 @@ access_levels = [
     ]
   }
 ]
+
+# An organization-level Access Policy ID must already exist
 service_perimeters = [
   {
-    name        = "accessPolicies/<ACCESS-POLICY-ID>/servicePerimeters/<NAME_OF_PERIMETER_SERIVCE>"
+    name        = "accessPolicies/<ACCESS-POLICY-ID>/servicePerimeters/<SERIVCE-PERIMETER-NAME>"
     description = "An example service perimeter"
     status = {
       restricted_services = ["storage.googleapis.com"]
-      resources           = ["projects/YOUR-PROJECT-NUMBER"]
+      resources           = ["projects/<MAIN-PROJECT-NUMBER>"]
     }
   }
 ]

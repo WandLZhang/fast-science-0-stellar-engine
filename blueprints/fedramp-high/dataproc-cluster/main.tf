@@ -17,27 +17,27 @@
 data "google_project" "current" {}
 
 data "google_project" "landing_project" {
-  project_id = var.landing_project_id
+  project_id = var.network_project_id
 }
 
 data "google_project" "core_project" {
-  project_id = var.iac_project_id
+  project_id = var.core_project_id
 }
 
 data "google_compute_network" "network" {
   name    = var.network_name
-  project = var.landing_project_id
+  project = var.network_project_id
 }
 
 # Dataproc Customer Service Account
 resource "google_service_account" "dataproc_vm" {
-  account_id   = "dp-${var.project_id}"
+  account_id   = "dp-${var.main_project_id}"
   display_name = "Dataproc Worker Service Account"
 }
 
 #  https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/network
 resource "google_compute_firewall" "dataproc" {
-  project = var.landing_project_id
+  project = var.network_project_id
   name    = var.firewall_name
   network = data.google_compute_network.network.self_link
   allow {
@@ -57,10 +57,10 @@ resource "google_compute_firewall" "dataproc" {
 module "gcs" {
   source         = "../../../modules/gcs"
   prefix         = "tmp"
-  project_id     = var.project_id
+  project_id     = var.main_project_id
   location       = var.region
   storage_class  = "STANDARD"
-  encryption_key = "projects/${var.iac_project_id}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/${var.key}"
+  encryption_key = "projects/${var.core_project_id}/locations/${var.region}/keyRings/${var.kms_keyring_name}/cryptoKeys/${var.kms_key_name}"
   name           = var.dataproc_bucket_name
 
   iam = {
@@ -83,15 +83,15 @@ module "gcs" {
 
 module "dataproc_cluster" {
   source     = "../../../modules/dataproc"
-  project_id = var.project_id
-  name       = var.cluster_name
+  project_id = var.main_project_id
+  name       = var.dataproc_cluster_name
   region     = var.region
   dataproc_config = {
     cluster_config = {
 
       # Encryption on the Cluster does not work as of 14 NOV 2024
       encryption_config = {
-        kms_key_name = "projects/${var.iac_project_id}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/${var.key}"
+        kms_key_name = "projects/${var.core_project_id}/locations/${var.region}/keyRings/${var.kms_keyring_name}/cryptoKeys/${var.kms_key_name}"
       }
 
       staging_bucket = module.gcs.name
@@ -100,7 +100,7 @@ module "dataproc_cluster" {
         internal_ip_only       = true
         service_account        = google_service_account.dataproc_vm.email
         service_account_scopes = ["cloud-platform"]
-        subnetwork             = "projects/${var.landing_project_id}/regions/${var.region}/subnetworks/${var.subnet_name}"
+        subnetwork             = "projects/${var.network_project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}"
         tags                   = ["dataproc"]
         zone                   = "${var.region}-c"
       }

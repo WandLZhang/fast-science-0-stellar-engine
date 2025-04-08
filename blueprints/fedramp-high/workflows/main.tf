@@ -1,28 +1,30 @@
 data "google_project" "project" {}
 
 # Enable the API
-resource "google_project_service" "workflows" {
-  for_each = toset([
-    "workflows.googleapis.com",
-  ])
-  service            = each.key
+resource "google_project_service" "workflows_api" {
+  project            = var.main_project_id
+  service            = "workflows.googleapis.com"
   disable_on_destroy = false
+}
+
+resource "google_project_service_identity" "workflows_si" {
+  provider = google-beta
+  project  = var.main_project_id
+  service  = "workflows.googleapis.com"
+
+  depends_on = [google_project_service.workflows_api]
 }
 
 resource "google_service_account" "workflow_sa" {
   account_id   = "workflows-sa"
   display_name = "Workflows Service Account."
-}
 
-# Provide time for Workflows Service Agent to be created
-resource "time_sleep" "wait_30_seconds" {
-  depends_on      = [google_service_account.workflow_sa]
-  create_duration = "30s"
+  depends_on = [google_project_service.workflows_api]
 }
 
 module "workflows" {
   source              = "../../../modules/workflows"
-  project             = var.project
+  project             = var.main_project_id
   name                = var.name
   region              = var.region
   description         = var.description
@@ -38,8 +40,8 @@ module "workflows" {
     "roles/serviceusage.serviceUsageConsumer" = [google_service_account.workflow_sa.member],
   }
   depends_on = [
-    google_project_service.workflows,
+    google_project_service.workflows_api,
+    google_project_service_identity.workflows_si,
     google_service_account.workflow_sa,
-    time_sleep.wait_30_seconds
   ]
 }

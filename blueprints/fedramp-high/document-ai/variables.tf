@@ -10,13 +10,13 @@ variable "file" {
   default     = "code/example.yaml"
 }
 
-variable "name" {
-  description = "Name of the Document AI processor."
+variable "main_project_id" {
+  description = "The Google Project ID."
   type        = string
 }
 
-variable "project" {
-  description = "The Google Project ID."
+variable "name" {
+  description = "Name of the Document AI processor."
   type        = string
 }
 

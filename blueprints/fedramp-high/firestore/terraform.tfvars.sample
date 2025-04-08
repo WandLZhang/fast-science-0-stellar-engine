@@ -1,6 +1,7 @@
-database_name = "my-firestore-db"
-location_id   = "us-central1"
-project_id    = "my-gcp-project"
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+firestore_database_name = "firestore-database-00"
+region                  = "us-east4"
 
 backup_schedule = {
   retention         = "86400s"

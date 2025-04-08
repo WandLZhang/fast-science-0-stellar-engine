@@ -1,5 +1,5 @@
 data "google_project" "current" {
-  project_id = var.project_id
+  project_id = var.main_project_id
 }
 
 resource "google_project_service" "cloud_functions_apis" {
@@ -13,25 +13,25 @@ resource "google_project_service" "cloud_functions_apis" {
     "binaryauthorization.googleapis.com",
   ])
 
-  project            = var.project_id
+  project            = var.main_project_id
   service            = each.value
   disable_on_destroy = false
 }
 
 resource "google_project_iam_member" "cloud_build" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/cloudbuild.builds.builder"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "cloud_invoker" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/run.invoker"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_kms_crypto_key_iam_binding" "cloud_storage" {
-  crypto_key_id = var.kms_key
+  crypto_key_id = var.kms_key_name
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   members = [
     "serviceAccount:service-${data.google_project.current.number}@gs-project-accounts.iam.gserviceaccount.com",
@@ -43,19 +43,19 @@ resource "google_kms_crypto_key_iam_binding" "cloud_storage" {
 }
 
 resource "google_project_iam_member" "artifactregistry_createOnPushWriter" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/artifactregistry.createOnPushWriter"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "logging_logWriter" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "storage_objectUser" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/storage.objectUser"
   member  = "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com"
 }
@@ -63,7 +63,7 @@ resource "google_project_iam_member" "storage_objectUser" {
 resource "null_resource" "cloud_function_deploy" {
   depends_on = [module.bucket, module.registry-docker]
   triggers = {
-    project_id       = var.project_id
+    project_id       = var.main_project_id
     region           = var.region
     function_name    = var.function_name
     runtime          = var.function_runtime
@@ -75,7 +75,7 @@ resource "null_resource" "cloud_function_deploy" {
   provisioner "local-exec" {
     command = <<EOT
       gcloud functions deploy "${var.function_name}" \
-        --project="${var.project_id}" \
+        --project="${var.main_project_id}" \
         --region="${var.region}" \
         --runtime="${var.function_runtime}" \
         --trigger-http \
@@ -86,7 +86,7 @@ resource "null_resource" "cloud_function_deploy" {
         --ingress-settings="internal-and-gclb" \
         --binary-authorization default \
         --docker-repository="${module.registry-docker.id}" \
-        --kms-key="${var.kms_key}"
+        --kms-key="${var.kms_key_name}"
     EOT
   }
 }
@@ -94,10 +94,10 @@ resource "null_resource" "cloud_function_deploy" {
 
 module "bucket" {
   source         = "../../../modules/gcs"
-  project_id     = var.project_id
+  project_id     = var.main_project_id
   name           = var.bucket_name
   location       = var.region
-  encryption_key = var.kms_key
+  encryption_key = var.kms_key_name
   iam = {
     "roles/storage.objectUser" = [
       "serviceAccount:${data.google_project.current.number}-compute@developer.gserviceaccount.com",
@@ -109,10 +109,10 @@ module "bucket" {
 
 module "registry-docker" {
   source         = "../../../modules/artifact-registry"
-  project_id     = var.project_id
+  project_id     = var.main_project_id
   location       = var.region
-  name           = var.artifiact_reg_name
-  encryption_key = var.kms_key
+  name           = var.artifact_registry_name
+  encryption_key = var.kms_key_name
   format = {
     docker = {
       standard = {

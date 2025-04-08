@@ -1,33 +1,25 @@
-# Fetch the provided encryption key directly from the user's input
-locals {
-  kms_key_id = var.key_name
-}
-
 data "google_project" "project" {}
 
 # Service Identity is required to enable encryption for the tables in the bigtable instance, without this account only the clusters will be encrypted
 resource "google_project_service_identity" "bigtable_sa" {
   provider = google-beta
-
-  project = var.project_id
-  service = "bigtableadmin.googleapis.com"
+  project  = var.main_project_id
+  service  = "bigtableadmin.googleapis.com"
 }
 
-resource "google_project_iam_binding" "bigtable_kms_access" {
-  project = var.project_id
-  role    = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-
-  members = [
-    "serviceAccount:${google_project_service_identity.bigtable_sa.email}",
-  ]
+# Grant Bigtable Service Account access to
+resource "google_kms_crypto_key_iam_member" "bigtable_sa_kms_access" {
+  crypto_key_id = var.kms_key_name
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = google_project_service_identity.bigtable_sa.member
 }
 
 # Create bigtable instance
 module "bigtable-instance" {
   source         = "../../../modules/bigtable-instance"
-  project_id     = var.project_id
+  project_id     = var.main_project_id
   name           = var.instance_name
-  encryption_key = local.kms_key_id
+  encryption_key = var.kms_key_name
   clusters = {
     (var.cluster_id) = {
       cluster_id   = var.cluster_id

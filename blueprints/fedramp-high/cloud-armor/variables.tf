@@ -1,4 +1,4 @@
-variable "project_id" {
+variable "main_project_id" {
   description = "The ID for the project that the Cloud Armor policies will be used in."
   type        = string
 }

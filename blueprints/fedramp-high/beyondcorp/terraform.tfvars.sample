@@ -1,8 +1,10 @@
-project_id            = "YOUR-PROJECT-ID"
-organization_id       = "YOUR-ORG-ID"
-policy_title          = "YOUR-POLICY-TITLE"
-oauth_client_id       = "YOUR-OAUTH-CLIENT-ID"
-oauth_client_secret   = "YOUR-OAUTH-CLIENT-SECRET"
-iap_user_email        = "YOUR-IAP-USER-EMAIL"
-endpoint_name         = "accessPolicies/<ACCESS_POLICY_ID>/accessLevels/<NAME_OF_ACCESS_POLICY>"
-region                = "us-east4"
+organization_id = "xxxxxxxxxxxx"
+
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+policy_title        = "policy-00"
+oauth_client_id     = "xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com"
+oauth_client_secret = "xxxxxx-xxxxxxxxxxxx-xxxxxxxxxxxxxxx"
+iap_user_email      = "user:<IAP-USER-EMAIL>"
+endpoint_name       = "accessPolicies/<ACCESS-POLICY-ID>/accessLevels/ACCESS-POLICY-NAME>" # Access Policy Must already exist
+region              = "us-east4"

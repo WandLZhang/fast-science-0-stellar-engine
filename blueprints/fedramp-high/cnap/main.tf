@@ -14,11 +14,15 @@ locals {
 }
 
 data "google_project" "project" {
-  project_id = var.project
+  project_id = var.main_project_id
+}
+
+data "google_project" "landing_project" {
+  project_id = var.network_project_id
 }
 
 resource "google_project_service" "services" {
-  project = var.project
+  project = var.main_project_id
   for_each = toset([
     "accesscontextmanager.googleapis.com",
     "beyondcorp.googleapis.com",
@@ -42,7 +46,7 @@ resource "google_project_service" "services" {
 }
 
 resource "google_project_service" "net-host-services" {
-  project = var.landing_project_id
+  project = var.network_project_id
   for_each = toset([
     "accesscontextmanager.googleapis.com",
     "beyondcorp.googleapis.com",

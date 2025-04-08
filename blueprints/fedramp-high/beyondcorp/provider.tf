@@ -18,12 +18,12 @@ terraform {
 
 provider "google" {
   region                = var.region
-  billing_project       = var.project_id
+  billing_project       = var.main_project_id
   user_project_override = true
 }
 
 provider "google-beta" {
   region                = var.region
-  billing_project       = var.project_id
+  billing_project       = var.main_project_id
   user_project_override = true
 }

@@ -36,18 +36,18 @@ Cloud Workstations provides preconfigured, customizable, and secure managed deve
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [key](variables.tf#L19) | The name of the kms key. | <code>string</code> | ✓ |  |
-| [keyring](variables.tf#L24) | The keyring of the kms key. | <code>string</code> | ✓ |  |
-| [network](variables.tf#L47) | The name of the network. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L52) | The Project ID where the workstations will be created. | <code>string</code> | ✓ |  |
+| [kms_key_name](variables.tf#L25) | The name of the kms key. | <code>string</code> | ✓ |  |
+| [kms_keyring_name](variables.tf#L30) | The keyring of the kms key. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L41) | The Project ID where the workstations will be created. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L46) | The name of the network. | <code>string</code> | ✓ |  |
 | [region](variables.tf#L57) | The Google Cloud region. | <code>string</code> | ✓ |  |
-| [subnet](variables.tf#L62) | The name of the subnet. | <code>string</code> | ✓ |  |
+| [subnetwork_name](variables.tf#L62) | The name of the subnet. | <code>string</code> | ✓ |  |
 | [workstations](variables.tf#L67) | The workstations that will be created based on the configuration. | <code title="map&#40;object&#40;&#123;&#10;  env   &#61; optional&#40;map&#40;string&#41;&#41;&#10;  users &#61; optional&#40;list&#40;string&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> | ✓ |  |
 | [cluster_id](variables.tf#L1) | The ID of the workstation cluster. | <code>string</code> |  | <code>&#34;example-workstation-cluster&#34;</code> |
 | [config_id](variables.tf#L7) | The ID of the workstation configuration. | <code>string</code> |  | <code>&#34;example-workstation-config&#34;</code> |
-| [kms_project](variables.tf#L29) | The Project ID where the kms key is located. | <code>string</code> |  | <code>null</code> |
-| [landing_project](variables.tf#L35) | The ID of the landing zone project where the VPC is located. | <code>string</code> |  | <code>null</code> |
-| [machine_type](variables.tf#L41) | Type of GCE machine for the workstation configuration. | <code>string</code> |  | <code>&#34;e2-standard-4&#34;</code> |
+| [core_project_id](variables.tf#L13) | The Project ID where the kms key is located. | <code>string</code> |  | <code>null</code> |
+| [machine_type](variables.tf#L35) | Type of GCE machine for the workstation configuration. | <code>string</code> |  | <code>&#34;e2-standard-4&#34;</code> |
+| [network_project_id](variables.tf#L51) | The ID of the landing zone project where the VPC is located. | <code>string</code> |  | <code>null</code> |
 
 ## Outputs
 

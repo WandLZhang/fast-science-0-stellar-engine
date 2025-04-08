@@ -1,6 +1,6 @@
 # Enable the API service
 resource "google_project_service" "documentai" {
-  project = var.project
+  project = var.main_project_id
   for_each = toset([
     "documentai.googleapis.com",
     "workflows.googleapis.com",
@@ -35,8 +35,8 @@ resource "google_document_ai_processor_default_version" "processor" {
 
 module "input_bucket" {
   source                      = "../../../modules/gcs"
-  project_id                  = var.project
-  prefix                      = var.project
+  project_id                  = var.main_project_id
+  prefix                      = var.main_project_id
   name                        = "doc-ai-input"
   location                    = var.region
   force_destroy               = true
@@ -45,8 +45,8 @@ module "input_bucket" {
 
 module "output_bucket" {
   source                      = "../../../modules/gcs"
-  project_id                  = var.project
-  prefix                      = var.project
+  project_id                  = var.main_project_id
+  prefix                      = var.main_project_id
   name                        = "doc-ai-output"
   location                    = var.region
   force_destroy               = true
@@ -55,7 +55,7 @@ module "output_bucket" {
 
 module "workflows" {
   source              = "../../../modules/workflows"
-  project             = var.project
+  project             = var.main_project_id
   name                = "doc-ai-workflow"
   region              = var.region
   deletion_protection = var.deletion_protection
@@ -63,7 +63,7 @@ module "workflows" {
   file                = var.file
   service_account     = google_service_account.workflow_sa.email
   env_vars = {
-    project_id    = var.project
+    project_id    = var.main_project_id
     input_bucket  = module.input_bucket.url
     output_bucket = module.output_bucket.url
     processor_id  = google_document_ai_processor.processor.id

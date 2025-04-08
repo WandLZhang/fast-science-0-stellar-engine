@@ -8,6 +8,11 @@ variable "iap_user_email" {
   type        = string
 }
 
+variable "main_project_id" {
+  description = "GCP Project ID."
+  type        = string
+}
+
 variable "oauth_client_id" {
   description = "OAuth Client ID for IAP."
   type        = string
@@ -25,11 +30,6 @@ variable "organization_id" {
 
 variable "policy_title" {
   description = "Title for the Access Context Manager Policy."
-  type        = string
-}
-
-variable "project_id" {
-  description = "GCP Project ID."
   type        = string
 }
 

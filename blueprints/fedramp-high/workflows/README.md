@@ -51,8 +51,8 @@ KMS/CMEK is not currently working for Workflows in Terraform as a cyclical depen
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [name](variables.tf#L31) | Name of the workflow. | <code>string</code> | ✓ |  |
-| [project](variables.tf#L36) | The Google Project ID. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L31) | The Google Project ID. | <code>string</code> | ✓ |  |
+| [name](variables.tf#L36) | Name of the workflow. | <code>string</code> | ✓ |  |
 | [region](variables.tf#L41) | The Google Cloud region. | <code>string</code> | ✓ |  |
 | [deletion_protection](variables.tf#L1) | Deletion proteciton. | <code>bool</code> |  | <code>true</code> |
 | [description](variables.tf#L7) | Description of the workflow. | <code>string</code> |  | <code>null</code> |

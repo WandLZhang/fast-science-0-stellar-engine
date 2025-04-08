@@ -51,11 +51,11 @@ Use GCP Console to verify if resources were created
 |---|---|:---:|:---:|:---:|
 | [endpoint_name](variables.tf#L1) | Name for endpoint. | <code>string</code> | ✓ |  |
 | [iap_user_email](variables.tf#L6) | User or group email for IAP access. | <code>string</code> | ✓ |  |
-| [oauth_client_id](variables.tf#L11) | OAuth Client ID for IAP. | <code>string</code> | ✓ |  |
-| [oauth_client_secret](variables.tf#L16) | OAuth Client Secret for IAP. | <code>string</code> | ✓ |  |
-| [organization_id](variables.tf#L21) | GCP Organization ID. | <code>string</code> | ✓ |  |
-| [policy_title](variables.tf#L26) | Title for the Access Context Manager Policy. | <code>string</code> | ✓ |  |
-| [project_id](variables.tf#L31) | GCP Project ID. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L11) | GCP Project ID. | <code>string</code> | ✓ |  |
+| [oauth_client_id](variables.tf#L16) | OAuth Client ID for IAP. | <code>string</code> | ✓ |  |
+| [oauth_client_secret](variables.tf#L21) | OAuth Client Secret for IAP. | <code>string</code> | ✓ |  |
+| [organization_id](variables.tf#L26) | GCP Organization ID. | <code>string</code> | ✓ |  |
+| [policy_title](variables.tf#L31) | Title for the Access Context Manager Policy. | <code>string</code> | ✓ |  |
 | [region](variables.tf#L36) | Region for deployment. | <code>string</code> | ✓ |  |
 
 ## Outputs

@@ -43,9 +43,9 @@ To verify a successful deployment, look for NCC in the Google Cloud Console. You
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [project](variables.tf#L7) | The GCP Project ID where the hub will be created. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L1) | The GCP Project ID where the hub will be created. | <code>string</code> | ✓ |  |
 | [region](variables.tf#L18) | The GCP region. | <code>string</code> | ✓ |  |
-| [name](variables.tf#L1) | The name of the created NCC hub. | <code>string</code> |  | <code>&#34;example-ncc-hub&#34;</code> |
+| [name](variables.tf#L6) | The name of the created NCC hub. | <code>string</code> |  | <code>&#34;example-ncc-hub&#34;</code> |
 | [psc_prop](variables.tf#L12) | Whether or not private service connections can be propagated to other spokes in the network. | <code>bool</code> |  | <code>false</code> |
 | [spokes](variables.tf#L23) | A list of spokes to be added to the NCC hub. | <code>map&#40;string&#41;</code> |  | <code>&#123;&#125;</code> |
 | [topology](variables.tf#L30) | The topology of the network. Can be MESH or STAR. | <code>string</code> |  | <code>&#34;MESH&#34;</code> |

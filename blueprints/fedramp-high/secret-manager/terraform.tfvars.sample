@@ -1,29 +1,33 @@
-project_id    = "your-project-id"
-region        = "us-east4"
-zone          = "us-east4-a"
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+region          = "us-east4"
+zone            = "us-east4-a"
+
 secrets = {
-    "secret-id-one" = { 
-        location = "us-east4" 
-        key = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
-    }
-    "secret-id-two" = { 
-        location = "us-east4"
-        key = "projects/YOUR_PROJECT/locations/us-east1/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
-    }
+  "secret-id-one" = {
+    location = "us-east4"
+    key      = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/<KMS-KEYRING-NAME>/cryptoKeys/<KMS-KEY-NAME>"
+  }
+  "secret-id-two" = {
+    location = "us-east4"
+    key      = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/<KMS-KEYRING-NAME>/cryptoKeys/<KMS-KEY-NAME>"
+  }
 }
-iam = { //secret ids must match existing secrets
-    "secret-id-one" = { 
-        "roles/secretmanager.secretAccessor" = [ 
-            //"serviceAccount:sa-one@your-project.iam.gserviceaccount.com",
-            //"group:admins@your-domain.com" 
-        ],
-        "roles/viewer" = [ 
-            "user:user-one@your-domain.com" #update this
-        ]
-    },
-    "secret-id-two" = {  
-        "roles/secretmanager.secretAccessor" = [ 
-            //"serviceAccount:sa-two@your-project.iam.gserviceaccount.com" 
-        ]
-    }
+
+# Secret IDs must match existing secrets
+iam = {
+  "secret-id-one" = {
+    "roles/secretmanager.secretAccessor" = [
+      # "serviceAccount:sa-one@<MAIN-PROJECT-ID>.iam.gserviceaccount.com",
+      # "group:admins@domain.com"
+    ],
+    "roles/viewer" = [
+      # "group:admins@domain.com"
+    ]
+  },
+  "secret-id-two" = {
+    "roles/secretmanager.secretAccessor" = [
+      # "serviceAccount:sa-two@<MAIN-PROJECT-ID>.iam.gserviceaccount.com"
+      # "group:admins@domain.com"
+    ]
+  }
 }

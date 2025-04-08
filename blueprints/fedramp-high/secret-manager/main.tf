@@ -17,14 +17,24 @@ locals {
   }
 }
 
+data "google_project" "project" {
+  project_id = var.main_project_id
+}
+
 # Enable the API service
 resource "google_project_service" "secretmanager" {
+  project            = var.main_project_id
   service            = "secretmanager.googleapis.com"
   disable_on_destroy = false
 }
 
-data "google_project" "project" {
-  project_id = var.project_id
+# Create service account
+resource "google_project_service_identity" "secretmanager" {
+  provider = google-beta
+  project  = var.main_project_id
+  service  = "secretmanager.googleapis.com"
+
+  depends_on = [google_project_service.secretmanager]
 }
 
 # Grant permissions to secret manager service account
@@ -33,14 +43,19 @@ resource "google_kms_crypto_key_iam_member" "secretmanager" {
   crypto_key_id = each.value
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-secretmanager.iam.gserviceaccount.com"
+
+  depends_on = [google_project_service_identity.secretmanager]
 }
 
 # Use the secret manager module to create the secrets
 module "secret-manager" {
   source     = "../../../modules/secret-manager"
-  project_id = var.project_id
+  project_id = var.main_project_id
   secrets    = local.secrets
   iam        = var.iam
-  depends_on = [resource.google_kms_crypto_key_iam_member.secretmanager,
-  resource.google_project_service.secretmanager]
+  depends_on = [
+    google_project_service.secretmanager,
+    google_project_service_identity.secretmanager,
+    google_kms_crypto_key_iam_member.secretmanager,
+  ]
 }

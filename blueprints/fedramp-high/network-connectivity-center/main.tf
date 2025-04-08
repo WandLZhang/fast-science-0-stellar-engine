@@ -2,14 +2,14 @@ locals {
   spoke_projects = distinct(
     concat(
       [for spoke_name, spoke_self_link in var.spokes : regex("projects/([^/]+)/", spoke_self_link)[0]],
-      [var.project]
+      [var.main_project_id]
     )
   )
 }
 
 # Enable the API service
 resource "google_project_service" "ncc" {
-  project = var.project
+  project = var.main_project_id
   for_each = toset([
     "networkconnectivity.googleapis.com",
   ])
@@ -19,7 +19,7 @@ resource "google_project_service" "ncc" {
 
 resource "google_network_connectivity_hub" "hub" {
   name            = var.name
-  project         = var.project
+  project         = var.main_project_id
   preset_topology = var.topology
   export_psc      = var.psc_prop
   depends_on      = [google_project_service.ncc]
@@ -39,7 +39,7 @@ resource "google_network_connectivity_group" "center" {
   hub   = google_network_connectivity_hub.hub.id
   name  = "center"
   auto_accept {
-    auto_accept_projects = [var.project]
+    auto_accept_projects = [var.main_project_id]
   }
 }
 
@@ -63,7 +63,7 @@ resource "google_network_connectivity_spoke" "spokes" {
 
   # Determine which group each spoke should be added to
   group = (var.topology == "MESH" ? google_network_connectivity_group.default[0].id :
-    (regex("projects/([^/]+)/", each.value)[0] == var.project ? google_network_connectivity_group.center[0].id :
+    (regex("projects/([^/]+)/", each.value)[0] == var.main_project_id ? google_network_connectivity_group.center[0].id :
   google_network_connectivity_group.edge[0].id))
 
   linked_vpc_network {

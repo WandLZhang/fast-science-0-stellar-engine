@@ -20,6 +20,16 @@ variable "display_name" {
   type        = string
 }
 
+variable "edition" {
+  description = "The Spanner instance edition. Valid values are 'EDITION_UNSPECIFIED', 'STANDARD', 'ENTERPRISE', or 'ENTERPRISE_PLUS'."
+  type        = string
+  default     = "ENTERPRISE" # ENTERPRISE is required for autoscaling
+  validation {
+    condition     = contains(["EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE", "ENTERPRISE_PLUS"], var.edition)
+    error_message = "The edition must be one of 'EDITION_UNSPECIFIED', 'STANDARD', 'ENTERPRISE', or 'ENTERPRISE_PLUS'."
+  }
+}
+
 variable "high_priority_cpu_utilization_percent" {
   description = "High priority cpu utilization percent."
   type        = number
@@ -31,10 +41,9 @@ variable "instance_name" {
   type        = string
 }
 
-variable "location_id" {
-  description = "Region to create your App Engine resource."
+variable "main_project_id" {
+  description = "Project to deploy Cloud Spanner instance."
   type        = string
-  default     = "us-east4"
 }
 
 variable "max_processing_units" {
@@ -49,9 +58,10 @@ variable "min_processing_units" {
   default     = 2000
 }
 
-variable "project" {
-  description = "Project to deploy Cloud Spanner instance."
+variable "region" {
+  description = "Region to create your App Engine resource."
   type        = string
+  default     = "us-east4"
 }
 
 variable "storage_utilization_percent" {

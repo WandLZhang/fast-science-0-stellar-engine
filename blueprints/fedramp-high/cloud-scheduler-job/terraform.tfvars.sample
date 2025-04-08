@@ -1,10 +1,12 @@
-region          = "us-east4"
-project_id      = "your-project"
-schedule        = "*/2 * * * *" # cron syntax
-description     = "desc"
-name            = "test-job"
-kms_key_name    = "kms-key-if-creating-new-pubsub-instance"
-retry_count     = 1
-topic_id        = "projects/<your-project>/topics/<your-topic>"
-new_topic_name  = "new-topic-name-if-creating-one"
-data            = "test
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+name           = "cloud-scheduler-job-name-00"
+description    = "cloud-scheduler-job-description"
+new_topic_name = "pubsub-topic-name-00"
+topic_id       = "projects/<MAIN-PROJECT-ID>>/topics/<NEW-TOPIC-NAME>"
+data           = "data"
+schedule       = "*/2 * * * *" # cron syntax
+retry_count    = 1
+region         = "us-east4"
+
+kms_key_name = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"

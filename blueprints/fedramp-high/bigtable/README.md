@@ -7,7 +7,6 @@ CMEK allows you to encrypt your Bigtable data at rest using keys that you manage
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
-
 <!-- BEGIN TFDOC -->
 ## Variables
 
@@ -15,10 +14,10 @@ CMEK allows you to encrypt your Bigtable data at rest using keys that you manage
 |---|---|:---:|:---:|:---:|
 | [cluster_id](variables.tf#L1) | The Bigtable cluster ID. | <code>string</code> | ✓ |  |
 | [instance_name](variables.tf#L12) | The Bigtable instance name. | <code>string</code> | ✓ |  |
-| [project_id](variables.tf#L29) | The project ID to deploy Bigtable to. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L23) | The project ID to deploy Bigtable to. | <code>string</code> | ✓ |  |
 | [deletion_protection](variables.tf#L6) | Permission to delete instance via terraform. | <code>bool</code> |  | <code>true</code> |
-| [key_name](variables.tf#L17) | The name of the existing key (required if use_existing_keys is true). | <code>string</code> |  | <code>null</code> |
-| [num_nodes](variables.tf#L23) | Number of nodes in the Bigtable cluster. | <code>number</code> |  | <code>1</code> |
+| [kms_key_name](variables.tf#L17) | The name of the existing key (required if use_existing_keys is true). | <code>string</code> |  | <code>null</code> |
+| [num_nodes](variables.tf#L28) | Number of nodes in the Bigtable cluster. | <code>number</code> |  | <code>1</code> |
 | [region](variables.tf#L34) | The Google Cloud region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
 | [storage_type](variables.tf#L40) | Either SSD or HDD. | <code>string</code> |  | <code>&#34;SSD&#34;</code> |
 | [table](variables.tf#L46) | Table to create in the bigtable instance. Default is null. | <code title="map&#40;object&#40;&#123;&#10;  split_keys      &#61; optional&#40;list&#40;string&#41;&#41;&#10;  column_families &#61; map&#40;object&#40;&#123;&#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code title="&#123;&#10;  &#34;Test&#34; &#61; &#123;&#10;    column_families &#61; &#123;&#125;&#10;  &#125;&#10;&#125;">&#123;&#8230;&#125;</code> |

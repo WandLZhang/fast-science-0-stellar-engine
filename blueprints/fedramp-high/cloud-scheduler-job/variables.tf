@@ -23,6 +23,11 @@ variable "kms_key_name" {
   default     = null
 }
 
+variable "main_project_id" {
+  description = "Project id."
+  type        = string
+}
+
 variable "max_backoff_duration" {
   description = "Max backoff duration."
   type        = string
@@ -56,11 +61,6 @@ variable "new_topic_name" {
   description = "Name for new PubSub topic if creating one."
   type        = string
   default     = null
-}
-
-variable "project_id" {
-  description = "Project id."
-  type        = string
 }
 
 variable "region" {

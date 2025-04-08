@@ -1,6 +1,13 @@
+resource "google_project_service" "spanner_api" {
+  project            = var.main_project_id
+  service            = "spanner.googleapis.com"
+  disable_on_destroy = false
+}
+
 module "cloud_spanner" {
-  source     = "../../../modules/spanner-instance"
-  project_id = var.project
+  source     = "../../../modules/spanner-instance-se"
+  project_id = var.main_project_id
+  edition    = var.edition
   instance = {
     name         = var.instance_name
     display_name = var.display_name
@@ -28,4 +35,6 @@ module "cloud_spanner" {
       }
     }
   }
+
+  depends_on = [google_project_service.spanner_api]
 }

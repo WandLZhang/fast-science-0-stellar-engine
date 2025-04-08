@@ -33,8 +33,13 @@ variable "is_job" {
   default     = false
 }
 
-variable "kms_key" {
+variable "kms_key_name" {
   description = "Path to the kms key to use."
+  type        = string
+}
+
+variable "main_project_id" {
+  description = "The Project ID."
   type        = string
 }
 
@@ -53,11 +58,6 @@ variable "port" {
   description = "Mapping of port number and port name to open."
   type        = number
   default     = 8080
-}
-
-variable "project_id" {
-  description = "The Project ID."
-  type        = string
 }
 
 variable "region" {

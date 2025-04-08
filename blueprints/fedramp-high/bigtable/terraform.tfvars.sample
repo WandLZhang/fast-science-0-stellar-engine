@@ -1,8 +1,9 @@
-project_id    = "project-id"
-instance_name = "bigtable-test-5"
-cluster_id    = "bigtable-test-5"
+main_project_id = "xxxx-xxxx-xxxx-main-0"
+
+instance_name = "bigtable-instance-00"
+cluster_id    = "bigtable-cluster-00"
 num_nodes     = 3
 region        = "us-east4"
 zone          = "us-east4-a"
-key_name      = "projects/project_id/locations/us-east4/keyRings/keyring-name/cryptoKeys/keyname"
 
+kms_key_name = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"

@@ -8,7 +8,7 @@ variable "backup_schedule" {
   default = null
 }
 
-variable "database_name" {
+variable "firestore_database_name" {
   type        = string
   description = "The name of the Firestore database instance."
 }
@@ -19,12 +19,12 @@ variable "kms_key_name" {
   default     = null
 }
 
-variable "location_id" {
-  type        = string
-  description = "The location ID where the Firestore database will be created."
-}
-
-variable "project_id" {
+variable "main_project_id" {
   type        = string
   description = "The ID of the Google Cloud project."
+}
+
+variable "region" {
+  type        = string
+  description = "The location ID where the Firestore database will be created."
 }

@@ -17,6 +17,6 @@ for SECRET_ID in "${SECRET_IDS[@]}"; do
     exit 1
   fi
 
-done 
+done
 
 echo "Secret versions added successfully"

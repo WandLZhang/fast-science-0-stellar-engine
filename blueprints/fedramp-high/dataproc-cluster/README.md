@@ -41,18 +41,18 @@ Note: This deployment DOES NOT use KMS for the cluster, although it is used on t
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [cluster_name](variables.tf#L16) | Name of the Dataproc cluster. | <code>string</code> | ✓ |  |
-| [dataproc_bucket_name](variables.tf#L21) | Name of the gcs bucket that will be created and used with Dataproc. This must be globally unique. | <code>string</code> | ✓ |  |
-| [dataproc_name](variables.tf#L26) | Name of the Dataproc instance. | <code>string</code> | ✓ |  |
-| [firewall_name](variables.tf#L31) | The Dataproc firewall name. | <code>string</code> | ✓ |  |
-| [iac_project_id](variables.tf#L36) | The ID of the iac project where the KMS key is. | <code>string</code> | ✓ |  |
-| [key](variables.tf#L41) | KMS key name. | <code>string</code> | ✓ |  |
-| [keyring](variables.tf#L46) | KMS keyring name. | <code>string</code> | ✓ |  |
-| [landing_project_id](variables.tf#L51) | The ID of the landing zone project where the VPC is. | <code>string</code> | ✓ |  |
-| [network_name](variables.tf#L56) | The network name. | <code>string</code> | ✓ |  |
-| [project_id](variables.tf#L61) | The ID of the main project. | <code>string</code> | ✓ |  |
-| [subnet_name](variables.tf#L72) | The subnet name. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L66) | The region in which to provision resources. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [core_project_id](variables.tf#L17) | The ID of the iac core project where the KMS key is. | <code>string</code> | ✓ |  |
+| [dataproc_bucket_name](variables.tf#L22) | Name of the gcs bucket that will be created and used with Dataproc. This must be globally unique. | <code>string</code> | ✓ |  |
+| [dataproc_cluster_name](variables.tf#L27) | Name of the Dataproc cluster. | <code>string</code> | ✓ |  |
+| [dataproc_name](variables.tf#L32) | Name of the Dataproc instance. | <code>string</code> | ✓ |  |
+| [firewall_name](variables.tf#L37) | The Dataproc firewall name. | <code>string</code> | ✓ |  |
+| [kms_key_name](variables.tf#L42) | KMS key name. | <code>string</code> | ✓ |  |
+| [kms_keyring_name](variables.tf#L47) | KMS keyring name. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L52) | The ID of the main project. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L57) | The network name. | <code>string</code> | ✓ |  |
+| [network_project_id](variables.tf#L62) | The ID of the landing zone project where the VPC is. | <code>string</code> | ✓ |  |
+| [subnetwork_name](variables.tf#L73) | The subnet name. | <code>string</code> | ✓ |  |
+| [region](variables.tf#L67) | The region in which to provision resources. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
 
 ## Outputs
 

@@ -9,13 +9,18 @@ variable "ids_private_ip_prefix_length" {
   default     = 24
 }
 
-variable "landing_project_id" {
-  description = "The Landing Project ID."
+variable "main_project_id" {
+  description = "The GCP Project name."
   type        = string
 }
 
-variable "network" {
+variable "network_name" {
   description = "VPC network."
+  type        = string
+}
+
+variable "network_project_id" {
+  description = "The Landing Project ID."
   type        = string
 }
 
@@ -31,11 +36,6 @@ variable "prefix" {
   default     = "cnap"
 }
 
-variable "project" {
-  description = "The GCP Project name."
-  type        = string
-}
-
 variable "region" {
   description = "GCP Region to deploy into."
   type        = string
@@ -47,14 +47,14 @@ variable "severity" {
   default     = "MEDIUM"
 }
 
-variable "subnet" {
-  description = "Subnet for deploying the instances."
-  type        = string
-  default     = "default-us-east4"
-}
-
-variable "subnet_list" {
+variable "subnetwork_list" {
   description = "Subnet list to monitor with Cloud IDS."
   type        = list(any)
   default     = null
+}
+
+variable "subnetwork_name" {
+  description = "Subnet for deploying the instances."
+  type        = string
+  default     = "default-us-east4"
 }

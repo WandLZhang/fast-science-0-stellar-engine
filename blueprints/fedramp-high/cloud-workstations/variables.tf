@@ -10,32 +10,26 @@ variable "config_id" {
   default     = "example-workstation-config"
 }
 
+variable "core_project_id" {
+  description = "The Project ID where the kms key is located."
+  type        = string
+  default     = null
+}
+
 variable "image" { # https://cloud.google.com/workstations/docs/preconfigured-base-images
   description = "Container image used by the workstations."
   type        = string
   default     = null
 }
 
-variable "key" {
+variable "kms_key_name" {
   description = "The name of the kms key."
   type        = string
 }
 
-variable "keyring" {
+variable "kms_keyring_name" {
   description = "The keyring of the kms key."
   type        = string
-}
-
-variable "kms_project" {
-  description = "The Project ID where the kms key is located."
-  type        = string
-  default     = null
-}
-
-variable "landing_project" {
-  description = "The ID of the landing zone project where the VPC is located."
-  type        = string
-  default     = null
 }
 
 variable "machine_type" {
@@ -44,14 +38,20 @@ variable "machine_type" {
   default     = "e2-standard-4"
 }
 
-variable "network" {
+variable "main_project_id" {
+  description = "The Project ID where the workstations will be created."
+  type        = string
+}
+
+variable "network_name" {
   description = "The name of the network."
   type        = string
 }
 
-variable "project" {
-  description = "The Project ID where the workstations will be created."
+variable "network_project_id" {
+  description = "The ID of the landing zone project where the VPC is located."
   type        = string
+  default     = null
 }
 
 variable "region" {
@@ -59,7 +59,7 @@ variable "region" {
   type        = string
 }
 
-variable "subnet" {
+variable "subnetwork_name" {
   description = "The name of the subnet."
   type        = string
 }

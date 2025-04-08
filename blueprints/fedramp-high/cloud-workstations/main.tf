@@ -1,12 +1,12 @@
 locals {
-  landing_project = var.landing_project == null ? var.project : var.landing_project
-  kms_project     = var.kms_project == null ? var.project : var.kms_project
+  landing_project = var.network_project_id == null ? var.main_project_id : var.network_project_id
+  kms_project     = var.core_project_id == null ? var.main_project_id : var.core_project_id
 
   network_config = {
-    network    = "projects/${local.landing_project}/global/networks/${var.network}"
-    subnetwork = "projects/${local.landing_project}/regions/${var.region}/subnetworks/${var.subnet}"
+    network    = "projects/${local.landing_project}/global/networks/${var.network_name}"
+    subnetwork = "projects/${local.landing_project}/regions/${var.region}/subnetworks/${var.subnetwork_name}"
   }
-  key = "projects/${local.kms_project}/locations/${var.region}/keyRings/${var.keyring}/cryptoKeys/${var.key}"
+  key = "projects/${local.kms_project}/locations/${var.region}/keyRings/${var.kms_keyring_name}/cryptoKeys/${var.kms_key_name}"
 
   compute_default_sa     = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
   workstation_default_sa = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-workstations.iam.gserviceaccount.com"
@@ -27,7 +27,7 @@ locals {
 
 # Enable the API service
 resource "google_project_service" "workstations" {
-  project = var.project
+  project = var.main_project_id
   for_each = toset([
     "workstations.googleapis.com",
     "compute.googleapis.com",
@@ -41,7 +41,7 @@ data "google_project" "project" {}
 module "workstations" {
   source         = "../../../modules/workstation-cluster"
   id             = var.cluster_id
-  project_id     = var.project
+  project_id     = var.main_project_id
   location       = var.region
   network_config = local.network_config
   # private_cluster_config = {

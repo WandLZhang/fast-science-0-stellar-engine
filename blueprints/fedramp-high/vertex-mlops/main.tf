@@ -15,12 +15,12 @@
  */
 
 locals {
-  vpc    = "projects/${var.network_config.host_project}/global/networks/${var.network_config.network_name}"
-  subnet = "projects/${var.network_config.host_project}/regions/${var.region}/subnetworks/${var.network_config.subnet_name}"
+  vpc    = "projects/${var.network_config.network_project_id}/global/networks/${var.network_config.network_name}"
+  subnet = "projects/${var.network_config.network_project_id}/regions/${var.region}/subnetworks/${var.network_config.subnetwork_name}"
 
   prefix = var.prefix == null ? "" : "${var.prefix}-"
 
-  shared_vpc_project = var.network_config.host_project
+  shared_vpc_project = var.network_config.network_project_id
 
   shared_vpc_bindings = {
     "roles/compute.networkUser" = [
@@ -194,7 +194,7 @@ module "service-account-mlops" {
 }
 
 resource "google_project_iam_member" "shared_vpc" {
-  project = var.network_config.host_project
+  project = var.network_config.network_project_id
   role    = "roles/compute.networkUser"
   member  = module.project.service_agents.notebooks.iam_email
 }

@@ -1,4 +1,4 @@
-variable "project_id" {
+variable "main_project_id" {
   description = "The ID of your project. This project must contain an app engine instance."
   type        = string
 }

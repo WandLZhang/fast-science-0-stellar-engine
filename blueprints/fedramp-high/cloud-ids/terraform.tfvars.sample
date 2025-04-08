@@ -1,6 +1,8 @@
-region               = "us-east4"
-project              = "my-MAIN-cnap-project"
-network              = "NAME-OF-VPC"
-landing_project_id   = "prefix-int-net-host"
-prefix               = "prefix-name"
-ids_name             = "NAME-OF-IDS"
+main_project_id    = "xxxx-xxxx-xxxx-main-0"
+network_project_id = "xxxx-xxxx-net-host"
+
+ids_name = "ids-name-00"
+region   = "us-east4"
+prefix   = "xxxx"
+
+network_name = "xxxx-spoke-0"

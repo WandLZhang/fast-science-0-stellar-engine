@@ -1,7 +1,10 @@
-region             = "us-east4"
-project_id         = "project-id"
-kms_key            = "projects/<iac-project-id>/locations/us-east4/keyRings/<keyring>/cryptoKeys/default"
-network            = "projects/<landing-project-id>/global/networks/<network>"
-name               = "name"
-landing_project_id = "landing-project-id"
-subnet             = "projects/<landing-project-id>/regions/us-east4/subnetworks/default-us-east4"
+main_project_id    = "xxxx-xxxx-xxxx-main-0"
+network_project_id = "xxxx-xxxx-net-host"
+
+name   = "datafusion-instance-00"
+region = "us-east4"
+
+kms_key_name = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"
+
+network_name     = "projects/<NETWORK-PROJECT-ID>/global/networks/xxxx-spoke-0"
+subnetwork_name  = "projects/<NETWORK-PROJECT-ID>/regions/us-east4/subnetworks/default-us-east4"

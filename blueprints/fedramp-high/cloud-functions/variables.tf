@@ -1,4 +1,4 @@
-variable "artifiact_reg_name" {
+variable "artifact_registry_name" {
   description = "Name of the Artifact Registry being deployed."
   type        = string
   default     = "cloud-func-reg"
@@ -68,7 +68,7 @@ variable "function_timeout_seconds" {
   default     = 60
 }
 
-variable "kms_key" {
+variable "kms_key_name" {
   description = "Path to the kms key."
   type        = string
 }
@@ -82,7 +82,7 @@ variable "labels" {
   }
 }
 
-variable "project_id" {
+variable "main_project_id" {
   description = "The GCP project ID."
   type        = string
 }
@@ -91,7 +91,6 @@ variable "region" {
   description = "The GCP region where the Cloud Function will be deployed."
   type        = string
 }
-
 
 variable "secrets" {
   description = "Secrets for the Cloud Function (can be environment variables or volume mounts)."

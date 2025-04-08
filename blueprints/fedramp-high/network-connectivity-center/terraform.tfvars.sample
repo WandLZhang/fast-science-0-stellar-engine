@@ -1,9 +1,10 @@
-project  = "LANDING_PROJECT_ID"
-region   = "us-east4"
+main_project_id    = "xxxx-xxxx-main-0"
+
+name     = "ncc-hub-name-00"
 topology = "MESH"
 psc_prop = true
+region   = "us-east4"
 
 spokes = {
-  "SPOKE_NAME"         = "VPC_SELF_LINK",
-  "ncc-test-spoke-0"   = "projects/PROJECT_ID/global/networks/VPC"
+  "<NCC-SPOKE-NAME-00>" = "projects/<NETWORK-PROJECT-ID>/global/networks/xxxx-spoke-0"
 }

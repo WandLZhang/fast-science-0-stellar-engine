@@ -1,6 +1,6 @@
 # Enable the API service
 resource "google_project_service" "translate" {
-  project = var.project
+  project = var.main_project_id
   for_each = toset([
     "translate.googleapis.com",
     "workflows.googleapis.com",
@@ -13,8 +13,8 @@ data "google_project" "project" {}
 
 module "input_bucket" {
   source                      = "../../../modules/gcs"
-  project_id                  = var.project
-  prefix                      = var.project
+  project_id                  = var.main_project_id
+  prefix                      = var.main_project_id
   name                        = "translate-input"
   location                    = var.region
   force_destroy               = true
@@ -23,8 +23,8 @@ module "input_bucket" {
 
 module "output_bucket" {
   source                      = "../../../modules/gcs"
-  project_id                  = var.project
-  prefix                      = var.project
+  project_id                  = var.main_project_id
+  prefix                      = var.main_project_id
   name                        = "translate-output"
   location                    = var.region
   force_destroy               = true
@@ -38,7 +38,7 @@ resource "google_service_account" "workflow_sa" {
 
 module "workflows" {
   source              = "../../../modules/workflows"
-  project             = var.project
+  project             = var.main_project_id
   name                = "translate-workflow"
   region              = var.region
   deletion_protection = var.deletion_protection
@@ -50,7 +50,7 @@ module "workflows" {
     output_bucket = "${module.output_bucket.url}/${var.output_folder}/"
     src_lang      = var.src_lang
     target_lang   = var.target_lang
-    parent        = "projects/${var.project}/locations/us-central1"
+    parent        = "projects/${var.main_project_id}/locations/us-central1"
   }
   iam = {
     "roles/workflows.invoker"                 = [google_service_account.workflow_sa.member],

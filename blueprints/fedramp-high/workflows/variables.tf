@@ -28,13 +28,13 @@ variable "logging_level" {
   default     = "LOG_ERRORS_ONLY"
 }
 
-variable "name" {
-  description = "Name of the workflow."
+variable "main_project_id" {
+  description = "The Google Project ID."
   type        = string
 }
 
-variable "project" {
-  description = "The Google Project ID."
+variable "name" {
+  description = "Name of the workflow."
   type        = string
 }
 

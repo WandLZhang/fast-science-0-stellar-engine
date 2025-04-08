@@ -32,24 +32,24 @@ resources of this module:
 
 - Google Cloud Key Management Service: `cloudkms.googleapis.com`
 - Google Cloud Secret Manager: `secretmanager.googleapis.com`
-<!-- BEGIN_TF_DOCS -->
+<!-- BEGIN TFDOC -->
 ## Variables
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_iam"></a> [iam](#input\_iam) | IAM bindings in {SECRET => {ROLE => [MEMBERS]}} format. | `map(map(list(string)))` | `{}` | no |
-| <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The Project ID where the secrets will be created. | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | The Google Cloud region. | `string` | `"us-east4"` | no |
-| <a name="input_secrets"></a> [secrets](#input\_secrets) | Map of secrets to manage, their locations and KMS keys in {LOCATION => KEY} format. | <pre>map(object({<br/>    location = string   # A location is required for every secret<br/>    key      = string   # A key is required for the location (the key and secret must be in the same region)<br/>  }))</pre> | `{}` | no |
-| <a name="input_zone"></a> [zone](#input\_zone) | The Google Cloud zone within the specified region. | `string` | `"us-east4-a"` | no |
+| name | description | type | required | default |
+|---|---|:---:|:---:|:---:|
+| [main_project_id](variables.tf#L7) | The Project ID where the secrets will be created. | <code>string</code> | ✓ |  |
+| [iam](variables.tf#L1) | IAM bindings in {SECRET => {ROLE => [MEMBERS]}} format. | <code>map&#40;map&#40;list&#40;string&#41;&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [region](variables.tf#L12) | The Google Cloud region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [secrets](variables.tf#L18) | Map of secrets to manage, their locations and KMS keys in {LOCATION => KEY} format. | <code title="map&#40;object&#40;&#123;&#10;  location &#61; string &#35; A location is required for every secret&#10;  key      &#61; string &#35; A key is required for the location &#40;the key and secret must be in the same region&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [zone](variables.tf#L27) | The Google Cloud zone within the specified region. | <code>string</code> |  | <code>&#34;us-east4-a&#34;</code> |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| <a name="output_ids"></a> [ids](#output\_ids) | Secret IDs. |
-| <a name="output_secrets"></a> [secrets](#output\_secrets) | Secret resources. |
-<!-- END_TF_DOCS -->
+| name | description | sensitive |
+|---|---|:---:|
+| [ids](outputs.tf#L1) | Secret IDs. |  |
+| [secrets](outputs.tf#L6) | Secret resources. |  |
+<!-- END TFDOC -->
 ## Deployment Steps
 
 You should see this README and some terraform files. There is also a bash script and a folder labeled "secrets" with some example secret files in it.

@@ -1,5 +1,5 @@
 data "google_project" "project" {
-  project_id = var.project_id
+  project_id = var.main_project_id
 }
 
 resource "google_project_service" "cloud_run" {
@@ -18,13 +18,13 @@ resource "google_service_account" "cloud_run_service_account" {
 }
 
 resource "google_project_iam_member" "cloud_run_permissions" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.cloud_run_service_account.email}"
 }
 
 resource "google_kms_crypto_key_iam_member" "cloud_run_service_agent_kms_permissions" {
-  crypto_key_id = var.kms_key
+  crypto_key_id = var.kms_key_name
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.project.number}@serverless-robot-prod.iam.gserviceaccount.com"
 }
@@ -34,7 +34,7 @@ module "cloud_run" {
   project_id     = data.google_project.project.project_id
   name           = var.name
   region         = var.region
-  encryption_key = var.kms_key
+  encryption_key = var.kms_key_name
   create_job     = var.is_job
   ingress        = var.ingress
   containers = {

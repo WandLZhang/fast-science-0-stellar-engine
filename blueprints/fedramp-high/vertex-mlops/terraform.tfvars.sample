@@ -1,23 +1,27 @@
-bucket_name          = "vertex-ai-bucket"
-dataset_name         = "vertex_ai_data" #cannot contain dashes '-'
-network_config = {
-  host_project = "your-networking-project"
-  network_name = "your-VPC-name"
-  subnet_name = "your-subnet-name"
+project_config = {
+  main_project_id = "xxxx-xxxx-main-0"
 }
+
+network_config = {
+  network_project_id = "xxxx-xxxx-net-host"
+  network_name       = "xxxx-spoke-0"
+  subnetwork_name    = "default-us-east4"
+}
+
+bucket_name  = "vertex-bucket-name-00"
+dataset_name = "vertex_dataset_name_00" # Cannot contain dashes '-'
+prefix       = "xxxx"
+region       = "us-central" # us-central1 is recommended
+
 notebooks = {
-  "test-notebook" = {
+  "<NOTEBOOK-NAME-00>" = {
     type = "USER_MANAGED"
   }
 }
-prefix = "pre"
-project_config = {
-  project_id = "your-project-id"
-}
-region = "us-central1" #us-central1 is recommended
+
 service_encryption_keys = {
-    aiplatform    = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
-    bq            = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
-    notebooks     = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
-    storage       = "projects/YOUR_PROJECT/locations/YOUR_LOCATION/keyRings/YOUR_KEYRING/cryptoKeys/YOUR_KEY"
+  aiplatform = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"
+  bq         = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"
+  notebooks  = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"
+  storage    = "projects/<CORE-PROJECT-ID>/locations/us-east4/keyRings/xxxx-xxxx-keyring/cryptoKeys/default"
 }

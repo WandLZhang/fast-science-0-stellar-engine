@@ -1,6 +1,13 @@
 data "google_project" "project" {
-  project_id = var.project_id
+  project_id = var.main_project_id
 }
+
+resource "google_project_service" "cloudscheduler_api" {
+  project            = var.main_project_id
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+}
+
 
 resource "google_kms_crypto_key_iam_binding" "pubsub" {
   crypto_key_id = var.kms_key_name
@@ -14,7 +21,7 @@ module "pubsub_job" {
   source      = "../../../modules/cloud-scheduler"
   name        = var.name
   description = var.description
-  project_id  = var.project_id
+  project_id  = var.main_project_id
   schedule    = var.schedule
 
   retry_config = {
@@ -31,4 +38,5 @@ module "pubsub_job" {
       kms_key_name = var.kms_key_name
     }
   }
+  depends_on = [google_project_service.cloudscheduler_api]
 }

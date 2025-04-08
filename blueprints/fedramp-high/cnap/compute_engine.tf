@@ -24,7 +24,7 @@ data "google_compute_zones" "available" {
   status  = "UP"
 }
 data "google_compute_subnetwork" "default" {
-  name    = var.subnet
+  name    = var.subnetwork_name
   project = var.net_project
 }
 
@@ -58,7 +58,7 @@ resource "google_compute_region_instance_template" "cos-template" {
 
   tags = ["${var.prefix}-ids"]
   network_interface {
-    network    = data.google_compute_network.landing-vpc.id
+    network    = data.google_compute_network.network.id
     subnetwork = data.google_compute_subnetwork.default.self_link
   }
   // Create a new boot disk from an image
@@ -167,7 +167,7 @@ module "kms" {
 
 resource "google_compute_firewall" "allow-app" {
   name    = "cnap-app-firewall"
-  network = data.google_compute_network.landing-vpc.id
+  network = data.google_compute_network.network.id
 
   allow {
     protocol = "tcp"

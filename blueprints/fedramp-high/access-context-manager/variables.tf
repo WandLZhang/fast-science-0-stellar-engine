@@ -25,13 +25,13 @@ variable "domain" {
   description = "Domain of the project that you will be using."
 }
 
-variable "organization_id" {
-  description = "The organization ID."
+variable "main_project_id" {
+  description = "The project ID where the Access Context Manager resources will be created."
   type        = string
 }
 
-variable "project_id" {
-  description = "The project ID where the Access Context Manager resources will be created."
+variable "organization_id" {
+  description = "The organization ID."
   type        = string
 }
 

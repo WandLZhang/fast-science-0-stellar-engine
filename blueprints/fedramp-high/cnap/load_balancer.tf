@@ -38,7 +38,7 @@ locals {
     path_matcher = "path-matcher-${key}"
   }]
   lb_name       = "${var.prefix}-cloud-native-access-point"
-  service_names = { for app, _ in local.apps : app => "https://www.googleapis.com/compute/v1/projects/${var.project}/regions/${var.region}/backendServices/${local.lb_name}-${app}" }
+  service_names = { for app, _ in local.apps : app => "https://www.googleapis.com/compute/v1/projects/${var.main_project_id}/regions/${var.region}/backendServices/${local.lb_name}-${app}" }
 
   path_matchers = merge(
     { for app, values in try(local.cloud_runs, {}) : "path-matcher-${app}" => {
@@ -54,7 +54,7 @@ locals {
   )
 }
 resource "google_compute_shared_vpc_host_project" "host" {
-  project = var.landing_project_id
+  project = var.network_project_id
 }
 
 resource "tls_private_key" "default" {
@@ -62,9 +62,9 @@ resource "tls_private_key" "default" {
   rsa_bits  = 2048
 }
 
-data "google_compute_network" "landing-vpc" {
-  name    = var.network
-  project = try(var.net_project, var.project)
+data "google_compute_network" "network" {
+  name    = var.network_name
+  project = try(var.net_project, var.main_project_id)
 }
 resource "tls_self_signed_cert" "default" {
   provider        = tls
@@ -87,7 +87,7 @@ resource "tls_self_signed_cert" "default" {
 
 resource "google_compute_region_ssl_certificate" "default" {
   region  = var.region
-  project = var.project
+  project = var.main_project_id
 
   name_prefix = "${var.prefix}-cert-"
   description = "Self-signed demo cert"
@@ -108,9 +108,9 @@ resource "google_compute_address" "cnap-ext-ip" {
 
 module "cnap-0-redirect" {
   source     = "../../../modules/net-lb-app-ext-regional/"
-  project_id = var.landing_project_id
+  project_id = var.network_project_id
   name       = "${var.prefix}-cloud-native-access-point-redirect"
-  vpc        = data.google_compute_network.landing-vpc.self_link
+  vpc        = data.google_compute_network.network.self_link
   region     = var.region
   address = (
     google_compute_address.cnap-ext-ip.id
@@ -128,9 +128,9 @@ module "cnap-0-redirect" {
 
 module "cnap-0" {
   source     = "../../../modules/net-lb-app-ext-regional/"
-  project_id = var.project
+  project_id = var.main_project_id
   name       = local.lb_name
-  vpc        = data.google_compute_network.landing-vpc.self_link
+  vpc        = data.google_compute_network.network.self_link
   region     = var.region
   address = (
     google_compute_address.cnap-ext-ip.id
@@ -140,7 +140,7 @@ module "cnap-0" {
   health_check_configs = {}
   neg_configs = { for key, _ in local.cloud_runs : "neg-${key}" =>
     {
-      project = var.project
+      project = var.main_project_id
       cloudrun = {
         region = var.region
         target_service = {

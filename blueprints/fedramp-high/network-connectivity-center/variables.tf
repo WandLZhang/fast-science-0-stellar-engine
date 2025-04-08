@@ -1,12 +1,12 @@
+variable "main_project_id" {
+  description = "The GCP Project ID where the hub will be created."
+  type        = string
+}
+
 variable "name" {
   description = "The name of the created NCC hub."
   type        = string
   default     = "example-ncc-hub"
-}
-
-variable "project" {
-  description = "The GCP Project ID where the hub will be created."
-  type        = string
 }
 
 variable "psc_prop" {

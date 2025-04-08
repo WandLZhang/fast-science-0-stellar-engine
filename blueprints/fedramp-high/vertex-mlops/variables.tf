@@ -43,9 +43,9 @@ variable "labels" {
 variable "network_config" {
   description = "Shared VPC network configurations to use."
   type = object({
-    host_project = string
-    network_name = string
-    subnet_name  = string
+    network_project_id = string
+    network_name       = string
+    subnetwork_name    = string
   })
   validation {
     condition     = var.network_config != null
