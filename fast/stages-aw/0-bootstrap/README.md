@@ -404,18 +404,18 @@ The `fast_features` variable consists of 4 toggles
 
 | name | description | sensitive |
 |---|---|:---:|
-| [alert_email](outputs.tf#L129) | Email to receive log alerts. |  |
-| [assured_workload](outputs.tf#L134) | Assured Workload folder for the deployment. |  |
-| [automation](outputs.tf#L139) | Automation resources. |  |
-| [billing_dataset](outputs.tf#L144) | BigQuery dataset prepared for billing export. |  |
-| [cicd_repositories](outputs.tf#L149) | CI/CD repository configurations. |  |
-| [common_services_folder](outputs.tf#L161) | Common services folder where non-tenant related resources should be kept. |  |
-| [custom_roles](outputs.tf#L166) | Organization-level custom roles. |  |
-| [outputs_bucket](outputs.tf#L171) | GCS bucket where generated output files are stored. |  |
-| [project_ids](outputs.tf#L176) | Projects created by this stage. |  |
-| [providers](outputs.tf#L186) | Terraform provider files for this stage and dependent stages. | ✓ |
-| [service_accounts](outputs.tf#L193) | Automation service accounts created by this stage. |  |
-| [tfvars](outputs.tf#L211) | Terraform variable files for the following stages. | ✓ |
-| [workforce_identity_pool](outputs.tf#L217) | Workforce Identity Federation pool. |  |
-| [workload_identity_pool](outputs.tf#L226) | Workload Identity Federation pool and providers. |  |
+| [alert_email](outputs.tf#L130) | Email to receive log alerts. |  |
+| [assured_workload](outputs.tf#L135) | Assured Workload folder for the deployment. |  |
+| [automation](outputs.tf#L140) | Automation resources. |  |
+| [billing_dataset](outputs.tf#L145) | BigQuery dataset prepared for billing export. |  |
+| [cicd_repositories](outputs.tf#L150) | CI/CD repository configurations. |  |
+| [common_services_folder](outputs.tf#L162) | Common services folder where non-tenant related resources should be kept. |  |
+| [custom_roles](outputs.tf#L167) | Organization-level custom roles. |  |
+| [outputs_bucket](outputs.tf#L172) | GCS bucket where generated output files are stored. |  |
+| [project_ids](outputs.tf#L177) | Projects created by this stage. |  |
+| [providers](outputs.tf#L187) | Terraform provider files for this stage and dependent stages. | ✓ |
+| [service_accounts](outputs.tf#L194) | Automation service accounts created by this stage. |  |
+| [tfvars](outputs.tf#L212) | Terraform variable files for the following stages. | ✓ |
+| [workforce_identity_pool](outputs.tf#L218) | Workforce Identity Federation pool. |  |
+| [workload_identity_pool](outputs.tf#L227) | Workload Identity Federation pool and providers. |  |
 <!-- END TFDOC -->

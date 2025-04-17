@@ -159,6 +159,7 @@ variable "psa_ranges" {
 }
 
 variable "regions" {
+  # tfdoc:variable:source 0-bootstrap
   description = "Region definitions."
   type = object({
     primary = string
