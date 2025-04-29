@@ -1,5 +1,5 @@
 variable "ids_name" {
-  description = "Name for ids."
+  description = "Name for IDS."
   type        = string
 }
 
@@ -10,12 +10,12 @@ variable "ids_private_ip_prefix_length" {
 }
 
 variable "main_project_id" {
-  description = "The GCP Project name."
+  description = "Main project ID."
   type        = string
 }
 
 variable "network_name" {
-  description = "VPC network."
+  description = "The name of the existing VPC network to use."
   type        = string
 }
 
@@ -37,8 +37,9 @@ variable "prefix" {
 }
 
 variable "region" {
-  description = "GCP Region to deploy into."
+  description = "Google Cloud Region."
   type        = string
+  default     = "us-east4"
 }
 
 variable "severity" {
@@ -54,7 +55,7 @@ variable "subnetwork_list" {
 }
 
 variable "subnetwork_name" {
-  description = "Subnet for deploying the instances."
+  description = "The name of the existing subnetwork to use within the specified VPC network and region."
   type        = string
   default     = "default-us-east4"
 }

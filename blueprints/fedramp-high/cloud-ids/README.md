@@ -1,3 +1,15 @@
+# Cloud IDS
+
+<!-- BEGIN TOC -->
+- [Introduction to Google Cloud IDS](#introduction-to-google-cloud-ids)
+- [Cloud IDS Blueprint](#cloud-ids-blueprint)
+- [Disclaimer](#disclaimer)
+- [Deployment Steps](#deployment-steps)
+- [Verification of a successful deployment](#verification-of-a-successful-deployment)
+- [Variables](#variables)
+- [Outputs](#outputs)
+<!-- END TOC -->
+
 ## Introduction to Google Cloud IDS
 Google Cloud Intrusion Detection System (IDS) is a network security service designed to provide comprehensive threat detection and monitoring for workloads deployed in Google Cloud. It leverages cutting-edge technology to identify malicious activity, unauthorized access, and other potential security threats in real time, enabling organizations to protect their applications and data more effectively.
 
@@ -12,7 +24,7 @@ This blueprint demonstrates how to deploy a cloud IDS service into a network pro
 <mark>IDS endpoint:</mark>  Creates a Cloud IDS (Intrusion Detection System) endpoint.<br />
 <mark>Cloud IDS packet mirroring:</mark>  Configures a packet mirroring policy to send traffic to the IDS endpoint for analysis.<br />
 
-For more information, pleade look at the the Cloud IDS [Overview](https://cloud.google.com/intrusion-detection-system/docs/overview).
+For more information, please look at the the Cloud IDS [Overview](https://cloud.google.com/intrusion-detection-system/docs/overview).
 
 ## Disclaimer
 - The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workloads within the Google Cloud Platform (GCP) organization.
@@ -30,7 +42,7 @@ You should see this README and some terraform files.
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` to destroy the built infrastructure<br />
 
-## Verifciation of a succesful deployment
+## Verification of a successful deployment
 
 Use GCP console to verify if the resources have been created.
 
@@ -43,17 +55,17 @@ Use GCP console to verify if the resources have been created.
 
 | name | description | type | required | default |
 |---|---|:---:|:---:|:---:|
-| [ids_name](variables.tf#L1) | Name for ids. | <code>string</code> | ✓ |  |
-| [main_project_id](variables.tf#L12) | The GCP Project name. | <code>string</code> | ✓ |  |
-| [network_name](variables.tf#L17) | VPC network. | <code>string</code> | ✓ |  |
+| [ids_name](variables.tf#L1) | Name for IDS. | <code>string</code> | ✓ |  |
+| [main_project_id](variables.tf#L12) | Main project ID. | <code>string</code> | ✓ |  |
+| [network_name](variables.tf#L17) | The name of the existing VPC network to use. | <code>string</code> | ✓ |  |
 | [network_project_id](variables.tf#L22) | The Landing Project ID. | <code>string</code> | ✓ |  |
-| [region](variables.tf#L39) | GCP Region to deploy into. | <code>string</code> | ✓ |  |
 | [ids_private_ip_prefix_length](variables.tf#L6) | The length of the IDS Private IP Prefix. | <code>number</code> |  | <code>24</code> |
 | [packet_mirroring_policy_name](variables.tf#L27) | Name of packet mirror policy. | <code>string</code> |  | <code>&#34;cnap-packet-mirror&#34;</code> |
 | [prefix](variables.tf#L33) | Prefix for naming resources in this blueprint. | <code>string</code> |  | <code>&#34;cnap&#34;</code> |
-| [severity](variables.tf#L44) | Impact of an incident on a system. | <code>string</code> |  | <code>&#34;MEDIUM&#34;</code> |
-| [subnetwork_list](variables.tf#L50) | Subnet list to monitor with Cloud IDS. | <code>list&#40;any&#41;</code> |  | <code>null</code> |
-| [subnetwork_name](variables.tf#L56) | Subnet for deploying the instances. | <code>string</code> |  | <code>&#34;default-us-east4&#34;</code> |
+| [region](variables.tf#L39) | Google Cloud Region. | <code>string</code> |  | <code>&#34;us-east4&#34;</code> |
+| [severity](variables.tf#L45) | Impact of an incident on a system. | <code>string</code> |  | <code>&#34;MEDIUM&#34;</code> |
+| [subnetwork_list](variables.tf#L51) | Subnet list to monitor with Cloud IDS. | <code>list&#40;any&#41;</code> |  | <code>null</code> |
+| [subnetwork_name](variables.tf#L57) | The name of the existing subnetwork to use within the specified VPC network and region. | <code>string</code> |  | <code>&#34;default-us-east4&#34;</code> |
 
 ## Outputs
 
