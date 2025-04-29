@@ -91,3 +91,11 @@ Accompanied by the SBPG, the document incorporates recommendations from penetrat
 
 For more information, please look at the [Security Best Practices Guide](https://docs.google.com/document/d/1bkPg-Uj6cf6_w1IHPCTZ66SC0fVWz9pUfTZy9v6hcr0/edit?tab=t.0#heading=h.gjdgxs). NOTE: you will need to request permissions for it.
 
+## How to Contribute
+This GitLab repository is for contributing, for view access to the Stellar Engine [GitHub](https://github.com/gcp-stellar-engine/stellar-engine/issues) please fill out this [form](https://docs.google.com/forms/d/e/1FAIpQLScetWXBErWaopYrGa8qKz6vFZOz1-_O0o_HAU4tr4vdhMzWpQ/viewform).
+
+For issue reporting please create an issue on the GitHub repository and email [stellar-engine@google.com](mailto:stellar-engine@google.com) with details on the issue you are facing.
+
+To contribute code to this repository, please email [stellar-engine@google.com](mailto:stellar-engine@google.com) with a request for developer access to Stellar Engine's codebase.
+
+We'll review your request and grant you the necessary access as quickly as possible.
