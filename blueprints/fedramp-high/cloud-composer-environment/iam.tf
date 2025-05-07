@@ -7,18 +7,17 @@ resource "google_project_iam_member" "composer_worker" {
 resource "google_project_iam_member" "composer_service_agent" {
   project = var.main_project_id
   role    = var.service_agent_version
-  member  = "serviceAccount:service-${data.google_project.current.number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+  member  = google_project_service_identity.composer_agent.member
 }
 
 resource "google_project_iam_member" "composer_network_user" {
   project = var.network_project_id
   role    = "roles/compute.networkUser"
-  member  = "serviceAccount:service-${data.google_project.current.number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+  member  = google_project_service_identity.composer_agent.member
 }
 
 resource "google_project_iam_member" "composer_vpc_agent" {
   project = var.network_project_id
   role    = "roles/composer.sharedVpcAgent"
-  member  = "serviceAccount:service-${data.google_project.current.number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+  member  = google_project_service_identity.composer_agent.member
 }
-

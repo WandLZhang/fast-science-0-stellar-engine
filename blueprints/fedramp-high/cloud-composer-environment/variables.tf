@@ -7,11 +7,11 @@ variable "composer_env_name" {
 variable "composer_version" {
   description = "Cloud composer version."
   type        = string
-  default     = "composer-3-airflow-2" # As of 4 DEC 2024 only Cloud Composer 3 supports private IPs
+  default     = "composer-3-airflow-2"
 }
 
 variable "main_project_id" {
-  description = "Project id."
+  description = "Main project ID."
   type        = string
 }
 
@@ -26,8 +26,9 @@ variable "network_project_id" {
 }
 
 variable "region" {
-  description = "Region to deploy Cloud Composer into."
+  description = "Google Cloud Region."
   type        = string
+  default     = "us-east4"
 }
 
 variable "sa_account_id" {
@@ -49,6 +50,6 @@ variable "service_agent_version" {
 }
 
 variable "subnetwork_name" {
-  description = "Full path to subnetwork."
+  description = "The name of the existing subnetwork to use within the specified VPC network and region."
   type        = string
 }

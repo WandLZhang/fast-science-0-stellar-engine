@@ -2,10 +2,31 @@ data "google_project" "current" {
   project_id = var.main_project_id
 }
 
+data "google_compute_network" "network" {
+  name    = var.network_name
+  project = var.network_project_id
+}
+
+data "google_compute_subnetwork" "subnetwork" {
+  name    = var.subnetwork_name
+  region  = var.region
+  project = var.network_project_id
+}
+
 resource "google_project_service" "cloud_composer_api" {
   project            = var.main_project_id
   service            = "composer.googleapis.com"
   disable_on_destroy = false
+}
+
+resource "google_project_service_identity" "composer_agent" {
+  provider = google-beta
+  project  = var.main_project_id
+  service  = "composer.googleapis.com"
+
+  depends_on = [
+    google_project_service.cloud_composer_api
+  ]
 }
 
 resource "google_service_account" "composer" {
@@ -15,7 +36,7 @@ resource "google_service_account" "composer" {
 }
 
 resource "google_composer_environment" "main" {
-  provider = google-beta # Required for private IP
+  provider = google-beta
 
   project = var.main_project_id
   name    = var.composer_env_name
@@ -28,8 +49,8 @@ resource "google_composer_environment" "main" {
     }
 
     node_config {
-      network         = var.network_name
-      subnetwork      = var.subnetwork_name
+      network         = data.google_compute_network.network.self_link
+      subnetwork      = data.google_compute_subnetwork.subnetwork.self_link
       service_account = google_service_account.composer.name
     }
   }
