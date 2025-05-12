@@ -7,14 +7,10 @@ module "firestore" {
   source     = "../../../modules/firestore"
   project_id = var.main_project_id
   database = {
-    name        = var.firestore_database_name
-    location_id = var.region
-    type        = "FIRESTORE_NATIVE"
-
-    # Please refer to https://cloud.google.com/firestore/docs/cmek to request access to this feature.
-    # cmek_config = {
-    #   kms_key_name = var.kms_key_name
-    # }
+    name            = var.firestore_database_name
+    location_id     = var.region
+    type            = "FIRESTORE_NATIVE"
+    deletion_policy = "DELETE"
   }
 
   backup_schedule = var.backup_schedule

@@ -1,5 +1,5 @@
 variable "backup_schedule" {
-  description = "Backup schedule."
+  description = "The Backup schedule - select daily or weekly in your tfvars."
   type = object({
     retention         = string
     daily_recurrence  = optional(bool, false)
@@ -21,7 +21,7 @@ variable "kms_key_name" {
 
 variable "main_project_id" {
   type        = string
-  description = "The ID of the Google Cloud project."
+  description = "The main project ID of the Google Cloud project."
 }
 
 variable "region" {
