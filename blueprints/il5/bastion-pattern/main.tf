@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#Current Project
 data "google_project" "current" {}
 
 data "google_compute_network" "network" {
@@ -28,28 +27,22 @@ data "google_compute_subnetwork" "subnetwork" {
   project = var.network_project_id
 }
 
-# Custom service account with compute engine role
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
+
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
   project    = var.main_project_id
 }
 
-#Google KMS Module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.main_project_id
-  keys       = var.kms_key_names
-
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.compute.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com",
-    ]
-  }
-  keyring = var.kms_keyring_name
-}
-
-# Google Computer Firewall
 resource "google_compute_firewall" "default" {
   project = var.network_project_id
   name    = "allow-web"
@@ -58,11 +51,9 @@ resource "google_compute_firewall" "default" {
     protocol = "tcp"
     ports    = var.allowed_firewall_ports
   }
-  # Allowing to connect only within the VPC CIDR Range
   source_ranges = var.allowed_source_ranges
 }
 
-#Bastion compute instance
 module "bastion-vm" {
   source     = "../../../modules/compute-vm"
   project_id = var.main_project_id
@@ -91,10 +82,8 @@ module "bastion-vm" {
   service_account = {
     email = google_service_account.compute.email
   }
-
-  #Lockdown configuration
   encryption = {
-    kms_key_self_link = module.kms.keys.bastion.id
+    kms_key_self_link = data.google_kms_crypto_key.default.id
   }
   attached_disks = [
     {
@@ -104,7 +93,7 @@ module "bastion-vm" {
       initialize_params = {
         image = var.image
       }
-      kms_key_self_link = module.kms.keys.bastion.id
+      kms_key_self_link = data.google_kms_crypto_key.default.id
     }
   ]
 
@@ -113,7 +102,19 @@ module "bastion-vm" {
       image = var.image
     }
   }
-
-  depends_on = [module.kms]
+  depends_on = [
+    google_kms_crypto_key_iam_member.bastion_sa_kms_access
+  ]
 }
 
+resource "google_kms_crypto_key_iam_member" "bastion_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = google_service_account.compute.member
+}
+
+resource "google_kms_crypto_key_iam_member" "crypto_key" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
+}
