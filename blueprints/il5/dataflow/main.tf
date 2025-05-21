@@ -14,10 +14,40 @@
  * limitations under the License.
  */
 
-data "google_project" "project" {}
+data "google_project" "project" {
+  project_id = var.main_project_id
+}
+
+data "google_compute_network" "network" {
+  name    = var.network_name
+  project = var.network_project_id
+}
+
+data "google_compute_subnetwork" "subnetwork" {
+  name    = var.subnetwork_name
+  region  = var.region
+  project = var.network_project_id
+}
+
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
+
+resource "google_project_service_identity" "dataflow_agent" {
+  provider = google-beta
+  project  = var.main_project_id
+  service  = "dataflow.googleapis.com"
+}
 
 resource "google_project_service" "dataflow_api" {
-  project            = data.google_project.project.id
+  project            = var.main_project_id
   service            = "dataflow.googleapis.com"
   disable_on_destroy = false
 }
@@ -29,7 +59,8 @@ resource "google_service_account" "dataflow_worker" {
 
 resource "google_compute_firewall" "dataflow" {
   name    = var.firewall_name
-  network = module.vpc.self_link
+  network = data.google_compute_network.network.id
+  project = var.network_project_id
   allow {
     protocol = "tcp"
     ports    = var.allowed_firewall_ports
@@ -37,51 +68,28 @@ resource "google_compute_firewall" "dataflow" {
   source_ranges = var.allowed_source_ranges
 }
 
-# Google VPC Module
-module "vpc" {
-  source                  = "../../../modules/net-vpc"
-  project_id              = var.network_project_id
-  name                    = var.network_name
-  auto_create_subnetworks = false
-
-  delete_default_routes_on_create = false
-
-  subnets = [
-    {
-      name                  = var.subnetwork_name
-      region                = var.region
-      enable_private_access = true
-      ip_cidr_range         = var.ip_cidr_range
-      # CIS Compliance Benchmark 3.8
-      flow_logs_config = {
-        aggregation_interval = "INTERVAL_5_SEC"
-        flow_sampling        = 1.0
-        metadata             = "INCLUDE_ALL_METADATA"
-        filter_expression    = "false"
-      }
-    }
-  ]
-  dns_policy = {
-    logging = true # CIS Compliance Benchmark 2.12
-  }
+resource "google_compute_subnetwork_iam_member" "dataflow_sa_compute_network_user" {
+  subnetwork = data.google_compute_subnetwork.subnetwork.id
+  role       = "roles/compute.networkUser"
+  member     = google_project_service_identity.dataflow_agent.member
 }
 
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.main_project_id
-  keys       = var.kms_key_names
+resource "google_kms_crypto_key_iam_member" "compute_system_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com"
+}
 
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = concat(
-      [
-        "serviceAccount:service-${data.google_project.project.number}@compute-system.iam.gserviceaccount.com",                 # Compute Service Account Required by Dataflow
-        "serviceAccount:service-${data.google_project.project.number}@dataflow-service-producer-prod.iam.gserviceaccount.com", # Dataflow Service Account
-        "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"             # GCS Service Account
-      ]
-    )
-  }
+resource "google_kms_crypto_key_iam_member" "dataflow_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = google_project_service_identity.dataflow_agent.member
+}
 
-  keyring = var.kms_keyring_name
+resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
 module "gcs" {
@@ -90,28 +98,18 @@ module "gcs" {
   project_id     = var.main_project_id
   location       = var.region
   storage_class  = var.storage_class
-  encryption_key = module.kms.keys.dataflow-job.id
+  encryption_key = data.google_kms_crypto_key.default.id
   name           = var.bucket_name
 
   iam = {
-
-    # CIS Compliance Benchmark 1.5 - Read Access
-    "roles/storage.objectViewer" = concat( # Read Access
+    "roles/storage.objectUser" = concat(
       [
-        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service Account
-      ]
-    )
-    # CIS Compliance Benchmark 1.5 - Write Access
-    "roles/storage.objectCreator" = concat(
-      [
-        "serviceAccount:${google_service_account.dataflow_worker.email}" # Worker Service Account
+        "serviceAccount:${google_service_account.dataflow_worker.email}"
       ]
     )
   }
-
   force_destroy = true
-
-  depends_on = [module.kms]
+  depends_on    = [google_kms_crypto_key_iam_member.gcs_sa_kms_access]
 }
 
 resource "google_project_iam_member" "dataflow_worker" {
@@ -135,12 +133,12 @@ resource "google_dataflow_job" "job" {
 
   parameters = var.parameters
 
-  network    = module.vpc.name
-  subnetwork = "regions/${var.region}/subnetworks/${var.subnetwork_name}"
+  network    = var.network_project_id
+  subnetwork = data.google_compute_subnetwork.subnetwork.self_link
 
   ip_configuration = "WORKER_IP_PRIVATE" # Required for IL5
 
-  kms_key_name = module.kms.keys.dataflow-job.id
+  kms_key_name = data.google_kms_crypto_key.default.id
 
-  depends_on = [module.kms, module.gcs, module.vpc, google_project_iam_member.dataflow_worker]
+  depends_on = [module.gcs, google_project_iam_member.dataflow_worker, google_kms_crypto_key_iam_member.dataflow_sa_kms_access]
 }

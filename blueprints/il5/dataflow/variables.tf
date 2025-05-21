@@ -30,6 +30,11 @@ variable "bucket_name" {
   type        = string
 }
 
+variable "core_project_id" {
+  description = "Core Project ID."
+  type        = string
+}
+
 variable "dataflow_name" {
   description = "Name of the Dataflow project."
   type        = string
@@ -40,52 +45,14 @@ variable "firewall_name" {
   type        = string
 }
 
-variable "ip_cidr_range" {
-  description = "IP CIDR Range for DataFlow subnet."
+variable "kms_key_name" {
+  description = "The full self-link (projects/../locations/../cryptoKeys/..) of the existing KMS key to use for encryption."
   type        = string
-}
-
-variable "kms_key_names" {
-  description = "Key names and base attributes. Set attributes to null if not needed."
-  type = map(object({
-    destroy_scheduled_duration    = optional(string)
-    rotation_period               = optional(string, "7776000s") # CIS Compliance Benchmark 1.10
-    labels                        = optional(map(string))
-    purpose                       = optional(string, "ENCRYPT_DECRYPT")
-    skip_initial_version_creation = optional(bool, false)
-    version_template = optional(object({
-      algorithm        = string
-      protection_level = optional(string, "HSM")
-    }))
-
-    iam = optional(map(list(string)), {})
-    iam_bindings = optional(map(object({
-      members = list(string)
-      role    = string
-      condition = optional(object({
-        expression  = string
-        title       = string
-        description = optional(string)
-      }))
-    })), {})
-    iam_bindings_additive = optional(map(object({
-      member = string
-      role   = string
-      condition = optional(object({
-        expression  = string
-        title       = string
-        description = optional(string)
-      }))
-    })), {})
-  }))
 }
 
 variable "kms_keyring_name" {
   description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
+  type        = string
 }
 
 variable "main_project_id" {
@@ -104,7 +71,7 @@ variable "network_project_id" {
 }
 
 variable "parameters" {
-  description = "Daraflow Paramaters."
+  description = "Dataflow Paramaters."
   type        = map(string)
 }
 
