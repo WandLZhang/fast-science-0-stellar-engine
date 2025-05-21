@@ -1,4 +1,3 @@
-#https://cloud.google.com/spanner/docs/instance-configurations#regional-configurations
 variable "config_name" {
   description = "Cloud spanner instance config name."
   type        = string
@@ -23,7 +22,7 @@ variable "display_name" {
 variable "edition" {
   description = "The Spanner instance edition. Valid values are 'EDITION_UNSPECIFIED', 'STANDARD', 'ENTERPRISE', or 'ENTERPRISE_PLUS'."
   type        = string
-  default     = "ENTERPRISE" # ENTERPRISE is required for autoscaling
+  default     = "ENTERPRISE"
   validation {
     condition     = contains(["EDITION_UNSPECIFIED", "STANDARD", "ENTERPRISE", "ENTERPRISE_PLUS"], var.edition)
     error_message = "The edition must be one of 'EDITION_UNSPECIFIED', 'STANDARD', 'ENTERPRISE', or 'ENTERPRISE_PLUS'."
