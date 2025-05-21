@@ -1,16 +1,59 @@
-# Terraform end-to-end blueprints for Google Cloud
+# Terraform End-to-End Blueprints for Google Cloud
 
-This section provides **[networking blueprints](./networking/)** that implement core patterns or features, **[data solutions blueprints](./data-solutions/)** that demonstrate how to integrate data services in complete scenarios, **[cloud operations blueprints](./cloud-operations/)** that leverage specific products to meet specific operational needs, **[GKE](./gke/)** and **[Serverless](./serverless/)** blueprints, and **[factories](./factories/)** that implement resource factories for the repetitive creation of specific resources.
+This repository contains Terraform Blueprints for Google Cloud, designed to accelerate the deployment of various Google Cloud services. The table below provides a comprehensive list of available blueprints, indicating their applicability for FedRAMP High (FRH) and/or Impact Level 5 (IL5) compliance regimes. Each blueprint name links directly to its respective folder containing detailed documentation and Terraform code.
 
-Currently available blueprints:
+For more information, please see the individual README files in each blueprint's repository.
 
-- **apigee** - [Apigee Hybrid on GKE](./apigee/hybrid-gke/), [Apigee X analytics in BigQuery](./apigee/bigquery-analytics), [Apigee network patterns](./apigee/network-patterns/)
-- **cloud operations** - [Active Directory Federation Services](./cloud-operations/adfs), [Cloud Asset Inventory feeds for resource change tracking and remediation](./cloud-operations/asset-inventory-feed-remediation), [Fine-grained Cloud DNS IAM via Service Directory](./cloud-operations/dns-fine-grained-iam), [Cloud DNS & Shared VPC design](./cloud-operations/dns-shared-vpc), [Delegated Role Grants](./cloud-operations/iam-delegated-role-grants), [Network Quota Monitoring](./cloud-operations/network-quota-monitoring), [Managing on-prem service account keys by uploading public keys](./cloud-operations/onprem-sa-key-management), [Compute Image builder with Hashicorp Packer](./cloud-operations/packer-image-builder), [Packer example](./cloud-operations/packer-image-builder/packer), [Compute Engine quota monitoring](./cloud-operations/compute-quota-monitoring), [Scheduled Cloud Asset Inventory Export to Bigquery](./cloud-operations/scheduled-asset-inventory-export-bq), [Configuring workload identity federation with Terraform Cloud/Enterprise workflows](./cloud-operations/terraform-cloud-dynamic-credentials), [TCP healthcheck and restart for unmanaged GCE instances](./cloud-operations/unmanaged-instances-healthcheck), [Migrate for Compute Engine (v5) blueprints](./cloud-operations/vm-migration), [Configuring workload identity federation to access Google Cloud resources from apps running on Azure](./cloud-operations/workload-identity-federation)
-- **data solutions** - [GCE and GCS CMEK via centralized Cloud KMS](./data-solutions/cmek-via-centralized-kms), [Cloud Composer version 2 private instance, supporting Shared VPC and external CMEK key](./data-solutions/composer-2), [Cloud SQL instance with multi-region read replicas](./data-solutions/cloudsql-multiregion), [Data Platform](./data-solutions/data-platform-foundations), [Minimal Data Platform](./data-solutions/data-platform-minimal), [Spinning up a foundation data pipeline on Google Cloud using Cloud Storage, Dataflow and BigQuery](./data-solutions/gcs-to-bq-with-least-privileges), [#SQL Server Always On Groups blueprint](./data-solutions/sqlserver-alwayson), [Data Playground](./data-solutions/data-playground), [MLOps with Vertex AI](./data-solutions/vertex-mlops), [Shielded Folder](./data-solutions/shielded-folder), [BigQuery ML and Vertex AI Pipeline](./data-solutions/bq-ml)
-- **factories** - [Fabric resource factories](./factories)
-- **GKE** - [Binary Authorization Pipeline Blueprint](./gke/binauthz), [Storage API](./gke/binauthz/image), [Multi-cluster mesh on GKE (fleet API)](./gke/multi-cluster-mesh-gke-fleet-api), [GKE Multitenant Blueprint](./gke/multitenant-fleet), [Shared VPC with GKE support](./networking/shared-vpc-gke/), [GKE Autopilot](./gke/autopilot)
-- **networking** - [Calling a private Cloud Function from On-premises](./networking/private-cloud-function-from-onprem), [HA VPN over Interconnect](./networking/ha-vpn-over-interconnect/), [GLB and multi-regional daisy-chaining through hybrid NEGs](./networking/glb-hybrid-neg-internal), [Hybrid connectivity to on-premise services through PSC](./networking/psc-hybrid), [HTTP Load Balancer with Cloud Armor](./networking/glb-and-armor), [Internal Load Balancer as Next Hop](./networking/ilb-next-hop), On-prem DNS and Google Private Access,  [PSC Producer](./networking/psc-hybrid/psc-producer), [PSC Consumer](./networking/psc-hybrid/psc-consumer), [Shared VPC with optional GKE cluster](./networking/shared-vpc-gke), [VPC Connectivity Lab](./networking/vpc-connectivity-lab/)
-- **serverless** - [Cloud Run series](./serverless/cloud-run-explore)
-- **third party solutions** - [OpenShift on GCP user-provisioned infrastructure](./third-party-solutions/openshift), [Wordpress deployment on Cloud Run](./third-party-solutions/wordpress/cloudrun)
+## Available Blueprints
 
-For more information see the individual README files in each section.
+|  Blueprint                                                                  |  FRH                             |  IL5                             |
+|-----------------------------------------------------------------------------|:--------------------------------:|:--------------------------------:|
+|  [Access Context Manager](./fedramp-high/access-context-manager/)            |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [App Engine](./fedramp-high/app-engine/)                                    |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Artifact Registry](./il5/artifact-registry/)                               |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Bastion Pattern](./il5/bastion-pattern/)                                   |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [BCAP](./il5/bcap/)                                                         |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [BeyondCorp](./fedramp-high/beyondcorp/)                                    |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Bigtable](./fedramp-high/bigtable/)                                        |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [BQ Project](./il5/bq-project/)                                             |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Cloud Armor](./fedramp-high/cloud-armor/)                                  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Composer Environment](./fedramp-high/cloud-composer-environment/)    |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Functions](./fedramp-high/cloud-functions/)                          |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud IDS](./fedramp-high/cloud-ids/)                                      |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Run](./fedramp-high/cloud-run/)                                      |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Scheduler Job](./fedramp-high/cloud-scheduler-job/)                  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Spanner](./fedramp-high/cloud-spanner/)                              |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Translation](./fedramp-high/cloud-translation/)                      |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Cloud Workstations](./fedramp-high/cloud-workstations/)                    |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [CNAP](./fedramp-high/cnap/)                                                |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Compute Engine](./il5/compute-engine/)                                     |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Dataflow](./il5/dataflow/)                                                 |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Datafusion](./fedramp-high/datafusion/)                                    |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Dataproc Cluster](./fedramp-high/dataproc-cluster/)                        |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Datastore](./fedramp-high/datastore/)                                      |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Document AI](./fedramp-high/document-ai/)                                  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Firestore](./fedramp-high/firestore/)                                      |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [GCS Project](./il5/gcs-project/)                                           |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [GitLab](./fedramp-high/gitlab/)                                            |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [GKE](./il5/gke/)                                                           |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [GKE Hardened](./il5/gke-hardened/)                                         |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [KMS Project](./il5/kms-project/)                                           |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Network Connectivity Center](./fedramp-high/network-connectivity-center/)  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [PostgreSQL](./il5/postgresql/)                                             |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Private Service Connect](./il5/private-service-connect/)                   |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Pub Sub Project](./il5/pub-sub-project/)                                   |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Secret Manager](./fedramp-high/secret-manager/)                            |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [Shielded VM Project](./il5/shielded-vm-project/)                           |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Vertex MLOps](./fedramp-high/vertex-mlops/)                                |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+|  [VPC Peering Project](./il5/vpc-peering-project/)                           |  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |
+|  [Workflows](./fedramp-high/workflows/)                                      |  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |
+
+<br>
+
+**Legend**
+
+|  Symbol                          |  Availability      |  Description                                                                                              |
+|:--------------------------------:|:-------------------|:----------------------------------------------------------------------------------------------------------|
+|  &nbsp; &nbsp; ✅ &nbsp; &nbsp;  |  Available         |  The blueprint **is** directly developed for the respective compliance regime                             |
+|  &nbsp; &nbsp; ❌ &nbsp; &nbsp;  |  Not Available     |  The blueprint **is not** developed for the respective compliance regime.                                 |
+|  &nbsp; &nbsp; 🔗 &nbsp; &nbsp;  |  Linked Blueprint  |  Indicates availability in the respective compliance regime via a symbolic link to its primary location.  |
