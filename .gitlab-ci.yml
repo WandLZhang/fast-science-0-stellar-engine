@@ -14,24 +14,12 @@
 # To contribute improvements to CI/CD templates, please follow the Development guide at:
 # https://docs.gitlab.com/ee/development/cicd/templates.html
 # This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+# https://gitlab.com/gitlab-org/gitlab/-/blob/main/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 stages: # List of stages for jobs, and their order of execution
   - lint
   - test
   - sonarqube-check
   - deploy
-
-shellcheck-lint:
-  stage: test
-  image: koalaman/shellcheck-alpine:stable
-  script:
-    - echo "Running ShellCheck..."
-    # Find all files ending with .sh recursively from the current directory (.)
-    # -print0 and xargs -0 are used to correctly handle filenames
-    # that might contain spaces or special characters.
-    # Skip modules directory
-    - find . -path ./modules -prune -o -type f -name "*.sh" -print0 | xargs -0 shellcheck
-
 
 stages-aw-formatting:
   stage: lint
@@ -88,6 +76,13 @@ tflint-blueprints:
       - reports/blueprints-tflint.sarif
     when: always
 
+shellcheck:
+  stage: test
+  image: koalaman/shellcheck-alpine:stable
+  script:
+    - echo "Running ShellCheck..."
+    - find . -path ./modules -prune -o -type f -name "*.sh" -print0 | xargs -0 shellcheck -x -s bash
+
 validate-stages-aw:
   stage: test
   image:
@@ -100,7 +95,7 @@ validate-stages-aw:
   script:
     - cd fast/stages-aw
     - for i in $(ls -d */); do cd $i; terraform init; terraform validate; cd ..; done
-
+  
 validate-blueprints:
   stage: test
   image:

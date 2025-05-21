@@ -54,6 +54,7 @@ The final number of subnets, and their IP addressing will depend on the user-spe
 - [Configuring Palo Alto NGFWs](#configuring-palo-alto-ngfws)
   - [Reaching the Management Console](#reaching-the-management-console)
   - [Updating configuration](#updating-configuration)
+- [Redeployment](#redeployment)
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
@@ -368,6 +369,9 @@ There is currently no way to automate this process, but take the version of the 
 * `ssh_pubkey`: Used 2 times, once near the top and once near the middle
 * `healthcheck_cidrs`: Used 1 time as part of a Jinja template loop. Make sure to copy the entire loop starting with `%{ for` and ending with `%{ endfor`
 * `iap_cidrs`: Used 1 time as part of a Jinja template loop. Make sure to copy the entire loop starting with `%{ for` and ending with `%{ endfor`
+
+# Redeployment
+If you are redeploying this stage with the same prefix, please run "pre-redeploy.sh" to handle imports.
 
 ---
 <!-- BEGIN TFDOC -->

@@ -276,7 +276,7 @@ variable "prefix" {
   description = "Prefix used for resources that need unique names. Use 9 characters or less."
   type        = string
   validation {
-    condition     = try(length(var.prefix), 0) < 10
+    condition     = try(length(var.prefix), 0) <= 7
     error_message = "Use a maximum of 7 characters for prefix."
   }
 }

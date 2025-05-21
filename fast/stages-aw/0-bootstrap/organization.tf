@@ -212,8 +212,9 @@ module "branch-common-services-folder" {
 
 
 module "organization" {
-  source          = "../../../modules/organization"
+  source          = "../../../modules/organization-se"
   organization_id = module.organization-logging.id
+  prefix          = var.prefix
   # human (groups) IAM bindings
   iam_by_principals = {
     for k, v in local.iam_principals :
