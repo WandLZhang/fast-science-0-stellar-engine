@@ -26,6 +26,11 @@ variable "compute_service_account_id" {
   # Example  default = "compute-service-account"
 }
 
+variable "core_project_id" {
+  description = "Core Project ID."
+  type        = string
+}
+
 variable "disksize" {
   description = "Provide the Size of the size in GB."
   type        = number
@@ -33,7 +38,7 @@ variable "disksize" {
 }
 
 variable "instance_name" {
-  description = "Provide the name of the Compute Instance."
+  description = "Provide the name of the Shielded Compute VM."
   type        = string
   default     = "shieled-vm-inst"
 }
@@ -45,70 +50,14 @@ variable "instance_type" {
   #Example  default     = "e2-micro"
 }
 
-variable "ip_cidr_range" {
-  description = "The IP CIDR range for the VPC."
+variable "kms_key_name" {
+  description = "The full self-link (projects/../locations/../cryptoKeys/..) of the existing KMS key to use for encryption."
   type        = string
-  #Example  default     = "10.0.1.0/24"
-}
-variable "kms_key_names" {
-  description = "Key names and base attributes. Set attributes to null if not needed."
-  type = map(object({
-    destroy_scheduled_duration    = optional(string)
-    rotation_period               = optional(string, "7776000s") # CIS Compliance Benchmark 1.10
-    labels                        = optional(map(string))
-    purpose                       = optional(string, "ENCRYPT_DECRYPT")
-    skip_initial_version_creation = optional(bool, false)
-    version_template = optional(object({
-      algorithm        = string
-      protection_level = optional(string, "HSM")
-    }))
-
-    iam = optional(map(list(string)), {})
-    iam_bindings = optional(map(object({
-      members = list(string)
-      role    = string
-      condition = optional(object({
-        expression  = string
-        title       = string
-        description = optional(string)
-      }))
-    })), {})
-    iam_bindings_additive = optional(map(object({
-      member = string
-      role   = string
-      condition = optional(object({
-        expression  = string
-        title       = string
-        description = optional(string)
-      }))
-    })), {})
-  }))
-  default = {
-    "default" = {
-      destroy_scheduled_duration    = null
-      rotation_period               = null
-      labels                        = null
-      purpose                       = "ENCRYPT_DECRYPT"
-      skip_initial_version_creation = false
-      version_template = {
-        algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-        protection_level = "HSM"
-      }
-
-      iam                   = {}
-      iam_bindings          = {}
-      iam_bindings_additive = {}
-    }
-  }
-  nullable = false
 }
 
 variable "kms_keyring_name" {
   description = "Keyring attributes."
-  type = object({
-    location = string
-    name     = string
-  })
+  type        = string
 }
 
 variable "main_project_id" {
@@ -118,6 +67,11 @@ variable "main_project_id" {
 
 variable "network_name" {
   description = "The name of the VPC."
+  type        = string
+}
+
+variable "network_project_id" {
+  description = "Project that the Compute Engine VPC is located."
   type        = string
 }
 

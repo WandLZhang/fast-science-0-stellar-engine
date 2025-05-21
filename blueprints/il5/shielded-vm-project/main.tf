@@ -14,17 +14,43 @@
  * limitations under the License.
  */
 
+data "google_project" "current" {
+  project_id = var.main_project_id
+}
 
-# Work on the Current Project
-data "google_project" "current" {}
+data "google_compute_network" "network" {
+  name    = var.network_name
+  project = var.network_project_id
+}
 
-# Custom service account with compute engine role
+data "google_compute_subnetwork" "subnetwork" {
+  name    = var.subnetwork_name
+  region  = var.region
+  project = var.network_project_id
+}
+
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
+
 resource "google_service_account" "compute" {
   account_id = var.compute_service_account_id
   project    = var.main_project_id
 }
 
-# Google Compute Shielded VM Module
+resource "google_kms_crypto_key_iam_member" "compute" {
+  crypto_key_id = data.google_kms_crypto_key.default.id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
+}
+
 module "shielded-vm" {
   source     = "../../../modules/compute-vm"
   project_id = var.main_project_id
@@ -44,11 +70,11 @@ module "shielded-vm" {
   confidential_compute = true # CIS Compliance Benchmark 4.11 - Must use compliant instance type
 
   network_interfaces = [{
-    network    = module.vpc.network.self_link
-    subnetwork = module.vpc.subnet_self_links["${var.region}/${var.subnetwork_name}"]
+    network    = data.google_compute_network.network.self_link
+    subnetwork = data.google_compute_subnetwork.subnetwork.self_link
   }]
   encryption = {
-    kms_key_self_link = module.kms.keys.default.id
+    kms_key_self_link = data.google_kms_crypto_key.default.id
   }
 
   # CIS Compliance Benchmark 4.1
@@ -61,7 +87,7 @@ module "shielded-vm" {
       auto_delete       = true
       size              = var.disksize
       name              = "data-disk"
-      kms_key_self_link = module.kms.keys.default.id
+      kms_key_self_link = data.google_kms_crypto_key.default.id
     }
   ]
 
@@ -71,57 +97,16 @@ module "shielded-vm" {
     }
   }
 
-  depends_on = [module.kms, google_service_account.compute]
+  depends_on = [google_service_account.compute]
 }
 
-# Google KMS Module
-module "kms" {
-  source     = "../../../modules/kms"
-  project_id = var.main_project_id
-  keys       = var.kms_key_names
-  iam = {
-    "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.compute.member,
-      "serviceAccount:service-${data.google_project.current.number}@compute-system.iam.gserviceaccount.com"
-    ]
-  }
-  keyring = var.kms_keyring_name
-}
-
-# Google VPC Module
-module "vpc" {
-  source                          = "../../../modules/net-vpc"
-  project_id                      = var.main_project_id
-  name                            = var.network_name
-  auto_create_subnetworks         = false
-  delete_default_routes_on_create = true
-  routing_mode                    = "GLOBAL"
-  subnets = [
-    {
-      name          = var.subnetwork_name
-      region        = var.region
-      ip_cidr_range = var.ip_cidr_range
-      # CIS Compliance Benchmark 3.8
-      flow_logs_config = {
-        aggregation_interval = "INTERVAL_5_SEC"
-        flow_sampling        = 1.0
-        metadata             = "INCLUDE_ALL_METADATA"
-        filter_expression    = "false"
-      }
-    }
-  ]
-  dns_policy = {
-    logging = true # CIS Compliance Benchmark 2.12
-  }
-}
-# Google Computer Firewall
 resource "google_compute_firewall" "default" {
   name    = "allow-firewall-rules"
-  network = module.vpc.network.self_link
+  network = data.google_compute_network.network.id
+  project = var.network_project_id
   allow {
     protocol = "tcp"
     ports    = var.allowed_firewall_ports
   }
-  # Allowing to connect only within the VPC CIDR Range
   source_ranges = var.source_ranges_allowed
 }

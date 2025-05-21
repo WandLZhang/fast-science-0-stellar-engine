@@ -14,31 +14,6 @@
  * limitations under the License.
  */
 
-output "keyring-id" {
-  description = "Fully qualified keyring id."
-  value       = module.kms.id
-}
-
-output "keyring-location" {
-  description = "Keyring location."
-  value       = module.kms.location
-}
-
-output "keyring-name" {
-  description = "Keyring name."
-  value       = module.kms.name
-}
-
-output "keyring-resource" {
-  description = "Keyring resource."
-  value       = module.kms.keyring
-}
-
-output "keyrings-keys" {
-  description = "Key resources."
-  value       = module.kms.keys
-}
-
 output "shielded-vm-instance" {
   description = "Instance resource."
   sensitive   = true
