@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-data "google_project" "current" {}
+data "google_project" "current" {
+  project_id = var.main_project_id
+}
 
 data "google_project" "landing_project" {
   project_id = var.network_project_id
@@ -29,13 +31,34 @@ data "google_compute_network" "network" {
   project = var.network_project_id
 }
 
-# Dataproc Customer Service Account
+data "google_compute_subnetwork" "subnetwork" {
+  name    = var.subnetwork_name
+  region  = var.region
+  project = var.network_project_id
+}
+
+data "google_kms_key_ring" "default" {
+  name     = var.kms_keyring_name
+  location = var.region
+  project  = var.core_project_id
+}
+
+data "google_kms_crypto_key" "default" {
+  name     = var.kms_key_name
+  key_ring = data.google_kms_key_ring.default.id
+}
+
+resource "google_project_service" "dataproc_api" {
+  project            = var.main_project_id
+  service            = "dataproc.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_service_account" "dataproc_vm" {
   account_id   = "dp-${var.main_project_id}"
   display_name = "Dataproc Worker Service Account"
 }
 
-#  https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/network
 resource "google_compute_firewall" "dataproc" {
   project = var.network_project_id
   name    = var.firewall_name
@@ -60,7 +83,7 @@ module "gcs" {
   project_id     = var.main_project_id
   location       = var.region
   storage_class  = "STANDARD"
-  encryption_key = "projects/${var.core_project_id}/locations/${var.region}/keyRings/${var.kms_keyring_name}/cryptoKeys/${var.kms_key_name}"
+  encryption_key = data.google_kms_crypto_key.default.id
   name           = var.dataproc_bucket_name
 
   iam = {
@@ -78,7 +101,9 @@ module "gcs" {
 
   force_destroy = true
 
-  depends_on = [google_kms_crypto_key_iam_binding.dataproc_kms]
+  depends_on = [
+    google_kms_crypto_key_iam_binding.dataproc_kms
+  ]
 }
 
 module "dataproc_cluster" {
@@ -88,10 +113,8 @@ module "dataproc_cluster" {
   region     = var.region
   dataproc_config = {
     cluster_config = {
-
-      # Encryption on the Cluster does not work as of 14 NOV 2024
       encryption_config = {
-        kms_key_name = "projects/${var.core_project_id}/locations/${var.region}/keyRings/${var.kms_keyring_name}/cryptoKeys/${var.kms_key_name}"
+        kms_key_name = data.google_kms_crypto_key.default.id
       }
 
       staging_bucket = module.gcs.name
@@ -100,16 +123,13 @@ module "dataproc_cluster" {
         internal_ip_only       = true
         service_account        = google_service_account.dataproc_vm.email
         service_account_scopes = ["cloud-platform"]
-        subnetwork             = "projects/${var.network_project_id}/regions/${var.region}/subnetworks/${var.subnetwork_name}"
+        subnetwork             = data.google_compute_subnetwork.subnetwork.id
         tags                   = ["dataproc"]
         zone                   = "${var.region}-c"
       }
     }
   }
-
   depends_on = [
     google_kms_crypto_key_iam_binding.dataproc_kms
   ]
-
 }
-

@@ -29,11 +29,6 @@ variable "dataproc_cluster_name" {
   type        = string
 }
 
-variable "dataproc_name" {
-  description = "Name of the Dataproc instance."
-  type        = string
-}
-
 variable "firewall_name" {
   description = "The Dataproc firewall name."
   type        = string

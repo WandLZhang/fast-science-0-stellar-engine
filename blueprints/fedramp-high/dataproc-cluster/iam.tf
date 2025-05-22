@@ -24,7 +24,7 @@ resource "google_project_iam_member" "dataproc_compute_viewer" {
 }
 
 resource "google_kms_crypto_key_iam_binding" "dataproc_kms" {
-  crypto_key_id = "projects/${var.core_project_id}/locations/${var.region}/keyRings/${var.kms_keyring_name}/cryptoKeys/${var.kms_key_name}"
+  crypto_key_id = data.google_kms_crypto_key.default.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   members = [
     google_service_account.dataproc_vm.member,
