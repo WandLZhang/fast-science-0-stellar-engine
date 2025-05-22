@@ -18,6 +18,16 @@
 
 locals {
   proxy_subnets = yamldecode(file("./data/subnets/proxy-subnets.yaml")).proxy-subnets
+
+  tenant_subnets_map_of_maps = {
+    for pairing in setproduct(values(var.tenant_accounts), values(var.regions)) : "${pairing[0].main_project}-${pairing[1]}" => {
+      "project"         = pairing[0].main_project,
+      "tenant"          = pairing[0].tenant,
+      "admin_principal" = pairing[0].admin_principal
+      "region"          = pairing[1],
+      "env"             = pairing[0].env
+    }
+  }
 }
 module "env-spoke-projects" {
   source          = "../../../modules/project"
@@ -191,4 +201,13 @@ module "env-dns-peer-landing-root" {
       peer_network    = module.vdss-vpc.self_link
     }
   }
+}
+
+resource "google_compute_subnetwork_iam_member" "allow-admin-principals" {
+  for_each   = local.tenant_subnets_map_of_maps
+  project    = each.value.project
+  region     = each.value.region
+  subnetwork = module.env-spoke-vpc[each.value.env].subnet_ids["${each.value.region}/default-${each.value.region}"]
+  role       = "roles/compute.networkUser"
+  member     = each.value.admin_principal
 }

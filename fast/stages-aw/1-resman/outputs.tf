@@ -379,9 +379,10 @@ locals {
     }
   }
   tenant_accounts = { for k, v in local.tenant_envs : k => {
-    main_project = module.tenant-self-main-projects[k].id
-    env          = v.env
-    tenant       = v.tenant
+    main_project    = module.tenant-self-main-projects[k].id
+    env             = v.env
+    tenant          = v.tenant
+    admin_principal = var.tenants[v.tenant].admin_principal
   } }
   tfvars = {
     checklist_hierarchy = local.checklist.hierarchy

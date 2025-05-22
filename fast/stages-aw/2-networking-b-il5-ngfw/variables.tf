@@ -167,9 +167,11 @@ variable "tenant_accounts" {
   # tfdoc:variable:soruce 1-resman
   description = "Base Tenant accounts that are created for each folder, provided as a combination of environment and tenant."
   type = map(object({
-    tenant = string
-    env    = string
-  main_project = string }))
+    tenant          = string
+    env             = string
+    main_project    = string
+    admin_principal = string
+  }))
 }
 
 # To get a list of available official images, please run the following command:

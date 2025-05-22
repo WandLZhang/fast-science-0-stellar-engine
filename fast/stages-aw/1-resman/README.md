@@ -285,17 +285,17 @@ Due to its simplicity, this stage lends itself easily to customizations: adding 
 
 | name | description | sensitive |
 |---|---|:---:|
-| [cicd_repositories](outputs.tf#L398) | WIF configuration for CI/CD repositories. |  |
-| [dataplatform](outputs.tf#L412) | Data for the Data Platform stage. |  |
-| [envs](outputs.tf#L428) | Environments folders created for the tenants. |  |
-| [gcve](outputs.tf#L433) | Data for the GCVE stage. |  |
-| [gke_multitenant](outputs.tf#L454) | Data for the GKE multitenant stage. |  |
-| [networking](outputs.tf#L475) | Data for the networking stage. |  |
-| [project_factories](outputs.tf#L484) | Data for the project factories stage. |  |
-| [providers](outputs.tf#L499) | Terraform provider files for this stage and dependent stages. | ✓ |
-| [sandbox](outputs.tf#L506) | Data for the sandbox stage. |  |
-| [security](outputs.tf#L520) | Data for the networking stage. |  |
-| [team_cicd_repositories](outputs.tf#L530) | WIF configuration for Team CI/CD repositories. |  |
-| [teams](outputs.tf#L544) | Data for the teams stage. |  |
-| [tfvars](outputs.tf#L556) | Terraform variable files for the following stages. | ✓ |
+| [cicd_repositories](outputs.tf#L399) | WIF configuration for CI/CD repositories. |  |
+| [dataplatform](outputs.tf#L413) | Data for the Data Platform stage. |  |
+| [envs](outputs.tf#L429) | Environments folders created for the tenants. |  |
+| [gcve](outputs.tf#L434) | Data for the GCVE stage. |  |
+| [gke_multitenant](outputs.tf#L455) | Data for the GKE multitenant stage. |  |
+| [networking](outputs.tf#L476) | Data for the networking stage. |  |
+| [project_factories](outputs.tf#L485) | Data for the project factories stage. |  |
+| [providers](outputs.tf#L500) | Terraform provider files for this stage and dependent stages. | ✓ |
+| [sandbox](outputs.tf#L507) | Data for the sandbox stage. |  |
+| [security](outputs.tf#L521) | Data for the networking stage. |  |
+| [team_cicd_repositories](outputs.tf#L531) | WIF configuration for Team CI/CD repositories. |  |
+| [teams](outputs.tf#L545) | Data for the teams stage. |  |
+| [tfvars](outputs.tf#L557) | Terraform variable files for the following stages. | ✓ |
 <!-- END TFDOC -->
