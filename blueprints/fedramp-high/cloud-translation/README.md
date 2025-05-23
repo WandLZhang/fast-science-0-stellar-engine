@@ -1,16 +1,24 @@
-# Cloud Translate Blueprint
-This blueprint demonstrates how to use the Translation LLM from Vertex AI Model Garden on Google Cloud Platform (GCP).
+# Cloud Translation
 
 <!-- BEGIN TOC -->
+- [Introduction to Google Cloud Translation](#introduction-to-google-cloud-translation)
+- [Cloud Translatation Blueprint](#cloud-translatation-blueprint)
 - [Disclaimer](#disclaimer)
 - [Deployment Steps](#deployment-steps)
+- [Verification of a successful deployment](#verification-of-a-successful-deployment)
 - [Demo](#demo)
 - [Variables](#variables)
 - [Outputs](#outputs)
 <!-- END TOC -->
 
+## Introduction to Google Cloud Translation
+Google Cloud Translation provides a comprehensive set of AI-powered services for breaking down language barriers. Its core Cloud Translation API offers Text, Document, and Batch Translation for converting content in various formats, complemented by Language Detection. For managing complex translation workflows, Translation Hub offers a centralized portal with human-in-the-loop capabilities. Users can also achieve higher accuracy for specialized content by training custom models with AutoML Translation and ensuring consistent terminology across all translations using Glossaries.
+
+## Cloud Translatation Blueprint
+The deployment of a Cloud Translation blueprint delivers scalable translation capabilities, encompassing real-time text conversion alongside asynchronous batch and document processing. It can be built to incorporate the creation of AutoML Translation models to achieve domain-specific accuracy, a process that necessitates dedicated data management and training pipelines. Simultaneously, the establishment of Glossaries provides consistent terminology application across all translation tasks. Integrating Translation Hub establishes a managed portal for human-machine translation workflows, streamlining operational processes. The overall impact ranges from immediate global communication and content localization to optimized security, cost management, and efficient, customized translation pipelines.
+
 ## Disclaimer
-- The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization.
+- The present GCP Terraform Module in this project is set up and intended to be implemented in a FEDRAMP High environment using the Assured Workdloads within the Google Cloud Platform (GCP) organization. The Translation API must be enabled in the GCP in order for the workloads to be viewed.
 
 ## Deployment Steps
 1. Copy the contents of the terraform.tfvars.sample file into your own terraform.tfvars file, then update the variables in this file. For reference update the following variables:
@@ -28,7 +36,8 @@ This blueprint demonstrates how to use the Translation LLM from Vertex AI Model 
 ```terraform apply``` to apply the infrastructure build<br />
 ```terraform destroy``` only if you wish to destroy the built infrastructure<br />
 
-To verify a successful deployment, look for workflows in the Google Cloud Console. You should see a newly created workflow named "translate-workflow". Next, check for buckets named "(YOUR-PROJECT-ID)-translate-input" and "(YOUR-PROJECT-ID)-translate-output".
+## Verification of a successful deployment
+Use the GCP console to verify if the workflows are created. You can confirm by first clicking try translation API on the GCP translation API link, https://cloud.google.com/translate. There will be a button that either says manage or enable. If it does not say manage it means that the API is not enabled, after enabling and clicking into manage the workloads will become visible. You should see a newly created workflow named "translate-workflow". Next, check for buckets named "(YOUR-PROJECT-ID)-translate-input" and "(YOUR-PROJECT-ID)-translate-output".
 
 ## Demo
 If you would like to use the Translation LLM directly from the Google Cloud Console, follow this [link](https://console.cloud.google.com/vertex-ai/studio/translation).
@@ -40,6 +49,7 @@ To use the created workflow for batch translations, continue to the following st
 3. Go to workflows, and click on your newly created "translate-workflow".
 4. Click "Execute", then click "Execute" again.
 5. After the workflow executes, look at the output bucket to view your translated documents.
+
 <!-- BEGIN TFDOC -->
 ## Variables
 
