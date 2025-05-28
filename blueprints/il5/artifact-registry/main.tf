@@ -105,6 +105,20 @@ resource "google_artifact_registry_repository" "docker-repos" {
   ]
 }
 
+resource "google_artifact_registry_repository" "docker-repos-developer" {
+  for_each = var.developer_registries
+
+  location      = var.region
+  repository_id = each.key
+  description   = "Developer repo for ${each.key}"
+  format        = "DOCKER"
+  kms_key_name  = data.google_kms_crypto_key.default.id
+  depends_on = [
+    google_project_service.api,
+    google_kms_crypto_key_iam_member.artifact_registry_crypto_key
+  ]
+}
+
 resource "google_kms_crypto_key_iam_member" "artifact_registry_crypto_key" {
   crypto_key_id = data.google_kms_crypto_key.default.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
@@ -113,3 +127,23 @@ resource "google_kms_crypto_key_iam_member" "artifact_registry_crypto_key" {
     google_project_service_identity.artifact_registry_agent
   ]
 }
+# Grant all the writers access to the developer based registries
+resource "google_artifact_registry_repository_iam_binding" "writer-permissions" {
+  for_each   = var.developer_registries
+  project    = google_artifact_registry_repository.docker-repos-developer[each.key].project
+  location   = google_artifact_registry_repository.docker-repos-developer[each.key].location
+  repository = google_artifact_registry_repository.docker-repos-developer[each.key].name
+  role       = "roles/artifactregistry.writer"
+  members    = coalesce(each.value.writers, [])
+}
+
+# Grant all the readers access to the developer based registries
+resource "google_artifact_registry_repository_iam_binding" "reader-permissions" {
+  for_each   = var.developer_registries
+  project    = google_artifact_registry_repository.docker-repos-developer[each.key].project
+  location   = google_artifact_registry_repository.docker-repos-developer[each.key].location
+  repository = google_artifact_registry_repository.docker-repos-developer[each.key].name
+  role       = "roles/artifactregistry.reader"
+  members    = coalesce(each.value.readers, [])
+}
+

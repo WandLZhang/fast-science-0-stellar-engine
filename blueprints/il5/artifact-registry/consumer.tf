@@ -22,7 +22,7 @@ resource "google_kms_crypto_key_iam_member" "compute_agent_kms_access" {
 }
 
 data "google_compute_network" "network" {
-  name    = var.network_name
+  name    = var.vpc_network_name
   project = var.network_project_id
 }
 

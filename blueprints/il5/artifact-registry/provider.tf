@@ -16,4 +16,6 @@ terraform {
 provider "google" {
   project = var.main_project_id
   region  = var.region
+  # impersonate_service_account = "XXXXX-iac-0@XXXX-iac-core-0.iam.gserviceaccount.com"
 }
+
