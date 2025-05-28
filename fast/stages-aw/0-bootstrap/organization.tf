@@ -296,16 +296,4 @@ module "organization" {
   }
   org_policies = var.bootstrap_user != null ? {} : local.org_policies
 
-  tags = {
-    (var.org_policies_config.tag_name) = {
-      description = "Organization policy conditions."
-      iam         = {}
-      values = merge(
-        {
-          allowed-policy-member-domains-all = {}
-        },
-        var.org_policies_config.tag_values
-      )
-    }
-  }
 }

@@ -45,11 +45,7 @@ module "branch-sandbox-folder" {
     "sql.restrictPublicIp"       = { rules = [{ enforce = false }] }
     "compute.vmExternalIpAccess" = { rules = [{ allow = { all = true } }] }
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.context}/sandbox"].id, null
-    )
-  }
+  tag_bindings = null
 }
 
 module "branch-sandbox-gcs" {

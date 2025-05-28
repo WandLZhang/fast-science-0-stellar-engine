@@ -9,7 +9,6 @@ This stage provisions Int, Test, and Prod Google Cloud Folders, and Google Cloud
 - [Design Overview and Choices](#design-overview-and-choices)
 - [How to Run This Stage](#how-to-run-this-stage)
   - [Impersonating the Automation Service Account](#impersonating-the-automation-service-account)
-  - [Secure Tags](#secure-tags)
   - [Lightweight multitenancy](#lightweight-multitenancy)
   - [Team Google Cloud Folders](#team-google-cloud-folders)
   - [IAM](#iam)
@@ -29,37 +28,6 @@ For detailed information on prerequisites and steps to deploy this stage, please
 ### Impersonating the Automation Service Account
 
 The preconfigured provider file uses impersonation to run with this stage's automation service account's credentials. The `gcp-devops` and `organization-admins` groups have the necessary IAM bindings in place to do that, so make sure the current user is a member of one of those groups.
-
-### Secure Tags
-
-This stage manages [Secure Tags](https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing) at the organization level, via two sets of keys and values:
-
-- a default set of tags used by FAST itself in specific IAM conditions that allow automation service accounts to gain Google Cloud Organization-level privileges or specific access to parts of the resource management hierarchy
-- an optional set of user-defined tags that can be used in Google Cloud Organization policy or IAM conditions
-
-The first set of default tags cannot be overridden and defines the following keys and values (key names can be changed via the `tag_names` variable):
-
-- `context` to identify parts of the resource hierarchy, with `data`, `gke`, `networking`, `sandbox`, `security` and `teams` values
-- `environment` to identify Google Cloud Folders and Google Cloud Projects belonging to specific environments, with `development` and `production` values
-- `tenant` for FAST multitenant, with one value for each defined tenant that identifies their specific set of resources
-
-The second set is optional and allows defining a custom tag hierarchy, including IAM bindings that can refer to specific identities, or to the internally defined automation service accounts via their names, like in the following example:
-
-```tfvars
-tags = {
-  my-custom-tag = {
-    values = {
-      eggs = {}
-      spam = {
-        description = "Example tag value."
-        iam = {
-          "roles/resourcemanager.tagUser" = ["sandbox"]
-        }
-      }
-    }
-  }
-}
-```
 
 ### Lightweight multitenancy
 
@@ -275,27 +243,25 @@ Due to its simplicity, this stage lends itself easily to customizations: adding 
 | [groups](variables.tf#L228) | Group names or IAM-format principals to grant organization-level permissions. If just the name is provided, the 'group:' principal and organization domain are interpolated. | <code title="object&#40;&#123;&#10;  gcp-billing-admins      &#61; optional&#40;string, &#34;gcp-billing-admins&#34;&#41;&#10;  gcp-devops              &#61; optional&#40;string, &#34;gcp-devops&#34;&#41;&#10;  gcp-vpc-network-admins  &#61; optional&#40;string, &#34;gcp-vpc-network-admins&#34;&#41;&#10;  gcp-organization-admins &#61; optional&#40;string, &#34;gcp-organization-admins&#34;&#41;&#10;  gcp-security-admins     &#61; optional&#40;string, &#34;gcp-security-admins&#34;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
 | [locations](variables.tf#L243) | Optional locations for GCS, BigQuery, and logging buckets created here. | <code title="object&#40;&#123;&#10;  bq      &#61; string&#10;  gcs     &#61; string&#10;  logging &#61; string&#10;  pubsub  &#61; list&#40;string&#41;&#10;  kms     &#61; string&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code title="&#123;&#10;  bq      &#61; &#34;US&#34;&#10;  gcs     &#61; &#34;US&#34;&#10;  kms     &#61; &#34;nam9&#34;&#10;  logging &#61; &#34;us&#34;&#10;  pubsub  &#61; &#91;&#93;&#10;&#125;">&#123;&#8230;&#125;</code> |
 | [outputs_location](variables.tf#L273) | Enable writing provider, tfvars and CI/CD workflow files to local filesystem. Leave null to disable. | <code>string</code> |  | <code>null</code> |
-| [tag_names](variables.tf#L295) | Customized names for resource management tags. | <code title="object&#40;&#123;&#10;  context     &#61; optional&#40;string, &#34;context&#34;&#41;&#10;  environment &#61; optional&#40;string, &#34;environment&#34;&#41;&#10;  tenant      &#61; optional&#40;string, &#34;tenant&#34;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
-| [tags](variables.tf#L310) | Custom secure tags by key name. The `iam` attribute behaves like the similarly named one at module level. | <code title="map&#40;object&#40;&#123;&#10;  description &#61; optional&#40;string, &#34;Managed by the Terraform organization module.&#34;&#41;&#10;  iam         &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;  values &#61; optional&#40;map&#40;object&#40;&#123;&#10;    description &#61; optional&#40;string, &#34;Managed by the Terraform organization module.&#34;&#41;&#10;    iam         &#61; optional&#40;map&#40;list&#40;string&#41;&#41;, &#123;&#125;&#41;&#10;    id          &#61; optional&#40;string&#41;&#10;  &#125;&#41;&#41;, &#123;&#125;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
-| [team_folders](variables.tf#L331) | Team folders to be created. Format is described in a code comment. | <code title="map&#40;object&#40;&#123;&#10;  descriptive_name         &#61; string&#10;  iam_by_principals        &#61; map&#40;list&#40;string&#41;&#41;&#10;  impersonation_principals &#61; list&#40;string&#41;&#10;  cicd &#61; optional&#40;object&#40;&#123;&#10;    branch            &#61; string&#10;    identity_provider &#61; string&#10;    name              &#61; string&#10;    type              &#61; string&#10;  &#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>null</code> |
-| [tenants](variables.tf#L347) | Lightweight tenant definitions. | <code title="map&#40;object&#40;&#123;&#10;  admin_principal  &#61; string&#10;  descriptive_name &#61; string&#10;  billing_account  &#61; optional&#40;string&#41;&#10;  compliance &#61; optional&#40;object&#40;&#123;&#10;    regime   &#61; string&#10;    location &#61; string&#10;  &#125;&#41;&#41;&#10;  locations &#61; optional&#40;object&#40;&#123;&#10;    gcs &#61; string&#10;    kms &#61; string&#10;  &#125;&#41;&#41;&#10;  organization &#61; optional&#40;object&#40;&#123;&#10;    customer_id &#61; string&#10;    domain      &#61; string&#10;    id          &#61; number&#10;  &#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
-| [tenants_config](variables.tf#L376) | Lightweight tenants shared configuration. Roles will be assigned to tenant admin group and service accounts. | <code title="object&#40;&#123;&#10;  core_folder_roles   &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  tenant_folder_roles &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  top_folder_roles    &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [team_folders](variables.tf#L295) | Team folders to be created. Format is described in a code comment. | <code title="map&#40;object&#40;&#123;&#10;  descriptive_name         &#61; string&#10;  iam_by_principals        &#61; map&#40;list&#40;string&#41;&#41;&#10;  impersonation_principals &#61; list&#40;string&#41;&#10;  cicd &#61; optional&#40;object&#40;&#123;&#10;    branch            &#61; string&#10;    identity_provider &#61; string&#10;    name              &#61; string&#10;    type              &#61; string&#10;  &#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>null</code> |
+| [tenants](variables.tf#L311) | Lightweight tenant definitions. | <code title="map&#40;object&#40;&#123;&#10;  admin_principal  &#61; string&#10;  descriptive_name &#61; string&#10;  billing_account  &#61; optional&#40;string&#41;&#10;  compliance &#61; optional&#40;object&#40;&#123;&#10;    regime   &#61; string&#10;    location &#61; string&#10;  &#125;&#41;&#41;&#10;  locations &#61; optional&#40;object&#40;&#123;&#10;    gcs &#61; string&#10;    kms &#61; string&#10;  &#125;&#41;&#41;&#10;  organization &#61; optional&#40;object&#40;&#123;&#10;    customer_id &#61; string&#10;    domain      &#61; string&#10;    id          &#61; number&#10;  &#125;&#41;&#41;&#10;&#125;&#41;&#41;">map&#40;object&#40;&#123;&#8230;&#125;&#41;&#41;</code> |  | <code>&#123;&#125;</code> |
+| [tenants_config](variables.tf#L340) | Lightweight tenants shared configuration. Roles will be assigned to tenant admin group and service accounts. | <code title="object&#40;&#123;&#10;  core_folder_roles   &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  tenant_folder_roles &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;  top_folder_roles    &#61; optional&#40;list&#40;string&#41;, &#91;&#93;&#41;&#10;&#125;&#41;">object&#40;&#123;&#8230;&#125;&#41;</code> |  | <code>&#123;&#125;</code> |
 
 ## Outputs
 
 | name | description | sensitive |
 |---|---|:---:|
-| [cicd_repositories](outputs.tf#L399) | WIF configuration for CI/CD repositories. |  |
-| [dataplatform](outputs.tf#L413) | Data for the Data Platform stage. |  |
-| [envs](outputs.tf#L429) | Environments folders created for the tenants. |  |
-| [gcve](outputs.tf#L434) | Data for the GCVE stage. |  |
-| [gke_multitenant](outputs.tf#L455) | Data for the GKE multitenant stage. |  |
-| [networking](outputs.tf#L476) | Data for the networking stage. |  |
-| [project_factories](outputs.tf#L485) | Data for the project factories stage. |  |
-| [providers](outputs.tf#L500) | Terraform provider files for this stage and dependent stages. | ✓ |
-| [sandbox](outputs.tf#L507) | Data for the sandbox stage. |  |
-| [security](outputs.tf#L521) | Data for the networking stage. |  |
-| [team_cicd_repositories](outputs.tf#L531) | WIF configuration for Team CI/CD repositories. |  |
-| [teams](outputs.tf#L545) | Data for the teams stage. |  |
-| [tfvars](outputs.tf#L557) | Terraform variable files for the following stages. | ✓ |
+| [cicd_repositories](outputs.tf#L396) | WIF configuration for CI/CD repositories. |  |
+| [dataplatform](outputs.tf#L410) | Data for the Data Platform stage. |  |
+| [envs](outputs.tf#L426) | Environments folders created for the tenants. |  |
+| [gcve](outputs.tf#L431) | Data for the GCVE stage. |  |
+| [gke_multitenant](outputs.tf#L452) | Data for the GKE multitenant stage. |  |
+| [networking](outputs.tf#L473) | Data for the networking stage. |  |
+| [project_factories](outputs.tf#L482) | Data for the project factories stage. |  |
+| [providers](outputs.tf#L497) | Terraform provider files for this stage and dependent stages. | ✓ |
+| [sandbox](outputs.tf#L504) | Data for the sandbox stage. |  |
+| [security](outputs.tf#L518) | Data for the networking stage. |  |
+| [team_cicd_repositories](outputs.tf#L528) | WIF configuration for Team CI/CD repositories. |  |
+| [teams](outputs.tf#L542) | Data for the teams stage. |  |
+| [tfvars](outputs.tf#L554) | Terraform variable files for the following stages. | ✓ |
 <!-- END TFDOC -->

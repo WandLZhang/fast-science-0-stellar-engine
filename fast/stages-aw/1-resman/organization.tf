@@ -16,67 +16,9 @@
 
 # tfdoc:file:description Organization policies.
 
-locals {
-  tags = {
-    for k, v in var.tags : k => merge(v, {
-      values = {
-        for vk, vv in v.values : vk => merge(vv, {
-          iam = {
-            for rk, rv in vv.iam : rk => [
-              for rm in rv : (
-                contains(keys(local.service_accounts), rm)
-                ? "serviceAccount:${local.service_accounts[rm]}"
-                : rm
-              )
-            ]
-          }
-        })
-      }
-    })
-  }
-}
-
 module "organization" {
   source          = "../../../modules/organization-se"
   organization_id = "organizations/${var.organization.id}"
   # additive bindings via delegated IAM grant set in stage 0
   iam_bindings_additive = local.iam_bindings_additive
-  # do not assign tagViewer or tagUser roles here on tag keys and values as
-  # they are managed authoritatively and will break multitenant stages
-  tags = merge(local.tags, {
-    (var.tag_names.context) = {
-      description = "Resource management context."
-      iam         = {}
-      values = {
-        data       = {}
-        gke        = {}
-        gcve       = {}
-        networking = {}
-        sandbox    = {}
-        security   = {}
-        teams      = {}
-        tenant     = {}
-        envs       = {}
-      }
-    }
-    (var.tag_names.environment) = {
-      description = "Environment definition."
-      iam         = {}
-      values = {
-        development = {}
-        production  = {}
-      }
-    }
-    (var.tag_names.tenant) = {
-      description = "Organization tenant."
-      values = {
-        for k, v in var.tenants : k => {
-          description = v.descriptive_name
-          iam = {
-            # "roles/resourcemanager.tagViewer" = local.tenant_iam[k]
-          }
-        }
-      }
-    }
-  })
 }

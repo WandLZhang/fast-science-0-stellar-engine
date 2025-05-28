@@ -37,16 +37,12 @@ locals {
 }
 
 module "branch-teams-folder" {
-  source = "../../../modules/folder"
-  count  = var.fast_features.teams ? 1 : 0
-  parent = var.assured_workloads.folder
-  name   = "Teams"
-  iam    = local._teams_folder_iam
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.context}/teams"].id, null
-    )
-  }
+  source       = "../../../modules/folder"
+  count        = var.fast_features.teams ? 1 : 0
+  parent       = var.assured_workloads.folder
+  name         = "Teams"
+  iam          = local._teams_folder_iam
+  tag_bindings = null
 }
 
 module "branch-teams-sa" {
@@ -151,11 +147,7 @@ module "branch-teams-team-dev-folder" {
     "roles/viewer"                               = local.branch_optional_r_sa_lists.pf-dev
     (var.custom_roles.organization_admin_viewer) = local.branch_optional_r_sa_lists.pf-dev
   }
-  tag_bindings = {
-    environment = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id, null
-    )
-  }
+  tag_bindings = null
 }
 
 module "branch-teams-team-prod-folder" {
@@ -178,9 +170,5 @@ module "branch-teams-team-prod-folder" {
     "roles/viewer"                               = local.branch_optional_r_sa_lists.pf-prod
     (var.custom_roles.organization_admin_viewer) = local.branch_optional_r_sa_lists.pf-prod
   }
-  tag_bindings = {
-    environment = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id, null
-    )
-  }
+  tag_bindings = null
 }

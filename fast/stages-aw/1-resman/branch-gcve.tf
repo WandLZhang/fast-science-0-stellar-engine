@@ -17,16 +17,12 @@
 # tfdoc:file:description GCVE stage resources.
 
 module "branch-gcve-folder" {
-  source = "../../../modules/folder"
-  count  = var.fast_features.gcve ? 1 : 0
-  parent = var.assured_workloads.folder
-  name   = "GCVE"
-  iam    = var.folder_iam.gcve
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.context}/gcve"].id, null
-    )
-  }
+  source       = "../../../modules/folder"
+  count        = var.fast_features.gcve ? 1 : 0
+  parent       = var.assured_workloads.folder
+  name         = "GCVE"
+  iam          = var.folder_iam.gcve
+  tag_bindings = null
 }
 
 module "branch-gcve-dev-folder" {
@@ -45,12 +41,7 @@ module "branch-gcve-dev-folder" {
     "roles/viewer"                       = [module.branch-gcve-dev-r-sa[0].iam_email]
     "roles/resourcemanager.folderViewer" = [module.branch-gcve-dev-r-sa[0].iam_email]
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id,
-      null
-    )
-  }
+  tag_bindings = null
 }
 
 module "branch-gcve-prod-folder" {
@@ -69,12 +60,7 @@ module "branch-gcve-prod-folder" {
     "roles/viewer"                       = [module.branch-gcve-prod-r-sa[0].iam_email]
     "roles/resourcemanager.folderViewer" = [module.branch-gcve-prod-r-sa[0].iam_email]
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id,
-      null
-    )
-  }
+  tag_bindings = null
 }
 
 # automation service accounts

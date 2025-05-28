@@ -390,9 +390,6 @@ locals {
     envs_folders        = var.envs_folders
     service_accounts    = local.service_accounts
     tenant_accounts     = local.tenant_accounts
-    tag_keys            = { for k, v in try(module.organization.tag_keys, {}) : k => v.id }
-    tag_names           = var.tag_names
-    tag_values          = { for k, v in try(module.organization.tag_values, {}) : k => v.id }
   }
 }
 

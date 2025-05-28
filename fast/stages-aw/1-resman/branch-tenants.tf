@@ -52,9 +52,7 @@ module "tenant-top-folders-iam" {
   for_each      = local.tenant_envs
   id            = module.tenant-top-folders[each.key].id
   folder_create = false
-  tag_bindings = {
-    tenant = module.organization.tag_values["${var.tag_names.tenant}/${each.value.tenant}"].id
-  }
+  tag_bindings  = null
   iam = merge(
     {
       "roles/cloudasset.owner"               = [module.tenant-core-sa[each.key].iam_email]

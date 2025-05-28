@@ -17,16 +17,12 @@
 # tfdoc:file:description GKE multitenant stage resources.
 
 module "branch-gke-folder" {
-  source = "../../../modules/folder"
-  count  = var.fast_features.gke ? 1 : 0
-  parent = var.assured_workloads.folder
-  name   = "GKE"
-  iam    = var.folder_iam.gke
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.context}/gke"].id, null
-    )
-  }
+  source       = "../../../modules/folder"
+  count        = var.fast_features.gke ? 1 : 0
+  parent       = var.assured_workloads.folder
+  name         = "GKE"
+  iam          = var.folder_iam.gke
+  tag_bindings = null
 }
 
 module "branch-gke-dev-folder" {
@@ -45,12 +41,7 @@ module "branch-gke-dev-folder" {
     "roles/viewer"                       = [module.branch-gke-dev-r-sa[0].iam_email]
     "roles/resourcemanager.folderViewer" = [module.branch-gke-dev-r-sa[0].iam_email]
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id,
-      null
-    )
-  }
+  tag_bindings = null
 }
 
 module "branch-gke-prod-folder" {
@@ -69,12 +60,7 @@ module "branch-gke-prod-folder" {
     "roles/viewer"                       = [module.branch-gke-prod-r-sa[0].iam_email]
     "roles/resourcemanager.folderViewer" = [module.branch-gke-prod-r-sa[0].iam_email]
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id,
-      null
-    )
-  }
+  tag_bindings = null
 }
 
 # automation service accounts

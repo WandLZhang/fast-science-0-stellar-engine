@@ -17,16 +17,12 @@
 # tfdoc:file:description Data Platform stages resources.
 
 module "branch-dp-folder" {
-  source = "../../../modules/folder"
-  count  = var.fast_features.data_platform ? 1 : 0
-  parent = var.assured_workloads.folder
-  name   = "Data Platform"
-  iam    = var.folder_iam.data_platform
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.context}/data"].id, null
-    )
-  }
+  source       = "../../../modules/folder"
+  count        = var.fast_features.data_platform ? 1 : 0
+  parent       = var.assured_workloads.folder
+  name         = "Data Platform"
+  iam          = var.folder_iam.data_platform
+  tag_bindings = null
 }
 
 module "branch-dp-dev-folder" {
@@ -50,12 +46,7 @@ module "branch-dp-dev-folder" {
     "roles/viewer"                       = [module.branch-dp-dev-r-sa[0].iam_email]
     "roles/resourcemanager.folderViewer" = [module.branch-dp-dev-r-sa[0].iam_email]
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.environment}/development"].id,
-      null
-    )
-  }
+  tag_bindings = null
 }
 
 module "branch-dp-prod-folder" {
@@ -77,12 +68,7 @@ module "branch-dp-prod-folder" {
     "roles/viewer"                       = [module.branch-dp-prod-r-sa[0].iam_email]
     "roles/resourcemanager.folderViewer" = [module.branch-dp-prod-r-sa[0].iam_email]
   }
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.environment}/production"].id,
-      null
-    )
-  }
+  tag_bindings = null
 }
 
 # automation service accounts

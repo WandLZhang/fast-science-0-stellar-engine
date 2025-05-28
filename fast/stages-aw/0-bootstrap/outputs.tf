@@ -101,16 +101,6 @@ locals {
       project_number    = module.log-export-project.number
       writer_identities = module.organization.sink_writer_identities
     }
-    org_policy_tags = {
-      key_id = (
-        module.organization.tag_keys[var.org_policies_config.tag_name].id
-      )
-      key_name = var.org_policies_config.tag_name
-      values = {
-        for k, v in module.organization.tag_values :
-        split("/", k)[1] => v.id
-      }
-    }
     assured_workloads      = merge(var.assured_workloads, { "folder" = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}" })
     common_services_folder = module.branch-common-services-folder.folder.name
     regions                = { primary = var.assured_workloads.location }

@@ -45,28 +45,7 @@ output "id" {
     google_organization_iam_binding.bindings,
     google_organization_iam_custom_role.roles,
     google_organization_iam_member.bindings,
-    google_tags_tag_key.default,
-    google_tags_tag_key_iam_binding.default,
-    google_tags_tag_value.default,
-    google_tags_tag_value_iam_binding.default,
   ]
-}
-
-output "network_tag_keys" {
-  description = "Tag key resources."
-  value = {
-    for k, v in google_tags_tag_key.default : k => v if(
-      v.purpose != null && v.purpose != ""
-    )
-  }
-}
-
-output "network_tag_values" {
-  description = "Tag value resources."
-  value = {
-    for k, v in google_tags_tag_value.default :
-    k => v if local.tag_values[k].tag_network
-  }
 }
 
 # TODO: deprecate in favor of id
@@ -81,10 +60,6 @@ output "organization_id" {
     google_organization_iam_binding.bindings,
     google_organization_iam_member.bindings,
     google_organization_iam_custom_role.roles,
-    google_tags_tag_key.default,
-    google_tags_tag_key_iam_binding.default,
-    google_tags_tag_value.default,
-    google_tags_tag_value_iam_binding.default,
   ]
 }
 
@@ -93,22 +68,5 @@ output "sink_writer_identities" {
   value = {
     for name, sink in google_logging_organization_sink.sink :
     name => sink.writer_identity
-  }
-}
-
-output "tag_keys" {
-  description = "Tag key resources."
-  value = {
-    for k, v in google_tags_tag_key.default : k => v if(
-      v.purpose == null || v.purpose == ""
-    )
-  }
-}
-
-output "tag_values" {
-  description = "Tag value resources."
-  value = {
-    for k, v in google_tags_tag_value.default :
-    k => v if !local.tag_values[k].tag_network
   }
 }

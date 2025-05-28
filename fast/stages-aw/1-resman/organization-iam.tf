@@ -89,33 +89,6 @@ locals {
         role   = "roles/billing.costsManager"
       }
     },
-    # scoped org policy admin grants for project factory
-    !var.fast_features.project_factory ? {} : {
-      sa_pf_dev_conditional_org_policy = {
-        member = module.branch-pf-dev-sa[0].iam_email
-        role   = "roles/orgpolicy.policyAdmin"
-        condition = {
-          title       = "org_policy_tag_pf_scoped_dev"
-          description = "Org policy tag scoped grant for project factory dev."
-          expression  = <<-END
-            resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'teams')
-            &&
-            resource.matchTag('${var.organization.id}/${var.tag_names.environment}', 'development')
-          END
-        }
-      }
-      sa_pf_prod_conditional_org_policy = {
-        member = module.branch-pf-prod-sa[0].iam_email
-        role   = "roles/orgpolicy.policyAdmin"
-        condition = {
-          title       = "org_policy_tag_pf_scoped_prod"
-          description = "Org policy tag scoped grant for project factory prod."
-          expression  = <<-END
-            resource.matchTag('${var.organization.id}/${var.tag_names.context}', 'teams')
-          END
-        }
-      }
-    },
     # lightweight tenant roles
     {
       for k, v in var.tenants : "oslogin_ext_user-tenant_${k}" => {

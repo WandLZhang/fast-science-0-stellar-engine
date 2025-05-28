@@ -49,12 +49,8 @@ module "branch-security-folder" {
       "roles/editor"
     ]
   }
-  iam = local._security_folder_iam
-  tag_bindings = {
-    context = try(
-      module.organization.tag_values["${var.tag_names.context}/security"].id, null
-    )
-  }
+  iam          = local._security_folder_iam
+  tag_bindings = null
 }
 
 # automation service account
