@@ -30,13 +30,23 @@ resource "google_compute_firewall" "default" {
 resource "google_compute_network_attachment" "psc" {
   count                 = var.connection_type == "PRIVATE_SERVICE_CONNECT_INTERFACES" ? 1 : 0
   name                  = "datafusion-psc-attachment"
+  project               = var.project_id
   region                = var.region
   connection_preference = "ACCEPT_AUTOMATIC"
   subnetworks           = [var.subnet]
 }
 
+resource "time_sleep" "psc_attachment_propagation" {
+  count = var.connection_type == "PRIVATE_SERVICE_CONNECT_INTERFACES" ? 1 : 0
+
+  create_duration = "5m"
+
+  depends_on = [google_compute_network_attachment.psc]
+}
+
 resource "google_data_fusion_instance" "default" {
   name                          = var.name
+  project                       = var.project_id
   region                        = var.region
   type                          = var.type
   description                   = var.description
@@ -79,4 +89,9 @@ resource "google_data_fusion_instance" "default" {
       key_reference = var.kms_key
     }
   }
+
+  depends_on = [
+    google_compute_network_attachment.psc,
+    time_sleep.psc_attachment_propagation
+  ]
 }

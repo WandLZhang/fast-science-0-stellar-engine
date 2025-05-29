@@ -1,7 +1,17 @@
+variable "core_project_id" {
+  description = "Core project ID."
+  type        = string
+}
+
 variable "kms_key_name" {
   description = "Full path to KMS key for pubsub."
   type        = string
   default     = null
+}
+
+variable "kms_keyring_name" {
+  description = "KMS Keyring."
+  type        = string
 }
 
 variable "main_project_id" {
