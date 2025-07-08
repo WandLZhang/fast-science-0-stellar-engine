@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,12 +27,12 @@ variable "labels" {
 }
 
 variable "project_id" {
-  description = "Project id where the keyring will be created."
+  description = "Project ID where the secrets will be created."
   type        = string
 }
 
 variable "secrets" {
-  description = "Map of secrets to manage, their optional expire time, version destroy ttl, locations and KMS keys in {LOCATION => KEY} format. {GLOBAL => KEY} format enables CMEK for automatic managed secrets. If locations is null, automatic management will be set."
+  description = "Map of secret configurations. Each key is the `secret_id` (name) of the secret. Each value is an object with optional `expire_time`, `version_destroy_ttl`, `locations` (list of regions for user-managed replication), and `keys` (a map where keys are replication locations (or 'global') and values are full KMS CryptoKey self-links for encryption)." # Clarified description
   type = map(object({
     expire_time         = optional(string)
     locations           = optional(list(string))
@@ -43,10 +43,11 @@ variable "secrets" {
 }
 
 variable "versions" {
-  description = "Optional versions to manage for each secret. Version names are only used internally to track individual versions."
+  description = "Optional map of secret versions to manage. Keys are `secret_id`s, values are maps where keys are internal version names and values are objects containing `enabled` (bool) and `data` (string, the actual secret content)."
   type = map(map(object({
     enabled = bool
     data    = string
   })))
   default = {}
 }
+

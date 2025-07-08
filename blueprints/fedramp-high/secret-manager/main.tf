@@ -1,4 +1,3 @@
-
 locals {
   # Grab all the keys from the secrets variable in order to grant permissions to secret manager service account
   all_kms_keys = distinct(flatten([
@@ -17,7 +16,7 @@ locals {
   }
 }
 
-data "google_project" "project" {
+data "google_project" "current" {
   project_id = var.main_project_id
 }
 
@@ -28,7 +27,7 @@ resource "google_project_service" "secretmanager" {
   disable_on_destroy = false
 }
 
-# Create service account
+# Create service account (refers to the Google-managed Secret Manager Service Account)
 resource "google_project_service_identity" "secretmanager" {
   provider = google-beta
   project  = var.main_project_id
@@ -42,7 +41,7 @@ resource "google_kms_crypto_key_iam_member" "secretmanager" {
   for_each      = toset(local.all_kms_keys)
   crypto_key_id = each.value
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-secretmanager.iam.gserviceaccount.com"
+  member        = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-secretmanager.iam.gserviceaccount.com"
 
   depends_on = [google_project_service_identity.secretmanager]
 }
@@ -59,3 +58,4 @@ module "secret-manager" {
     google_kms_crypto_key_iam_member.secretmanager,
   ]
 }
+

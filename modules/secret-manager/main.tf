@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -80,11 +80,11 @@ resource "google_secret_manager_secret" "default" {
 }
 
 resource "google_secret_manager_secret_version" "default" {
-  provider    = google-beta
-  for_each    = local.version_keypairs
-  secret      = google_secret_manager_secret.default[each.value.secret].id
-  enabled     = each.value.enabled
-  secret_data = each.value.data
+  provider       = google-beta
+  for_each       = local.version_keypairs
+  secret         = google_secret_manager_secret.default[each.value.secret].id
+  enabled        = each.value.enabled
+  secret_data_wo = each.value.data
 }
 
 resource "google_secret_manager_secret_iam_binding" "default" {
@@ -96,3 +96,4 @@ resource "google_secret_manager_secret_iam_binding" "default" {
   secret_id = google_secret_manager_secret.default[each.value.secret].id
   members   = each.value.members
 }
+
