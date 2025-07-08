@@ -7,20 +7,18 @@ terraform {
     }
     google-beta = {
       source  = "hashicorp/google-beta"
-      version = ">= 6.21.0, < 7.0.0" # tftest
+      version = ">= 6.21.0, < 7.0.0"    # tftest
     }
   }
 }
 
-
 provider "google" {
   project = var.main_project_id
-  region  = var.region
-  zone    = var.zone
+  region  = var.gcp_region
 }
 
 provider "google-beta" {
   project = var.main_project_id
-  region  = var.region
-  zone    = var.zone
+  region  = var.gcp_region
 }
+

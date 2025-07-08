@@ -7,3 +7,4 @@ output "secrets" {
   description = "Secret resources."
   value       = module.secret-manager.secrets
 }
+
