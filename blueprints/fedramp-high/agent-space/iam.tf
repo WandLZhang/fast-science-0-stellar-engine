@@ -17,7 +17,6 @@ resource "googleworkspace_group" "users" {
   description = "Users for the AgentSpace GCP project."
 }
 
-
 # -----------------------------------------------------------------------------
 # IAM ROLE ASSIGNMENTS
 # -----------------------------------------------------------------------------
@@ -26,25 +25,25 @@ resource "googleworkspace_group" "users" {
 # This prevents conflicts with other IAM policies.
 
 resource "google_project_iam_member" "admins_discoveryengine_admin" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/discoveryengine.admin"
   member  = "group:${googleworkspace_group.admins.email}"
 }
 
 resource "google_project_iam_member" "admins_aiplatform_admin" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/aiplatform.admin"
   member  = "group:${googleworkspace_group.admins.email}"
 }
 
 resource "google_project_iam_member" "admins_serviceusage_consumer" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
   member  = "group:${googleworkspace_group.admins.email}"
 }
 
 resource "google_project_iam_member" "admins_logging_viewer" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/logging.viewer"
   member  = "group:${googleworkspace_group.admins.email}"
 }
@@ -52,13 +51,13 @@ resource "google_project_iam_member" "admins_logging_viewer" {
 
 # --- User Group Roles ---
 resource "google_project_iam_member" "users_discoveryengine_user" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/discoveryengine.user"
   member  = "group:${googleworkspace_group.users.email}"
 }
 
 resource "google_project_iam_member" "users_serviceusage_consumer" {
-  project = var.project_id
+  project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
   member  = "group:${googleworkspace_group.users.email}"
 }
