@@ -5,9 +5,9 @@ terraform {
       source  = "hashicorp/google"
       version = ">= 5.0"
     }
-    google-workspace = {
-      source  = "hashicorp/google-workspace"
-      version = ">= 0.8"
+    googleworkspace = {
+      source  = "hashicorp/googleworkspace"
+      version = ">= 0.7.0"
     }
   }
 }

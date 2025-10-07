@@ -2,14 +2,16 @@
 # GOOGLE WORKSPACE GROUP CREATION
 # -----------------------------------------------------------------------------
 # Creates the administrators group in your Google Workspace.
-resource "google_workspace_group" "admins" {
+resource "googleworkspace_group" "admins" {
+  provider    = googleworkspace
   email       = "gcp-agentspace-admins@${var.domain}"
   name        = "GCP AgentSpace Admins"
   description = "Administrators for the AgentSpace GCP project."
 }
 
 # Creates the users group in your Google Workspace.
-resource "google_workspace_group" "users" {
+resource "googleworkspace_group" "users" {
+  provider    = googleworkspace
   email       = "gcp-agentspace-users@${var.domain}"
   name        = "GCP AgentSpace Users"
   description = "Users for the AgentSpace GCP project."
@@ -26,25 +28,25 @@ resource "google_workspace_group" "users" {
 resource "google_project_iam_member" "admins_discoveryengine_admin" {
   project = var.project_id
   role    = "roles/discoveryengine.admin"
-  member  = "group:${google_workspace_group.admins.email}"
+  member  = "group:${googleworkspace_group.admins.email}"
 }
 
 resource "google_project_iam_member" "admins_aiplatform_admin" {
   project = var.project_id
   role    = "roles/aiplatform.admin"
-  member  = "group:${google_workspace_group.admins.email}"
+  member  = "group:${googleworkspace_group.admins.email}"
 }
 
 resource "google_project_iam_member" "admins_serviceusage_consumer" {
   project = var.project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:${google_workspace_group.admins.email}"
+  member  = "group:${googleworkspace_group.admins.email}"
 }
 
 resource "google_project_iam_member" "admins_logging_viewer" {
   project = var.project_id
   role    = "roles/logging.viewer"
-  member  = "group:${google_workspace_group.admins.email}"
+  member  = "group:${googleworkspace_group.admins.email}"
 }
 
 
@@ -52,11 +54,11 @@ resource "google_project_iam_member" "admins_logging_viewer" {
 resource "google_project_iam_member" "users_discoveryengine_user" {
   project = var.project_id
   role    = "roles/discoveryengine.user"
-  member  = "group:${google_workspace_group.users.email}"
+  member  = "group:${googleworkspace_group.users.email}"
 }
 
 resource "google_project_iam_member" "users_serviceusage_consumer" {
   project = var.project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:${google_workspace_group.users.email}"
+  member  = "group:${googleworkspace_group.users.email}"
 }

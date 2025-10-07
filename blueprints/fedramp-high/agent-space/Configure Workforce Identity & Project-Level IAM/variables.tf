@@ -9,3 +9,9 @@ variable "domain" {
   description = "The Google Workspace domain name for creating groups."
   # Example: "yourcompany.com"
 }
+
+variable "google_workspace_customer_id" {
+  type        = string
+  description = "The Google Workspace Customer ID."
+  # Example: "C01234567"
+}
