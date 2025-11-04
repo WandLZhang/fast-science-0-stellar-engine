@@ -48,3 +48,38 @@ resource "google_project_service" "services" {
   disable_on_destroy = false
 
 }
+
+# Create all project-level discoveryengine.googleapis.com service agents
+resource "google_project_service_identity" "discoveryengine" {
+  provider = google-beta
+  project = data.google_project.default.project_id
+  service = "discoveryengine.googleapis.com"
+
+  depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services
+  ]
+}
+
+# Create all project-level storage.googleapis.com service agents
+resource "google_project_service_identity" "storage" {
+  provider = google-beta
+  project = data.google_project.default.project_id
+  service = "storage.googleapis.com"
+
+  depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services
+  ]
+}
+
+# service-projectid@gs-project-accounts.iam.gserviceaccount.com
+# service-projectid@gcp-sa-discoveryengine.iam.gserviceaccount.com
+# This wait time is needed to give time to the API enablement, and the service-agents to create the google service-agents above, which are required to utilize the cloud KMS key.
+resource "time_sleep" "wait_for_services" {
+  create_duration = "120s"
+
+  depends_on = [
+    google_project_service.services
+  ]
+}
