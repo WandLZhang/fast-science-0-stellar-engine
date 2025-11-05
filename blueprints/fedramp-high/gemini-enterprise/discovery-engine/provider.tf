@@ -18,10 +18,10 @@ provider "google" {
 }
 
 provider "google-beta" {
-  project = var.main_project_id
-  region  = var.region
+  project               = var.main_project_id
+  region                = var.region
   user_project_override = true
-  billing_project = var.main_project_id
+  billing_project       = var.main_project_id
 }
 
 resource "google_project_service" "services" {

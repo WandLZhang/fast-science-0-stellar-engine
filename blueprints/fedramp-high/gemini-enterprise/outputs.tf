@@ -13,11 +13,11 @@
 # limitations under the License.
 
 output "admin_group_email" {
-  value       = googleworkspace_group.admins.email
+  value       = var.admin_group_email
   description = "The email address of the AgentSpace administrators group."
 }
 
 output "user_group_email" {
-  value       = googleworkspace_group.users.email
+  value       = var.user_group_email
   description = "The email address of the AgentSpace users group."
 }

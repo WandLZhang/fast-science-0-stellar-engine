@@ -1,16 +1,23 @@
 terraform {
   required_providers {
     google = {
-      source  = "hashicorp/google"
+      source = "hashicorp/google"
     }
     google-beta = {
-      source  = "hashicorp/google-beta"
+      source = "hashicorp/google-beta"
     }
     time = {
       source  = "hashicorp/time"
       version = ">= 0.9.1"
     }
   }
+}
+
+locals {
+  kms_rotation_period = "7776000s" # 90 days
+  gcs_lifecycle_age   = 30
+  bq_connector_refresh_interval = "86400s" # Daily
+  wait_for_bq_datastore_duration = "120s"
 }
 
 # Copyright 2024 Google LLC
@@ -35,10 +42,10 @@ resource "google_kms_key_ring" "cmek_key_ring" {
 }
 
 resource "google_kms_crypto_key" "cmek_crypto_key" {
-  name     = "gemini-enterprise-cmek-key"
-  key_ring = google_kms_key_ring.cmek_key_ring.id
-  purpose  = "ENCRYPT_DECRYPT"
-  rotation_period = "7776000s" # 90 days
+  name            = "gemini-enterprise-cmek-key"
+  key_ring        = google_kms_key_ring.cmek_key_ring.id
+  purpose         = "ENCRYPT_DECRYPT"
+  rotation_period = local.kms_rotation_period
 
   version_template {
     algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
@@ -87,7 +94,7 @@ resource "google_storage_bucket" "agent_space_data" {
 
   lifecycle_rule {
     condition {
-      age = 30 # Example: delete objects older than 30 days
+      age = local.gcs_lifecycle_age # Example: delete objects older than 30 days
     }
     action {
       type = "Delete"
@@ -95,7 +102,7 @@ resource "google_storage_bucket" "agent_space_data" {
   }
 
   labels = {
-    environment = "prod"
+    environment = var.gcs_label_environment
     service     = "agent-space-gcs"
   }
 
@@ -106,19 +113,19 @@ resource "google_storage_bucket" "agent_space_data" {
 
 # Discovery Engine Data Store for GCS
 resource "google_discovery_engine_data_store" "agent_space_gcs_ds" {
-  project       = var.main_project_id
-  location      = var.geolocation # Must match the Data Store and Engine location
-  data_store_id = "agent-space-gcs-data-store"
-  display_name  = "Agent Space GCS Data Store"
+  project           = var.main_project_id
+  location          = var.geolocation # Must match the Data Store and Engine location
+  data_store_id     = "agent-space-gcs-data-store"
+  display_name      = "Agent Space GCS Data Store"
   industry_vertical = "GENERIC"
   content_config    = "CONTENT_REQUIRED"
-  solution_types  = ["SOLUTION_TYPE_SEARCH"]
+  solution_types    = ["SOLUTION_TYPE_SEARCH"]
   # TODO: Uncomment once Discovery Engine KMS bug is fixed
   # kms_key_name  = google_kms_crypto_key.cmek_crypto_key.id
-  provider      = google-beta
+  provider = google-beta
 
   document_processing_config {
-    default_parsing_config  {
+    default_parsing_config {
       digital_parsing_config {}
     }
   }
@@ -148,27 +155,27 @@ resource "google_discovery_engine_search_engine" "agent_space_gcs_se" {
   }
 
   common_config {
-    company_name = "Department of Technology"
+    company_name = var.company_name
   }
 
- # Addition of features via IL5 compliant configuration states
+  # Addition of features via IL5 compliant configuration states
   features = {
-    agent-gallery             = "FEATURE_STATE_OFF"
-    no-code-agent-builder     = "FEATURE_STATE_OFF"
-    prompt-gallery            = "FEATURE_STATE_OFF"
-    model-selector            = "FEATURE_STATE_ON"
-    notebook-lm               = "FEATURE_STATE_OFF"
-    people-search             = "FEATURE_STATE_OFF"
-    people-search-org-chart   = "FEATURE_STATE_OFF"
-    bi-directional-audio      = "FEATURE_STATE_OFF"
-    feedback                  = "FEATURE_STATE_OFF"
-    session-sharing           = "FEATURE_STATE_OFF"
-    personalization-memory    = "FEATURE_STATE_OFF"
-    disable-agent-sharing     = "FEATURE_STATE_ON"
-    disable-image-generation  = "FEATURE_STATE_ON"
-    disable-video-generation  = "FEATURE_STATE_ON"
-    disable-onedrive-upload   = "FEATURE_STATE_ON"
-    disable-talk-to-content   = "FEATURE_STATE_ON"
+    agent-gallery               = "FEATURE_STATE_OFF"
+    no-code-agent-builder       = "FEATURE_STATE_OFF"
+    prompt-gallery              = "FEATURE_STATE_OFF"
+    model-selector              = "FEATURE_STATE_ON"
+    notebook-lm                 = "FEATURE_STATE_OFF"
+    people-search               = "FEATURE_STATE_OFF"
+    people-search-org-chart     = "FEATURE_STATE_OFF"
+    bi-directional-audio        = "FEATURE_STATE_OFF"
+    feedback                    = "FEATURE_STATE_OFF"
+    session-sharing             = "FEATURE_STATE_OFF"
+    personalization-memory      = "FEATURE_STATE_OFF"
+    disable-agent-sharing       = "FEATURE_STATE_ON"
+    disable-image-generation    = "FEATURE_STATE_ON"
+    disable-video-generation    = "FEATURE_STATE_ON"
+    disable-onedrive-upload     = "FEATURE_STATE_ON"
+    disable-talk-to-content     = "FEATURE_STATE_ON"
     disable-google-drive-upload = "FEATURE_STATE_ON"
   }
   # not supported as of 10/22
@@ -177,7 +184,7 @@ resource "google_discovery_engine_search_engine" "agent_space_gcs_se" {
   # }
 
   industry_vertical = "GENERIC"
-  provider = google-beta
+  provider          = google-beta
 
   depends_on = [google_discovery_engine_data_store.agent_space_gcs_ds]
 }
@@ -194,17 +201,17 @@ resource "google_discovery_engine_search_engine" "agent_space_gcs_se" {
 # ---------------------------------------------------------------------------- #
 
 resource "google_bigquery_dataset" "agent_space_sample_ds" {
-  project     = var.main_project_id
-  dataset_id  = "agent_space_sample_data"
+  project       = var.main_project_id
+  dataset_id    = "agent_space_sample_data"
   friendly_name = "Agent Space Sample Data"
-  description = "Sample dataset for Discovery Engine connector"
-  location    = var.region # Or a more specific multi-region if required by BQ
+  description   = "Sample dataset for Discovery Engine connector"
+  location      = var.region # Or a more specific multi-region if required by BQ
 }
 
 resource "google_bigquery_table" "agent_space_sample_table" {
-  project    = var.main_project_id
-  dataset_id = google_bigquery_dataset.agent_space_sample_ds.dataset_id
-  table_id   = "sample_documents"
+  project             = var.main_project_id
+  dataset_id          = google_bigquery_dataset.agent_space_sample_ds.dataset_id
+  table_id            = "sample_documents"
   deletion_protection = false
 
   schema = <<EOF
@@ -242,11 +249,11 @@ EOF
 # ---------------------------------------------------------------------------- #
 
 resource "google_discovery_engine_data_connector" "agent_space_bq_connector" {
-  project     = var.main_project_id
-  location      = var.geolocation # Ensure this is "us", "eu", or "global"
-  collection_id = "agent-space-bq-collection"
+  project                 = var.main_project_id
+  location                = var.geolocation # Ensure this is "us", "eu", or "global"
+  collection_id           = "agent-space-bq-collection"
   collection_display_name = "Agent Space BigQuery Collection"
-  data_source = "bigquery"
+  data_source             = "bigquery"
 
   params = {
     instance_uri = "projects/${var.main_project_id}/datasets/${google_bigquery_dataset.agent_space_sample_ds.dataset_id}/tables/${google_bigquery_table.agent_space_sample_table.table_id}"
@@ -262,7 +269,7 @@ resource "google_discovery_engine_data_connector" "agent_space_bq_connector" {
 
   }
 
-  refresh_interval = "86400s" # Daily
+  refresh_interval = local.bq_connector_refresh_interval
   # TODO: Uncomment once Discovery Engine KMS bug is fixed
   # kms_key_name = google_kms_crypto_key.cmek_crypto_key.id
   provider = google-beta
@@ -289,32 +296,32 @@ resource "google_discovery_engine_data_connector" "agent_space_bq_connector" {
 
 # Add a delay to allow the DataStore to be created by the connector, which happens behind the scenes for data connector creation automatically.
 resource "time_sleep" "wait_for_bq_datastore" {
-  create_duration = "120s"
+  create_duration = local.wait_for_bq_datastore_duration
 
   depends_on = [google_discovery_engine_data_connector.agent_space_bq_connector]
 }
 
 # Discovery Engine Search Engine for BigQuery Connector
 resource "google_discovery_engine_search_engine" "agent_space_bq_se" {
-  project        = var.main_project_id
-  location       = var.geolocation # Must be "us", "eu", or "global"
-  collection_id  = "default_collection" # This must be default_collection, even if your collection_id for your created connector resource is different.
-  engine_id      = "agent-space-bq-search-engine"
-  display_name   = "Agent Space BigQuery Search Engine"
+  project       = var.main_project_id
+  location      = var.geolocation      # Must be "us", "eu", or "global"
+  collection_id = "default_collection" # This must be default_collection, even if your collection_id for your created connector resource is different.
+  engine_id     = "agent-space-bq-search-engine"
+  display_name  = "Agent Space BigQuery Search Engine"
   # Dynamically get the DataStore ID created by the connector
   data_store_ids = [basename(google_discovery_engine_data_connector.agent_space_bq_connector.entities[0].data_store)]
-  app_type = "APP_TYPE_INTRANET"
+  app_type       = "APP_TYPE_INTRANET"
 
   search_engine_config {
     search_tier    = "SEARCH_TIER_ENTERPRISE"
     search_add_ons = ["SEARCH_ADD_ON_LLM"]
   }
   common_config {
-    company_name = "Department of Technology"
-    }
+    company_name = var.company_name
+  }
 
   features = {
-    agent-gallery             = "FEATURE_STATE_OFF"
+    agent-gallery = "FEATURE_STATE_OFF"
     # no_code_agent_builder     = "FEATURE_STATE_OFF"
     # prompt_gallery            = "FEATURE_STATE_OFF"
     # model_selector            = "FEATURE_STATE_ON"
@@ -334,7 +341,7 @@ resource "google_discovery_engine_search_engine" "agent_space_bq_se" {
   }
 
   industry_vertical = "GENERIC"
-  provider = google-beta
+  provider          = google-beta
   # disable_analytics = true
 
   depends_on = [
@@ -344,25 +351,25 @@ resource "google_discovery_engine_search_engine" "agent_space_bq_se" {
 }
 
 
-        #  "features": {
-        #     "agent-gallery": "FEATURE_STATE_OFF",
-        #     "no-code-agent-builder": "FEATURE_STATE_OFF",
-        #     "prompt-gallery": "FEATURE_STATE_OFF",
-        #     "model-selector": "FEATURE_STATE_ON",
-        #     "notebook-lm": "FEATURE_STATE_OFF",
-        #     "people-search": "FEATURE_STATE_OFF",
-        #     "people-search-org-chart": "FEATURE_STATE_OFF",
-        #     "bi-directional-audio": "FEATURE_STATE_OFF",
-        #     "feedback": "FEATURE_STATE_OFF",
-        #     "session-sharing": "FEATURE_STATE_OFF",
-        #     "personalization-memory": "FEATURE_STATE_OFF",
-        #     "disable-agent-sharing": "FEATURE_STATE_ON",
-        #     "disable-image-generation":"FEATURE_STATE_ON",
-        #     "disable-video-generation":"FEATURE_STATE_ON",
-        #     "disable-onedrive-upload":"FEATURE_STATE_ON",
-        #     "disable-talk-to-content":"FEATURE_STATE_ON",
-        #     "disable-google-drive-upload":"FEATURE_STATE_ON"
-        #  },
+#  "features": {
+#     "agent-gallery": "FEATURE_STATE_OFF",
+#     "no-code-agent-builder": "FEATURE_STATE_OFF",
+#     "prompt-gallery": "FEATURE_STATE_OFF",
+#     "model-selector": "FEATURE_STATE_ON",
+#     "notebook-lm": "FEATURE_STATE_OFF",
+#     "people-search": "FEATURE_STATE_OFF",
+#     "people-search-org-chart": "FEATURE_STATE_OFF",
+#     "bi-directional-audio": "FEATURE_STATE_OFF",
+#     "feedback": "FEATURE_STATE_OFF",
+#     "session-sharing": "FEATURE_STATE_OFF",
+#     "personalization-memory": "FEATURE_STATE_OFF",
+#     "disable-agent-sharing": "FEATURE_STATE_ON",
+#     "disable-image-generation":"FEATURE_STATE_ON",
+#     "disable-video-generation":"FEATURE_STATE_ON",
+#     "disable-onedrive-upload":"FEATURE_STATE_ON",
+#     "disable-talk-to-content":"FEATURE_STATE_ON",
+#     "disable-google-drive-upload":"FEATURE_STATE_ON"
+#  },
 
 
 # ---------------------------------------------------------------------------- #

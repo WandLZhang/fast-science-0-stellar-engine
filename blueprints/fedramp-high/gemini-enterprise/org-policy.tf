@@ -12,16 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "google_org_policy_policy" "allow_external_lb" {
-  name   = "projects/${data.google_project.landing_project.number}/policies/compute.restrictLoadBalancerCreationForTypes"
-  parent = "projects/${data.google_project.landing_project.number}"
-  spec {
-    inherit_from_parent = true
-
-    rules {
-      values {
-        allowed_values = ["EXTERNAL_MANAGED_HTTP_HTTPS"]
-      }
-    }
-  }
-}
+# Org policies are assumed to be managed at the organization level
+# or are already in place on the project.
+# This blueprint does not modify org policies.
