@@ -19,10 +19,6 @@ data "google_project" "project" {
   project_id = var.main_project_id
 }
 
-data "google_project" "landing_project" {
-  project_id = var.network_project_id
-}
-
 resource "google_project_service" "services" {
   project = var.main_project_id
   for_each = toset([
@@ -32,7 +28,6 @@ resource "google_project_service" "services" {
     "storage.googleapis.com",
     "accesscontextmanager.googleapis.com",
     "beyondcorp.googleapis.com",
-    "binaryauthorization.googleapis.com",
     "iam.googleapis.com",
     "iap.googleapis.com",
     "orgpolicy.googleapis.com",
@@ -46,37 +41,58 @@ resource "google_project_service" "services" {
   }
 
   disable_on_destroy = false
-
 }
 
-resource "google_project_service" "net-host-services" {
-  project = var.network_project_id
-  for_each = toset([
-    "accesscontextmanager.googleapis.com",
-    "beyondcorp.googleapis.com",
-    "binaryauthorization.googleapis.com",
-    "compute.googleapis.com",
-    "ids.googleapis.com",
-    "iam.googleapis.com",
-    "iap.googleapis.com",
-    "orgpolicy.googleapis.com",
-    "run.googleapis.com",
-    "servicenetworking.googleapis.com",
-    "serviceusage.googleapis.com"
-  ])
-  service = each.value
-  timeouts {
-    create = "30m"
-    update = "40m"
-  }
+# Create all project-level discoveryengine.googleapis.com service agents
+resource "google_project_service_identity" "discoveryengine" {
+  provider = google-beta
+  project = data.google_project.default.project_id
+  service = "discoveryengine.googleapis.com"
 
-  disable_on_destroy = false
+  depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services
+  ]
+}
 
+# Create all project-level storage.googleapis.com service agents
+resource "google_project_service_identity" "storage" {
+  provider = google-beta
+  project = data.google_project.default.project_id
+  service = "storage.googleapis.com"
+
+  depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services
+  ]
+}
+
+# Create all project-level iap.googleapis.com service agents
+resource "google_project_service_identity" "iap_sa" {
+  provider = google-beta
+  project = var.main_project_id
+  service = "iap.googleapis.com"
+
+    depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services
+  ]
+}
+
+# service-projectid@gs-project-accounts.iam.gserviceaccount.com
+# service-projectid@gcp-sa-discoveryengine.iam.gserviceaccount.com
+# This wait time is needed to give time to the API enablement, and the service-agents to create the google service-agents above, which are required to utilize the cloud KMS key.
+resource "time_sleep" "wait_for_services" {
+  create_duration = "120s"
+
+  depends_on = [
+    google_project_service.services
+  ]
 }
 
 # 1. Data sources to securely fetch the OAuth credentials from Secret Manager.
 data "google_secret_manager_secret_version" "iap_client_id" {
-  secret  = "iap-client-id" # The name of the secret you created
+  secret  = "iap-client-id" # The name of the secret you created manually.
   project = var.main_project_id
 }
 

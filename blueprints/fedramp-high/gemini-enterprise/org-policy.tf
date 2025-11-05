@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# These org policies are made as part of the blueprint.
+# The purpose of this blueprint is when you have a fresh GCP-Project, you can assign this and it will spin up a Gemini Enterprise App for you.
+# This works in combination with Gem4Gov CLI.
+
 resource "google_org_policy_policy" "allow_external_lb" {
   name   = "projects/${data.google_project.landing_project.number}/policies/compute.restrictLoadBalancerCreationForTypes"
   parent = "projects/${data.google_project.landing_project.number}"

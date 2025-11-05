@@ -12,19 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "google_compute_network" "network" {
-  name    = var.network_name
-  project = var.network_project_id
-}
-
-resource "google_compute_address" "cnap-ext-ip" {
-  name         = "cnap-ip"
-  project      = var.network_project_id
-  region       = var.region
-  address_type = "EXTERNAL"
-  network_tier = "STANDARD"
-}
-
 module "cnap-0-redirect" {
   source     = "../../../modules/net-lb-app-ext-regional/"
   project_id = var.network_project_id
@@ -50,4 +37,13 @@ resource "google_compute_region_url_map" "gemini_url_map" {
   region          = var.region
   name            = "${var.prefix}-gemini-url-map"
   default_service = google_compute_region_backend_service.gemini_enterprise_backend.id
+}
+
+resource "google_compute_region_health_check" "default" {
+  name    = "dummy-health-check"
+  project = var.main_project_id
+  region  = var.region
+  tcp_health_check {
+    port = 443
+  }
 }
