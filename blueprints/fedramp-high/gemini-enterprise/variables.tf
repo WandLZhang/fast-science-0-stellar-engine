@@ -29,10 +29,9 @@ variable "domain" {
   type        = string
 }
 
-variable "ids_name" {
-  description = "Name of IDS."
+variable "google_workspace_customer_id" {
+  description = "The Google Workspace Customer ID."
   type        = string
-  default     = "cnap-ids"
 }
 
 variable "ids_private_ip_prefix_length" {
@@ -106,16 +105,43 @@ variable "subnetwork_list" {
 variable "subnetwork_name" {
   description = "Subnet for deploying the instances."
   type        = string
-  default     = "default-us-east4"
+}
+
+variable "admin_user_email" {
+  description = "The email address of the admin user for IAM bindings."
+  type        = string
+}
+
+variable "company_name" {
+  description = "Company name for Discovery Engine configuration."
+  type        = string
+  default     = "Department of Technology"
+}
+
+variable "gcs_label_environment" {
+  description = "Environment label for the GCS bucket."
+  type        = string
+  default     = "prod"
 }
 
 variable "agent_space_gcs_bucket_name" {
   description = "The name of the GCS bucket to be used as the data source for the Discovery Engine Data Connector."
   type        = string
+  default     = "your-bucket-name-placeholder"
 }
 
 variable "geolocation" {
   description = "Location for Discovery Engine resources (us, eu, or global)."
   type        = string
   default     = "us"
+}
+
+variable "admin_group_email" {
+  description = "The email address of the AgentSpace administrators group."
+  type        = string
+}
+
+variable "user_group_email" {
+  description = "The email address of the AgentSpace users group."
+  type        = string
 }

@@ -22,25 +22,25 @@
 resource "google_project_iam_member" "admins_discoveryengine_admin" {
   project = var.main_project_id
   role    = "roles/discoveryengine.admin"
-  member  = "group:${googleworkspace_group.admins.email}"
+  member  = "group:gcp-agentspace-admins@${var.domain}"
 }
 
 resource "google_project_iam_member" "admins_aiplatform_admin" {
   project = var.main_project_id
   role    = "roles/aiplatform.admin"
-  member  = "group:${googleworkspace_group.admins.email}"
+  member  = "group:gcp-agentspace-admins@${var.domain}"
 }
 
 resource "google_project_iam_member" "admins_serviceusage_consumer" {
   project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:${googleworkspace_group.admins.email}"
+  member  = "group:gcp-agentspace-admins@${var.domain}"
 }
 
 resource "google_project_iam_member" "admins_logging_viewer" {
   project = var.main_project_id
   role    = "roles/logging.viewer"
-  member  = "group:${googleworkspace_group.admins.email}"
+  member  = "group:gcp-agentspace-admins@${var.domain}"
 }
 
 
@@ -48,11 +48,11 @@ resource "google_project_iam_member" "admins_logging_viewer" {
 resource "google_project_iam_member" "users_discoveryengine_user" {
   project = var.main_project_id
   role    = "roles/discoveryengine.user"
-  member  = "group:${googleworkspace_group.users.email}"
+  member  = "group:gcp-agentspace-users@${var.domain}"
 }
 
 resource "google_project_iam_member" "users_serviceusage_consumer" {
   project = var.main_project_id
   role    = "roles/serviceusage.serviceUsageConsumer"
-  member  = "group:${googleworkspace_group.users.email}"
+  member  = "group:gcp-agentspace-users@${var.domain}"
 }

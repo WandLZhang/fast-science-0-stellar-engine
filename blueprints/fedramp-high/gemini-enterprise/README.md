@@ -85,6 +85,25 @@ Such as:     expression: "\"accessPolicies/${ACCESSPOLICY}/accessLevels/strict_d
 Because deploying this blueprint may require updating your org policy to allow external load balancers, you must use a `-target` apply to make sure that change is made first, then the rest of the application will deploy.
 
 Run `terraform apply -target google_org_policy_policy.allow_external_lb` after configuring the `cloudrun.yaml` and `terraform.tfvars` files appropriately. This setting may take a few minutes to work after the `terraform apply` completes.
+
+### Manual IAP IAM Binding
+
+Due to a potential issue with the Terraform provider, the IAM binding for Identity-Aware Proxy on the regional backend service must be applied manually using `gcloud` after the `terraform apply` has completed.
+
+Run the following command:
+
+```bash
+gcloud iap web add-iam-policy-binding \
+    --project=apr24-test-test1-main-0 \
+    --resource-type=backend-services \
+    --service=gemini-enterprise-backend-service \
+    --region=us-east4 \
+    --member='group:gcp-agentspace-users@shuttontest.joonix.net' \
+    --role='roles/iap.httpsResourceAccessor'
+```
+
+Replace the project, service, region, and member group if they differ in your environment. This command grants the specified group access to the IAP-secured backend service.
+
 ## Discovery Engine Data Connector for Cloud Storage
 
 This Terraform configuration sets up a Google Cloud Vertex AI Search Data Connector to synchronize data from a specified Google Cloud Storage (GCS) bucket.

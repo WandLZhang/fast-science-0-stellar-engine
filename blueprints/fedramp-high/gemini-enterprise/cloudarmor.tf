@@ -16,30 +16,38 @@ locals {
   waf = yamldecode(file("data/cloudarmor.yaml"))
 }
 
-resource "google_compute_region_security_policy" "default" {
+resource "google_compute_region_security_policy" "gemini_enterprise_policy" {
   provider = google-beta
   project  = data.google_project.project.number
+  region   = var.region
 
-  region      = var.region
-  name        = "cloud-armor-policy"
-  description = "Preconfigured WAF Rules"
-  type        = "CLOUD_ARMOR"
-}
+  name        = "gemini-enterprise-security-policy"
+  description = "WAF policy for Gemini Enterprise access"
 
-resource "google_compute_region_security_policy_rule" "policy_rules" {
-  for_each        = local.waf.basic_rules
-  security_policy = google_compute_region_security_policy.default.name
-  provider        = google-beta
-  region          = var.region
-  project         = data.google_project.project.number
-  preview         = false
-  action          = "deny(403)"
-  priority        = index(keys(local.waf.basic_rules), each.key) + 1000
-  description     = "Block ${each.key} attack"
-  match {
-    expr {
-      # Assuming 'rule.value' contains something like 'sqli-v33-stable', we construct the expression using evaluatePreconfiguredWaf(value).
-      expression = "evaluatePreconfiguredWaf('${each.value.expression}')"
+  type = "CLOUD_ARMOR"
+
+  rules {
+    # Rule 2: Allow traffic only from the United States.
+    action   = "allow"
+    priority = 2000
+    match {
+      expr {
+        expression = "origin.region_code == 'US'"
+      }
     }
+    description = "Allow traffic from the US"
+  }
+
+  rules {
+    # Rule 3 (Default): Deny all other traffic that doesn't match an allow rule.
+    action   = "deny(403)"
+    priority = 2147483647 # Lowest possible priority
+    match {
+      versioned_expr = "SRC_IPS_V1"
+      config {
+        src_ip_ranges = ["*"]
+      }
+    }
+    description = "Default deny rule"
   }
 }
