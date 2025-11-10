@@ -46,7 +46,7 @@ resource "google_project_service" "services" {
 # Create all project-level discoveryengine.googleapis.com service agents
 resource "google_project_service_identity" "discoveryengine" {
   provider = google-beta
-  project = data.google_project.default.project_id
+  project = data.google_project.project.project_id
   service = "discoveryengine.googleapis.com"
 
   depends_on = [
@@ -58,7 +58,7 @@ resource "google_project_service_identity" "discoveryengine" {
 # Create all project-level storage.googleapis.com service agents
 resource "google_project_service_identity" "storage" {
   provider = google-beta
-  project = data.google_project.default.project_id
+  project = data.google_project.project.project_id
   service = "storage.googleapis.com"
 
   depends_on = [

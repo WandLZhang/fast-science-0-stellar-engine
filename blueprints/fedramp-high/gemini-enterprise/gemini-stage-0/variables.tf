@@ -19,18 +19,8 @@ variable "access_policy_number" {
   type        = number
 }
 
-variable "default_backend" {
-  description = "The default backend for traffic at the load-balancer. Must match the key of one of the backends in the data/apps.yaml file."
-  type        = string
-}
-
 variable "domain" {
   description = "FQDN for the load-balancer hosted apps, where the subdomain will be prepended to."
-  type        = string
-}
-
-variable "google_workspace_customer_id" {
-  description = "The Google Workspace Customer ID."
   type        = string
 }
 
@@ -42,11 +32,6 @@ variable "ids_private_ip_prefix_length" {
 
 variable "main_project_id" {
   description = "The GCP Project name."
-  type        = string
-}
-
-variable "network_name" {
-  description = "VPC name in your project"
   type        = string
 }
 
@@ -72,20 +57,14 @@ variable "severity" {
   default     = "MEDIUM"
 }
 
-variable "subnetwork_name" {
-  description = "Subnet for your VPC"
+variable "admin_group" {
+  description = "The email address of the admin user group for Gemini Enterprise."
   type        = string
 }
 
-variable "admin_user_email" {
-  description = "The email address of the admin user for IAM bindings."
+variable "user_group" {
+  description = "The email address of the AgentSpace users group."
   type        = string
-}
-
-variable "company_name" {
-  description = "Company name for Discovery Engine configuration."
-  type        = string
-  default     = "Department of Technology"
 }
 
 variable "gcs_label_environment" {
@@ -104,16 +83,6 @@ variable "geolocation" {
   description = "Location for Discovery Engine resources (us, eu, or global)."
   type        = string
   default     = "us"
-}
-
-variable "admin_group_email" {
-  description = "The email address of the AgentSpace administrators group."
-  type        = string
-}
-
-variable "user_group_email" {
-  description = "The email address of the AgentSpace users group."
-  type        = string
 }
 
 variable "gcs_data_store_names" {

@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-output "admin_group_email" {
-  value       = var.admin_group_email
-  description = "The email address of the AgentSpace administrators group."
+output "admin_group" {
+  value       = var.admin_group
+  description = "The principal for the AgentSpace administrators group."
 }
 
-output "user_group_email" {
-  value       = var.user_group_email
-  description = "The email address of the AgentSpace users group."
+output "user_group" {
+  value       = var.user_group
+  description = "The principal for the AgentSpace users group."
 }

@@ -25,7 +25,7 @@ resource "google_compute_region_backend_service" "gemini_enterprise_backend" {
   # Attach the Internet NEG
   backend {
     group           = google_compute_region_network_endpoint_group.gemini_enterprise_neg.id
-    capacity_scaler = 1.0s
+    capacity_scaler = 1.0
   }
 
   # Enable IAP
@@ -38,32 +38,6 @@ resource "google_compute_region_backend_service" "gemini_enterprise_backend" {
     sample_rate = 1
   }
 }
-
-# 3. Grant a user or group access through IAP.
-resource "google_iap_web_backend_service_iam_member" "iap_admin" {
-  project             = var.main_project_id
-  web_backend_service = "projects/${data.google_project.project.number}/iap_web/compute-${var.region}/services/${google_compute_region_backend_service.gemini_enterprise_backend.name}"
-  role                = "roles/iap.httpsResourceAccessor"
-  member              = "group:${var.admin_group_email}"
-  condition {
-    title       = "Admin Access"
-    description = "Access for Admins with Strict Device Policy"
-    expression  = "request.matchAccessLevels("${var.access_policy_number}", ["strict_device"])"
-  }
-}
-
-resource "google_iap_web_backend_service_iam_member" "iap_user" {
-  project             = var.main_project_id
-  web_backend_service = "projects/${data.google_project.project.number}/iap_web/compute-${var.region}/services/${google_compute_region_backend_service.gemini_enterprise_backend.name}"
-  role                = "roles/iap.httpsResourceAccessor"
-  member              = "group:${var.user_group_email}"
-  condition {
-    title       = "User Access"
-    description = "Access for Users with Moderate Device Policy"
-    expression  = "request.matchAccessLevels("${var.access_policy_number}", ["moderate_device"])"
-  }
-}
-
 
 # This is an optional but recommended companion to the HTTPS setup,
 # creating an HTTP load balancer to redirect HTTP traffic to HTTPS.
@@ -94,7 +68,9 @@ resource "google_compute_forwarding_rule" "gemini_enterprise_forwarding_rule" {
   ip_protocol           = "TCP"
   port_range            = "80" # HTTP port
   load_balancing_scheme = "EXTERNAL_MANAGED" # Changed to EXTERNAL_MANAGED
-  network               = data.google_compute_network.gemini_enterprise_vpc.self_link
+  network               = google_compute_network.gemini_enterprise_vpc.self_link
   ip_address            = google_compute_address.gemini_enterprise_ip.address
   target                = google_compute_region_target_http_proxy.gemini_enterprise_http_proxy.id
+  
+  depends_on = [ google_org_policy_policy.allow_external_lb ]
 }
