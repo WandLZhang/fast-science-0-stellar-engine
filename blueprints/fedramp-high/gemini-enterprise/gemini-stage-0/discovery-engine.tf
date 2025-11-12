@@ -31,11 +31,11 @@ resource "google_kms_crypto_key" "cmek_crypto_key" {
   name     = "gemini-enterprise-cmek-key"
   key_ring = google_kms_key_ring.cmek_key_ring.id
   purpose  = "ENCRYPT_DECRYPT"
-  rotation_period = "7776000s" # 90 days
+  rotation_period = locals.kms_rotation_period # 90 days
 
   version_template {
     algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-    protection_level = "SOFTWARE"
+    protection_level = "HSM"
   }
 
   lifecycle {

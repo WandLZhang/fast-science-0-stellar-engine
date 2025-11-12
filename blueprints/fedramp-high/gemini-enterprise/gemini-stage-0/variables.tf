@@ -24,12 +24,6 @@ variable "domain" {
   type        = string
 }
 
-variable "ids_private_ip_prefix_length" {
-  description = "The length of the IDS Private IP Prefix."
-  type        = number
-  default     = 24
-}
-
 variable "main_project_id" {
   description = "The GCP Project name."
   type        = string
@@ -44,12 +38,6 @@ variable "prefix" {
 variable "region" {
   description = "GCP Region to deploy into."
   type        = string
-}
-
-variable "severity" {
-  description = "Display name of the service account to create."
-  type        = string
-  default     = "MEDIUM"
 }
 
 variable "admin_group" {

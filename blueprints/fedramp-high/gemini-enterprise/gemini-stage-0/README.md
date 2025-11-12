@@ -7,10 +7,10 @@ This blueprint deploys the necessary infrastructure to host a Gemini Enterprise 
 Before applying this Terraform module, ensure the following manual steps and configurations are completed:
 
 1.  **Chrome Enterprise Premium:**
-    *   Manually enable and configure Chrome Enterprise Premium within the Google Cloud Console for your organization. This is required for certain contextual awareness policies and configurations, adding to your zero-trust security posture.
+    *   Manually enable and configure Chrome Enterprise Premium within the Google Cloud Console for your organization. This is required for certain contextual awareness policies and configurations, adding to your zero-trust security posture. ([Learn how to purchase Chrome Enterprise Premium here](https://support.google.com/chrome/a/answer/15832585?hl=en))
 
 2.  **Google Workspace Groups for IAP:**
-    *   In the Google Workspace Admin Console, create the following groups:
+    *   In the [Google Workspace Admin Console](https://admin.google.com/), create the following groups:
         *   `gcp-gemini-enterprise-admins@<your-domain>`
         *   `gcp-gemini-enterprise-users@<your-domain>`
     *   Add the necessary users to these groups who will need access to the Gemini Enterprise application through the Identity-Aware Proxy.
@@ -45,7 +45,8 @@ The blueprint sets up the following key components:
             *   US-based access.
             *   Access only during business hours (Mon-Fri, 7 AM - 9 PM ET).
             *   Access expiring at the end of 2026.
-    *   **Chrome Enterprise Premium & Managed Browsers:** To meet the device policy requirements (especially for `strict_device`), users will typically need to use Chrome browsers managed by your Google Workspace organization through Chrome Enterprise Premium. This allows your organization to enforce security settings, extensions, and report on browser status, which feeds into the Access Context Manager device policy evaluation. Configuration is done within the Google Workspace Admin Console under Chrome Browser management.
+    *   **Chrome Enterprise Premium & Managed Browsers:** To meet the device policy requirements (especially for `strict_device`), users will typically need to use Chrome browsers managed by your Google Workspace organization through Chrome Enterprise Premium. This allows your organization to enforce security settings, extensions, and report on browser status, which feeds into the Access Context Manager device policy evaluation. Configuration is done within the [Google Workspace Admin Console](https://admin.google.com/) under [Chrome Browser management](https://admin.google.com/ac/chrome/browsers).
+        *   To collect the necessary device information for Access Context Manager, ensure the **[Endpoint Verification](https://chromewebstore.google.com/detail/callobklhcbilhphinckomhgkigmfocg?utm_source=item-share-cb)** Chrome extension (ID: `callobklhcbilhphinckomhgkigmfocg`) is force-installed on managed browsers. This is extension is added to your users via the "[Apps & extensions](https://admin.google.com/ac/chrome/apps/user)" section within the Chrome Browser management section of the Google Workspace Admin Console.
     *   **Cloud Armor:** Regional security policy to allow US traffic and deny others.
     *   **Organization Policies:** Enforce security constraints.
     *   **IAM policies and Service Accounts:** Follow the principle of least privilege.
@@ -65,7 +66,7 @@ The blueprint sets up the following key components:
 ## Manual Steps After Apply
 
 1.  **Populate Data Stores:**
-    *   **GCS:** Upload your documents to the GCS buckets created by Terraform (see outputs `gcs_agent_space_data_buckets`).
+    *   **GCS:** Upload your documents to the GCS buckets created by Terraform (see outputs `gcs_gemini_enterprise_data_buckets`).
     *   **BigQuery:** Ensure your BigQuery tables (defined in `var.bq_data_store_configs`) are populated with data.
 
 2.  **Import Data to Discovery Engine:**
@@ -92,7 +93,7 @@ The blueprint sets up the following key components:
 This module provides outputs such as:
 
 *   `gcs_discovery_engine_data_stores`: A map of the created GCS-based Data Store names.
-*   `gcs_agent_space_data_buckets`: A map of the created GCS bucket names.
+*   `gcs_gemini_enterprise_data_buckets`: A map of the created GCS bucket names.
 *   `bq_discovery_engine_data_store_ids`: A map of the Data Store IDs managed by the BigQuery connectors.
 *   `gemini_enterprise_ip_address`: The reserved static IP for the load balancer.
 

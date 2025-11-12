@@ -21,3 +21,8 @@ output "user_group" {
   value       = var.user_group
   description = "The principal for the Gemini Enterprise users group."
 }
+
+output "gemini_enterprise_ip" {
+  value       = google_compute_region_network_endpoint.gemini_enterprise_endpoint
+  description = "A Reserved IP to associate with the load balancer."
+}
