@@ -32,7 +32,7 @@ resource "google_org_policy_policy" "allow_external_lb" {
 }
 
 resource "time_sleep" "wait_for_org_policy" {
-  create_duration = "20s"
+  create_duration = "120s"
 
   depends_on = [
     google_org_policy_policy.allow_external_lb

@@ -41,7 +41,7 @@ data "google_compute_address" "gemini_enterprise_ip" {
 
 # This resource defines the URL map with the specified routing rules.
 resource "google_compute_region_url_map" "gemini_enterprise_load_balancer" {
-  project               = var.main_project_id
+  project         = var.main_project_id
   name            = "${var.prefix}-gemini-enterprise-url-map"
   region          = var.region
   description     = "URL map for ${var.prefix}-gemini-enterprise"
