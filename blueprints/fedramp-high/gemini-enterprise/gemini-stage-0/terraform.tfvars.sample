@@ -1,0 +1,40 @@
+domain = "customer-domain.com"
+
+main_project_id    = "prefx-main-xxx-x"
+
+prefix               = "prefx"
+region               = "us-east4"
+
+# gcloud access-context-manager policies list --organization ORGANIZATION_ID
+# get your organization ID via gcloud organizations list
+# It will be the NAME Value.
+access_policy_number = 250001080040
+
+geolocation = "us"
+
+admin_group = gcp-gemini-enterprise-users
+user_group = gcp-gemini-enterprise-admins
+
+# Example GCS Data Stores
+gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
+
+# Example BigQuery Data Stores
+bq_data_store_configs = [
+  {
+    dataset_id = "internal_wiki"
+    table_id   = "articles_v2"
+  },
+  {
+    dataset_id = "product_data"
+    table_id   = "specs_latest"
+  },
+  {
+    dataset_id = "support_tickets"
+\
+# Optional: Customize Access Context Manager Time Restrictions
+access_start_hour = 9  # e.g., 9 AM ET
+access_end_hour   = 17 # e.g., 5 PM ET
+access_start_day  = 1  # Monday
+access_end_day    = 5  # Friday
+
+

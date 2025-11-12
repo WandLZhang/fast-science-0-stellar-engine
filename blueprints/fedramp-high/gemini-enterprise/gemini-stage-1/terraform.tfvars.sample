@@ -1,0 +1,38 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+ 
+# Domain you want to use to host your Gemini Enterprise Web App
+gemini_enterprise_domain = gemini.yourdomain.com
+
+# Gemini Enterprise ID (Change this for stage-1)
+gemini_config_id   = "/us/home/cid/xxx-xxx-xxx-xxx=en_US"
+
+# SSL Cert Name (Change this for stage-1)
+ssl_certificate_name = "your-cert-name-here"
+
+# Your Google Cloud Org's Domain
+domain = "customer-domain.com"
+
+main_project_id    = "prefx-main-xxx-x"
+prefix               = "prefx"
+region               = "us-east4"
+
+# gcloud access-context-manager policies list --organization ORGANIZATION_ID
+# get your organization ID via gcloud organizations list
+# It will be the NAME Value.
+access_policy_number = 250001080040
+
+# Google IDP Groups
+admin_group = gcp-gemini-enterprise-users
+user_group = gcp-gemini-enterprise-admins
