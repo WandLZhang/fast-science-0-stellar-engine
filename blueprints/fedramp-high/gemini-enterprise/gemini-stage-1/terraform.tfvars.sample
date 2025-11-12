@@ -13,7 +13,7 @@
 # limitations under the License.
  
 # Domain you want to use to host your Gemini Enterprise Web App
-gemini_enterprise_domain
+gemini_enterprise_domain = gemini.yourdomain.com
 
 # Gemini Enterprise ID (Change this for stage-1)
 gemini_config_id   = "/us/home/cid/xxx-xxx-xxx-xxx=en_US"
