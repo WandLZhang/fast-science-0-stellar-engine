@@ -62,6 +62,16 @@ variable "gemini_enterprise_gcs_bucket_name" {
   default     = "your-bucket-name-placeholder"
 }
 
+variable "deployment_type" {
+  description = "Type of deployment: 'internal' or 'external'"
+  type        = string
+  default     = "external" # Default to external as per original design
+  validation {
+    condition     = contains(["internal", "external"], var.deployment_type)
+    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
+  }
+}
+
 variable "geolocation" {
   description = "Location for Discovery Engine resources (us, eu, or global)."
   type        = string
@@ -108,4 +118,9 @@ variable "access_end_day" {
   default     = 5
 }
 
+variable "internal_lb_subnet_range" {
+  description = "The IP CIDR range for the internal load balancer subnet."
+  type        = string
+  default     = "10.10.10.0/24"
+}
 

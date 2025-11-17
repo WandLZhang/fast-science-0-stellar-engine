@@ -2,6 +2,10 @@
 
 This blueprint deploys a secure and compliant environment for hosting Gemini Enterprise on Google Cloud Platform, specifically tailored for FedRAMP High requirements. It leverages Vertex AI Search and Discovery Engine. The deployment is divided into two main Terraform stages (`gemini-stage-0` and `gemini-stage-1`) and interacts with the `gem4gov` CLI tool.
 
+**This blueprint supports both EXTERNAL and INTERNAL load balancer deployments, configurable via the `deployment_type` variable in `gemini-stage-0/terraform.tfvars` and `gemini-stage-1/terraform.tfvars`.**
+
+**For an internal-only deployment (no external load balancer), please refer to more details within [internaldeployment.md](./internaldeployment.md).**
+
 ## Overall Goal
 
 The primary goal is to provide a turnkey solution for setting up Gemini Enterprise, enabling government customers and other regulated entities to utilize its AI-powered search and assistant capabilities while adhering to strict security and compliance mandates.
@@ -10,14 +14,14 @@ The primary goal is to provide a turnkey solution for setting up Gemini Enterpri
 
 The blueprint establishes a robust infrastructure including:
 
-1.  **Dedicated Networking:** A new VPC with private subnets to isolate the environment.
+1.  **Dedicated Networking:** A new VPC with private subnets to isolate the environment. The IP range for the subnet used by the internal load balancer can be customized via the `internal_lb_subnet_range` variable in `gemini-stage-0`.
 2.  **Data Storage:** CMEK-encrypted Google Cloud Storage (GCS) buckets and BigQuery datasets to securely store data for Discovery Engine.
 3.  **Discovery Engine:** Configuration of Discovery Engine data stores, and connectors for GCS and BigQuery.
-4.  **Load Balancing:** A Regional External HTTPS Load Balancer to securely expose the Gemini Enterprise application.
+4.  **Load Balancing:** A Regional HTTPS Load Balancer (either INTERNAL_MANAGED or EXTERNAL_MANAGED based on `deployment_type`) to securely expose the Gemini Enterprise application.
 5.  **Security Controls:**
     *   **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context.
     *   **Access Context Manager:** Defines and enforces granular access policies based on attributes like user identity, device security status, time of day, and geo-location.
-    *   **Cloud Armor:** Provides WAF capabilities and DDoS protection, initially configured to only allow traffic from the US.
+    *   **Cloud Armor:** Provides WAF capabilities and DDoS protection, initially configured to only allow traffic from the US (Applicable for EXTERNAL deployments).
     *   **CMEK:** Ensures data at rest in GCS, BigQuery, and Discovery Engine is encrypted with customer-managed keys.
     *   **IAM:** Least privilege IAM roles and service accounts.
     *   **Org Policies:** Enforces organizational constraints to maintain compliance.
@@ -28,46 +32,39 @@ The blueprint establishes a robust infrastructure including:
 
 This stage provisions the core infrastructure.
 
+**Key Variables:**
+
+*   `deployment_type`: Set to `"internal"` or `"external"`.
+*   `internal_lb_subnet_range`: Customize the subnet range for the ILB if `deployment_type` is `"internal"`.
+
 **Key Resources Created:**
 
-*   **APIs Enabled (`main.tf`):** Enables necessary APIs such as Discovery Engine, KMS, BigQuery, Storage, IAP, Access Context Manager, etc.
-*   **Service Identities (`main.tf`):** Creates service agents for Discovery Engine, Storage, and IAP.
-*   **Networking (`network.tf`):**
-    *   `google_compute_network`: Creates the `gemini-enterprise-vpc`.
-    *   `google_compute_subnetwork`: Creates subnets for general use and a `REGIONAL_MANAGED_PROXY` subnet for the load balancer.
-    *   `google_compute_address`: Reserves a static external IP address (`gemini-enterprise-ip`) for the load balancer.
-    *   `google_compute_region_network_endpoint_group`: Creates an Internet NEG (`INTERNET_FQDN_PORT`) pointing to `vertexaisearch.cloud.google.com`.
-*   **KMS (`discovery-engine.tf`):**
-    *   `google_kms_key_ring`: Creates a KeyRing (`gemini-enterprise-cmek-keyring`).
-    *   `google_kms_crypto_key`: Creates a CryptoKey (`gemini-enterprise-cmek-key`) for CMEK with a 90-day rotation.
-    *   `google_kms_crypto_key_iam_member`: Grants Discovery Engine, GCS, and BigQuery service agents encrypt/decrypt permissions on the CMEK key.
-*   **Discovery Engine - Data Stores (`discovery-engine.tf`):**
-    *   `google_discovery_engine_cmek_config`: Configures Discovery Engine to use the created CMEK key by default.
-    *   `google_storage_bucket`: Creates GCS buckets based on `var.gcs_data_store_names`, encrypted with the CMEK key.
-    *   `google_discovery_engine_data_store`: Creates GCS-based Data Stores in Discovery Engine.
-    *   `google_bigquery_dataset`: Creates BigQuery datasets based on `var.bq_data_store_configs`, encrypted with the CMEK key.
-    *   `google_bigquery_table`: Creates BigQuery tables with a default schema.
-    *   `google_discovery_engine_data_connector`: Sets up BigQuery connectors to ingest data into Discovery Engine.
-    *   `google_discovery_engine_acl_config`: Configures GSUITE as the IDP for Discovery Engine.
-*   **IAM (`iam.tf`):**
-    *   `google_project_iam_member`: Assigns roles (`roles/discoveryengine.admin`, `roles/aiplatform.admin`, etc.) to the admin group (`var.admin_group`) and user group (`var.user_group`).
-*   **Security Policies:**
-    *   **Access Context Manager (`access_policy.tf`):** Defines `google_access_context_manager_access_levels`:
-        *   `us`: Restricts to US region.
-        *   `time`: Restricts to business hours (Mon-Fri, 7 AM - 9 PM ET).
-        *   `expire`: Access expires at the end of 2026.
-        *   `lenient_device`: Combines `us`.
-        *   `moderate_device`: Combines `us`, `time`, `expire`.
-        *   `strict_device`: Combines `us`, `time`, `expire`, and requires screen lock, specific OS (Mac/Windows), device encryption, and corp-owned device.
-    *   **Cloud Armor (`cloudarmor.tf`):**
-        *   `google_compute_region_security_policy`: Creates a policy (`gemini-enterprise-security-policy`) to allow US traffic and deny all other traffic by default.
-    *   **Org Policies (`org-policy.tf`):**
-        *   `google_org_policy_policy`: Allows `EXTERNAL_MANAGED_HTTP_HTTPS` load balancer creation.
-*   **Load Balancer - HTTP Redirect (`load_balancer.tf`):**
-    *   `google_compute_region_backend_service`: Defines the backend service `gemini-enterprise-backend-service` pointing to the Internet NEG, with IAP enabled.
-    *   `google_compute_region_url_map`: Sets up an HTTP URL map to redirect all traffic to HTTPS.
-    *   `google_compute_region_target_http_proxy`: HTTP proxy for the redirect.
-    *   `google_compute_forwarding_rule`: Forwarding rule for port 80 to handle HTTP redirection.
+| Resource Type                                     | Name/Purpose                                                | File                   |
+| :------------------------------------------------ | :---------------------------------------------------------- | :--------------------- |
+| APIs Enabled                                      | Discovery Engine, KMS, BQ, GCS, IAP, ACM, etc.              | `main.tf`              |
+| Service Identities                                | Discovery Engine, Cloud Storage, & IAP Service Agents                              | `main.tf`              |
+| `google_compute_network`                          | `gemini-enterprise-vpc`                                     | `network.tf`           |
+| `google_compute_subnetwork`                       | General & Proxy Subnets                                     | `network.tf`           |
+| `google_compute_address`                          | Static Internal or External IP for LB                       | `network.tf`           |
+| `google_compute_region_network_endpoint_group`    | Internet NEG for `vertexaisearch.cloud.google.com`          | `network.tf`           |
+| `google_kms_key_ring`                             | `gemini-enterprise-cmek-keyring`                            | `discovery-engine.tf`  |
+| `google_kms_crypto_key`                           | `gemini-enterprise-cmek-key` (CMEK)                         | `discovery-engine.tf`  |
+| `google_kms_crypto_key_iam_member`                | Grant CMEK perms to SAs                                     | `discovery-engine.tf`  |
+| `google_discovery_engine_cmek_config`             | Default CMEK for Discovery Engine                           | `discovery-engine.tf`  |
+| `google_storage_bucket`                           | CMEK-encrypted buckets for data stores                      | `discovery-engine.tf`  |
+| `google_discovery_engine_data_store`              | GCS Data Stores                                             | `discovery-engine.tf`  |
+| `google_bigquery_dataset`                         | CMEK-encrypted datasets for data stores                     | `discovery-engine.tf`  |
+| `google_bigquery_table`                           | BQ Tables                                                   | `discovery-engine.tf`  |
+| `google_discovery_engine_data_connector`          | BQ Connectors                                               | `discovery-engine.tf`  |
+| `google_discovery_engine_acl_config`              | GSUITE IDP for Discovery Engine                             | `discovery-engine.tf`  |
+| `google_project_iam_member`                       | Admin/User Group Roles                                      | `iam.tf`               |
+| `google_access_context_manager_access_levels`     | US, Time, Device, etc. Access Levels                        | `access_policy.tf`     |
+| `google_compute_region_security_policy`           | Cloud Armor: Allow US, Deny Others                          | `cloudarmor.tf`        |
+| `google_org_policy_policy`                        | Allow EXTERNAL_MANAGED LB                                   | `org-policy.tf`        |
+| `google_compute_region_backend_service`           | Backend for HTTP Redirect                                   | `load_balancer.tf`     |
+| `google_compute_region_url_map`                   | HTTP to HTTPS Redirect URL Map                              | `load_balancer.tf`     |
+| `google_compute_region_target_http_proxy`         | HTTP Proxy for Redirect                                     | `load_balancer.tf`     |
+| `google_compute_forwarding_rule`                  | Port 80 HTTP Redirect Rule                                  | `load_balancer.tf`     |
 
 **Prerequisites for Stage 0:**
 
@@ -75,6 +72,7 @@ This stage provisions the core infrastructure.
 *   Google Workspace Groups (`gcp-gemini-enterprise-admins`, `gcp-gemini-enterprise-users`) created.
 *   OAuth Consent Screen configured.
 *   A clean FedRAMP High GCP project.
+*   Update `terraform.tfvars` with desired `deployment_type` and `internal_lb_subnet_range` if needed.
 
 **Manual Steps After Stage 0:**
 
@@ -97,19 +95,20 @@ This CLI tool is run *between* Stage 0 and Stage 1. Its main purpose is to:
 
 This stage configures the main HTTPS frontend for the application.
 
+**Key Variables:**
+
+*   `deployment_type`: Must match the value set in Stage 0.
+
 **Key Resources Created:**
 
-*   **SSL Certificate (`load_balancer.tf`):**
-    *   `data "google_compute_region_ssl_certificate"`: Retrieves the details of the manually uploaded SSL certificate.
-*   **Load Balancer - HTTPS Frontend (`load_balancer.tf`):**
-    *   `google_compute_region_url_map`: The main URL map (`cnap_url_map`) for HTTPS traffic.
-        *   Includes a `route_rules` with `url_rewrite` to direct traffic to the correct Vertex AI Search path, incorporating the `customer_id` from `var.gemini_config_id` (e.g., `/us/home/cid/{customer_id}`).
-    *   `google_compute_region_target_https_proxy`: The HTTPS proxy using the uploaded SSL certificate.
-    *   `google_compute_forwarding_rule`: The main forwarding rule for port 443, directing traffic to the HTTPS proxy.
-*   **IAP IAM Bindings (`load_balancer.tf`):**
-    *   `google_iap_web_backend_service_iam_member`: Grants access through IAP to the backend service.
-        *   `iap_admin`: Grants `roles/iap.httpsResourceAccessor` to `var.admin_group` with the `strict_device` access level condition.
-        *   `iap_user`: Grants `roles/iap.httpsResourceAccessor` to `var.user_group` with the `moderate_device` access level condition.
+| Resource Type                                     | Name/Purpose                                                | File                   |
+| :------------------------------------------------ | :---------------------------------------------------------- | :--------------------- |
+| `data "google_compute_region_ssl_certificate"`    | Retrieve uploaded SSL Certificate                           | `load_balancer.tf`     |
+| `google_compute_region_url_map`                   | Main HTTPS URL Map (`gemini_enterprise_load_balancer`) with path rewriting | `load_balancer.tf`     |
+| `google_compute_region_target_https_proxy`        | HTTPS Proxy with SSL Cert                                   | `load_balancer.tf`     |
+| `google_compute_forwarding_rule`                  | Main Port 443 HTTPS Rule                                    | `load_balancer.tf`     |
+| `google_iap_web_backend_service_iam_member`       | IAP access for Admin group (Strict device)                  | `load_balancer.tf`     |
+| `google_iap_web_backend_service_iam_member`       | IAP access for User group (Moderate device)                 | `load_balancer.tf`     |
 
 **Prerequisites for Stage 1:**
 
@@ -117,7 +116,7 @@ This stage configures the main HTTPS frontend for the application.
 *   `gem4gov onboard` CLI process completed, obtaining the `customer_id`.
 *   SSL Certificate uploaded to Google Cloud Certificate Manager.
 *   DNS 'A' record pointing to the static IP from Stage 0.
-*   `terraform.tfvars` file updated with `customer_id`, `ssl_certificate_name`, etc.
+*   `terraform.tfvars` file updated with `customer_id`, `ssl_certificate_name`, `deployment_type`, etc.
 
 ## Security and Compliance
 
@@ -129,10 +128,12 @@ This stage configures the main HTTPS frontend for the application.
 ## Deployment Flow
 
 1.  Meet prerequisites for Stage 0.
-2.  Apply Stage 0 Terraform: `terraform init`, `terraform apply`.
-3.  Perform manual steps after Stage 0 (data loading).
-4.  Run the `gem4gov onboard` CLI to configure the application engine and get the `customer_id`.
-5.  Meet prerequisites for Stage 1 (SSL cert, DNS).
-6.  Apply Stage 1 Terraform: `terraform init`, `terraform apply`.
+2.  Configure `gemini-stage-0/terraform.tfvars`, paying attention to `deployment_type`.
+3.  Apply Stage 0 Terraform: `terraform init`, `terraform apply`.
+4.  Perform manual steps after Stage 0 (data loading).
+5.  Run the `gem4gov onboard` CLI to configure the application engine and get the `customer_id`.
+6.  Meet prerequisites for Stage 1 (SSL cert, DNS).
+7.  Configure `gemini-stage-1/terraform.tfvars`, ensuring `deployment_type` matches Stage 0.
+8.  Apply Stage 1 Terraform: `terraform init`, `terraform apply`.
 
 This multi-stage approach ensures that infrastructure is in place before application-level configuration and frontend exposure, maintaining a secure and orderly deployment.

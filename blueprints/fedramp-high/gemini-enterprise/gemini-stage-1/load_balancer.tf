@@ -33,10 +33,22 @@ data "google_compute_network" "gemini_enterprise_vpc" {
 }
 
 # Data source to get the IP address created in stage-0
-data "google_compute_address" "gemini_enterprise_ip" {
+data "google_compute_address" "gemini_enterprise_internal_ip" {
+  count   = var.deployment_type == "internal" ? 1 : 0
   project = var.main_project_id
-  name    = "gemini-enterprise-ip"
+  name    = "gemini-enterprise-internal-ip"
   region  = var.region
+}
+
+data "google_compute_global_address" "gemini_enterprise_external_ip" {
+  count   = var.deployment_type == "external" ? 1 : 0
+  project = var.main_project_id
+  name    = "gemini-enterprise-external-ip"
+}
+
+locals {
+  load_balancing_scheme = var.deployment_type == "internal" ? "INTERNAL_MANAGED" : "EXTERNAL_MANAGED"
+  ip_address = var.deployment_type == "internal" ? data.google_compute_address.gemini_enterprise_internal_ip[0].address : data.google_compute_global_address.gemini_enterprise_external_ip[0].address
 }
 
 # This resource defines the URL map with the specified routing rules.
@@ -85,15 +97,23 @@ resource "google_compute_region_target_https_proxy" "gemini_enterprise_https_pro
 # This resource creates the forwarding rule for the load balancer.
 # This requires the SSL cert via the proxy to be uploaded, pending stage 00 and upload.
 resource "google_compute_forwarding_rule" "gemini_enterprise_forwarding_rule" {
-  project               = var.main_project_id
   name                  = "${var.prefix}-gemini-enterprise-forwarding-rule"
   region                = var.region
   ip_protocol           = "TCP"
   port_range            = "443"
-  load_balancing_scheme = "EXTERNAL_MANAGED"
-  network               = data.google_compute_network.gemini_enterprise_vpc.self_link
-  ip_address            = data.google_compute_address.gemini_enterprise_ip.address
+  load_balancing_scheme = local.load_balancing_scheme
+  network               = var.deployment_type == "internal" ? data.google_compute_network.gemini_enterprise_vpc.self_link : null
+  subnetwork            = var.deployment_type == "internal" ? data.google_compute_subnetwork.gemini_enterprise_vpc_subnet.self_link : null
+  ip_address            = local.ip_address
   target                = google_compute_region_target_https_proxy.gemini_enterprise_https_proxy.id
+}
+
+# Data source to get the subnet created in stage-0
+data "google_compute_subnetwork" "gemini_enterprise_vpc_subnet" {
+  count   = var.deployment_type == "internal" ? 1 : 0
+  project = var.main_project_id
+  name    = "gemini-enterprise-vpc-subnet"
+  region  = var.region
 }
 
 # --- IAP Access Roles ---

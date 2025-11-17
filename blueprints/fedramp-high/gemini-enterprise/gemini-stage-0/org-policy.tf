@@ -17,6 +17,7 @@
 # This works in combination with Gem4Gov CLI.
 
 resource "google_org_policy_policy" "allow_external_lb" {
+  count  = var.deployment_type == "external" ? 1 : 0
   name   = "projects/${data.google_project.project.number}/policies/compute.restrictLoadBalancerCreationForTypes"
   parent = "projects/${data.google_project.project.number}"
   spec {

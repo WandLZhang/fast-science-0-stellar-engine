@@ -25,7 +25,7 @@ resource "google_compute_network" "gemini_enterprise_vpc" {
 resource "google_compute_subnetwork" "gemini_enterprise_vpc_subnet" {
   project                  = var.main_project_id
   name                     = "gemini-enterprise-vpc-subnet"
-  ip_cidr_range            = "10.10.10.0/24"
+  ip_cidr_range            = var.internal_lb_subnet_range
   region                   = var.region
   network                  = google_compute_network.gemini_enterprise_vpc.id
   private_ip_google_access = true
@@ -41,10 +41,19 @@ resource "google_compute_subnetwork" "gemini_enterprise_vpc_proxy_subnet" {
   role                     = "ACTIVE"
 }
 
-resource "google_compute_address" "gemini_enterprise_ip" {
+resource "google_compute_address" "gemini_enterprise_internal_ip" {
+  count        = var.deployment_type == "internal" ? 1 : 0
   project      = var.main_project_id
-  name         = "gemini-enterprise-ip"
+  name         = "gemini-enterprise-internal-ip"
   region       = var.region
+  subnetwork   = google_compute_subnetwork.gemini_enterprise_vpc_subnet.id
+  address_type = "INTERNAL"
+}
+
+resource "google_compute_global_address" "gemini_enterprise_external_ip" {
+  count        = var.deployment_type == "external" ? 1 : 0
+  project      = var.main_project_id
+  name         = "gemini-enterprise-external-ip"
   address_type = "EXTERNAL"
 }
 

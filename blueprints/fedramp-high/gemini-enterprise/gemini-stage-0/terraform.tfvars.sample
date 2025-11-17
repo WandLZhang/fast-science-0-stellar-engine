@@ -1,3 +1,7 @@
+# SET THIS TO DEPLOY INTERNAL vs. EXTERNAL INGRESS
+# Originally follows the CNAP, which supports external ingress
+deployment_type = "external"
+
 domain = "customer-domain.com"
 
 main_project_id    = "prefx-main-xxx-x"
@@ -36,5 +40,9 @@ access_start_hour = 9  # e.g., 9 AM ET
 access_end_hour   = 17 # e.g., 5 PM ET
 access_start_day  = 1  # Monday
 access_end_day    = 5  # Friday
+
+# Optional: Set a non-conflicting IP range for the internal load balancer subnet
+# Only used if deployment_type is "internal"
+internal_lb_subnet_range = "10.10.10.0/24"
 
 

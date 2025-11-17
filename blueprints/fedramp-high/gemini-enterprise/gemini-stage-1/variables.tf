@@ -38,6 +38,16 @@ variable "region" {
   type        = string
 }
 
+variable "deployment_type" {
+  description = "Type of deployment: 'internal' or 'external'"
+  type        = string
+  default     = "external" # Default to external as per original design
+  validation {
+    condition     = contains(["internal", "external"], var.deployment_type)
+    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
+  }
+}
+
 variable "gemini_enterprise_domain" {
   description = "Your domain that you associated the reserved IP from stage 0 to"
   type        = string

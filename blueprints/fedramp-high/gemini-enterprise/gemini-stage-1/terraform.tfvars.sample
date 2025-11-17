@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
  
+# SET THIS TO DEPLOY INTERNAL vs. EXTERNAL INGRESS
+# Originally follows the CNAP, which supports external ingress
+deployment_type = "external"
+
 # Domain you want to use to host your Gemini Enterprise Web App
 gemini_enterprise_domain = gemini.yourdomain.com
 

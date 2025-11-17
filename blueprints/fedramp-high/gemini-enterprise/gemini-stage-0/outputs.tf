@@ -23,6 +23,11 @@ output "user_group" {
 }
 
 output "gemini_enterprise_ip" {
-  value       = google_compute_region_network_endpoint.gemini_enterprise_endpoint
-  description = "A Reserved IP to associate with the load balancer."
+  value       = var.deployment_type == "internal" ? google_compute_address.gemini_enterprise_internal_ip[0].address : google_compute_global_address.gemini_enterprise_external_ip[0].address
+  description = "The reserved IP address for the load balancer."
+}
+
+output "deployment_type" {
+  value       = var.deployment_type
+  description = "The deployment type of the load balancer (internal or external)."
 }

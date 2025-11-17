@@ -78,12 +78,12 @@ The blueprint sets up the following key components:
     *   **Identity-Aware Proxy (IAP):** Enabled on the backend service in `load_balancer.tf`. IAP is configured to use pre-defined Access Context Manager levels to enforce contextual awareness policies for the prerequisite Google Workspace groups:
         *   `gcp-gemini-enterprise-admins@<your-domain>`: Requires the `strict_device` policy. This level enforces:
             *   US-based access.
-            *   Access only during business hours (Mon-Fri, 7 AM - 9 PM ET).
+            *   Access only during business hours (Mon-Fri, 9 AM - 5 PM ET).
             *   Access expiring at the end of 2026.
             *   Device must be Corp-owned, encrypted, have a screen lock, and be running macOS or Windows.
         *   `gcp-gemini-enterprise-users@<your-domain>`: Requires the `moderate_device` policy. This level enforces:
             *   US-based access.
-            *   Access only during business hours (Mon-Fri, 7 AM - 9 PM ET).
+            *   Access only during business hours (Mon-Fri, 9 AM - 5 PM ET).
             *   Access expiring at the end of 2026.
     *   **Chrome Enterprise Premium & Managed Browsers:** To meet the device policy requirements (especially for `strict_device`), users will typically need to use Chrome browsers managed by your Google Workspace organization through Chrome Enterprise Premium. This allows your organization to enforce security settings, extensions, and report on browser status, which feeds into the Access Context Manager device policy evaluation. Configuration is done within the [Google Workspace Admin Console](https://admin.google.com/) under [Chrome Browser management](https://admin.google.com/ac/chrome/browsers).
         *   To collect the necessary device information for Access Context Manager, ensure the **[Endpoint Verification](https://chromewebstore.google.com/detail/callobklhcbilhphinckomhgkigmfocg?utm_source=item-share-cb)** Chrome extension (ID: `callobklhcbilhphinckomhgkigmfocg`) is force-installed on managed browsers. This is extension is added to your users via the "[Apps & extensions](https://admin.google.com/ac/chrome/apps/user)" section within the Chrome Browser management section of the Google Workspace Admin Console.
