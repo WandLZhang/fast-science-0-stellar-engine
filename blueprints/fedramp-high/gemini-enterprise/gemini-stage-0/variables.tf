@@ -124,3 +124,36 @@ variable "internal_lb_subnet_range" {
   default     = "10.10.10.0/24"
 }
 
+variable "kms_key_id" {
+  description = "The full resource name of the Cloud KMS key to use for CMEK (e.g. projects/p/locations/l/keyRings/r/cryptoKeys/k). If not provided, a new key will be created."
+  type        = string
+  default     = null
+}
+
+variable "create_data_stores" {
+  description = "Whether to create example Data Stores (BigQuery, GCS) and associated CMEK config."
+  type        = bool
+  default     = true
+}
+
+variable "acl_idp_type" {
+  description = "The Identity Provider type for Discovery Engine ACLs. Options: 'GSUITE', 'THIRD_PARTY'."
+  type        = string
+  default     = "GSUITE"
+  validation {
+    condition     = contains(["GSUITE", "THIRD_PARTY"], var.acl_idp_type)
+    error_message = "The acl_idp_type value must be either 'GSUITE' or 'THIRD_PARTY'."
+  }
+}
+
+variable "acl_workforce_pool_name" {
+  description = "The resource name of the Workforce Identity Pool (required if acl_idp_type is 'THIRD_PARTY'). Format: locations/global/workforcePools/<pool_id>"
+  type        = string
+  default     = ""
+}
+
+variable "enable_chrome_enterprise_premium" {
+  description = "Enable Chrome Enterprise Premium features (e.g., Zero Trust)."
+  type        = bool
+  default     = false
+}

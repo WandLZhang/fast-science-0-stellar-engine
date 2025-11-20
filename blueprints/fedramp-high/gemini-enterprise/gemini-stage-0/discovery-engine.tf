@@ -17,31 +17,23 @@ locals {
   gcs_lifecycle_age   = 30
   bq_connector_refresh_interval = "86400s" # Daily
   wait_for_bq_datastore_duration = "120s"
+  # Use provided key
+  cmek_key_id = var.kms_key_id
 }
 
-# Create the KMS key ring and crypto key for CMEK
-resource "google_kms_key_ring" "cmek_key_ring" {
-  project  = var.main_project_id
-  name     = "gemini-enterprise-cmek-keyring"
-  location = var.geolocation
+# Data source to validate/read the provided key
+data "google_kms_crypto_key" "cmek_crypto_key" {
+  name     = element(split("/", var.kms_key_id), 7)
+  key_ring = join("/", slice(split("/", var.kms_key_id), 0, 6))
 }
 
-resource "google_kms_crypto_key" "cmek_crypto_key" {
-  # Change the name below to gemini-enterprise-cmek-key
-  name     = "gemini-enterprise-cmek-key"
-  key_ring = google_kms_key_ring.cmek_key_ring.id
-  purpose  = "ENCRYPT_DECRYPT"
-  rotation_period = local.kms_rotation_period # 90 days
-
-  version_template {
-    algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-    protection_level = "HSM"
-  }
-
-  lifecycle {
-    # prevent_destroy = true
-  }
+data "google_kms_key_ring" "cmek_key_ring" {
+  name     = element(split("/", var.kms_key_id), 5)
+  location = element(split("/", var.kms_key_id), 3)
+  project  = element(split("/", var.kms_key_id), 1)
 }
+
+
 
 # Get project details for the main project
 data "google_project" "main" {
@@ -50,7 +42,7 @@ data "google_project" "main" {
 
 # Grant Discovery Engine Service Agent access to the KMS key
 resource "google_kms_crypto_key_iam_member" "discoveryengine_sa_kms_access" {
-  crypto_key_id = google_kms_crypto_key.cmek_crypto_key.id
+  crypto_key_id = local.cmek_key_id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.main.number}@gcp-sa-discoveryengine.iam.gserviceaccount.com"
 
@@ -63,7 +55,7 @@ resource "google_kms_crypto_key_iam_member" "discoveryengine_sa_kms_access" {
 # ---------------------------------------------------------------------------- #
 # Grant GCS Service Agent access to the KMS key
 resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
-  crypto_key_id = google_kms_crypto_key.cmek_crypto_key.id
+  crypto_key_id = local.cmek_key_id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:service-${data.google_project.main.number}@gs-project-accounts.iam.gserviceaccount.com"
 
@@ -75,7 +67,7 @@ resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
 
 # Grant BigQuery Service Agent access to the KMS key
 resource "google_kms_crypto_key_iam_member" "bq_sa_kms_access" {
-  crypto_key_id = google_kms_crypto_key.cmek_crypto_key.id
+  crypto_key_id = local.cmek_key_id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
   member        = "serviceAccount:bq-${data.google_project.main.number}@bigquery-encryption.iam.gserviceaccount.com"
 }
@@ -84,17 +76,19 @@ resource "google_kms_crypto_key_iam_member" "bq_sa_kms_access" {
 #  Discovery Engine CMEK Config                                              #
 # ---------------------------------------------------------------------------- #
 
+# CMEK Configuration for Discovery Engine (Conditional)
 resource "google_discovery_engine_cmek_config" "default" {
-  location       = var.geolocation # Should be "us"
-  cmek_config_id = "default_cmek_config"
-  kms_key        = google_kms_crypto_key.cmek_crypto_key.id
-  set_default    = true
-  provider       = google-beta
+  count = var.create_data_stores ? 1 : 0
+
+  project      = var.main_project_id
+  location     = var.geolocation
+  kms_key      = local.cmek_key_id
 
   depends_on = [
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
-    google_kms_crypto_key_iam_member.bq_sa_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
+    data.google_kms_crypto_key.cmek_crypto_key,
+    google_project_service.services,
     time_sleep.wait_for_services,
   ]
 }
@@ -104,7 +98,7 @@ resource "google_discovery_engine_cmek_config" "default" {
 
 # GCS Buckets for Discovery Engine Data Sources
 resource "google_storage_bucket" "gemini_enterprise_data" {
-  for_each = toset(var.gcs_data_store_names)
+  for_each = var.create_data_stores ? toset(var.gcs_data_store_names) : []
 
   project                     = var.main_project_id
   name                        = "${var.main_project_id}-${each.key}-data"
@@ -113,7 +107,7 @@ resource "google_storage_bucket" "gemini_enterprise_data" {
   force_destroy               = false # Set to true only for non-production
 
   encryption {
-    default_kms_key_name = google_kms_crypto_key.cmek_crypto_key.id
+    default_kms_key_name = local.cmek_key_id
   }
 
   lifecycle_rule {
@@ -138,7 +132,7 @@ resource "google_storage_bucket" "gemini_enterprise_data" {
 
 # Discovery Engine Data Stores for GCS
 resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_ds" {
-  for_each = toset(var.gcs_data_store_names)
+  for_each = var.create_data_stores ? toset(var.gcs_data_store_names) : []
 
   project       = var.main_project_id
   location      = var.geolocation # Must match the Data Store and Engine location
@@ -147,7 +141,7 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_ds" {
   industry_vertical = "GENERIC"
   content_config    = "CONTENT_REQUIRED"
   solution_types  = ["SOLUTION_TYPE_SEARCH"]
-  kms_key_name  = google_kms_crypto_key.cmek_crypto_key.id
+  kms_key_name  = local.cmek_key_id
   provider      = google-beta
 
   document_processing_config {
@@ -160,7 +154,7 @@ resource "google_discovery_engine_data_store" "gemini_enterprise_gcs_ds" {
     google_discovery_engine_cmek_config.default,
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
-    google_kms_crypto_key.cmek_crypto_key,
+    data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
   ]
@@ -175,7 +169,7 @@ locals {
 }
 
 resource "google_bigquery_dataset" "gemini_enterprise_bq_ds" {
-  for_each = local.bq_configs
+  for_each = var.create_data_stores ? local.bq_configs : {}
 
   project     = var.main_project_id
   dataset_id  = each.value.dataset_id
@@ -184,12 +178,12 @@ resource "google_bigquery_dataset" "gemini_enterprise_bq_ds" {
   location    = var.geolocation # Or a more specific region specific location if desired
 
   default_encryption_configuration {
-    kms_key_name = google_kms_crypto_key.cmek_crypto_key.id
+    kms_key_name = local.cmek_key_id
   }
 }
 
 resource "google_bigquery_table" "gemini_enterprise_bq_table" {
-  for_each = local.bq_configs
+  for_each = var.create_data_stores ? local.bq_configs : {}
 
   project    = var.main_project_id
   dataset_id = google_bigquery_dataset.gemini_enterprise_bq_ds[each.key].dataset_id
@@ -234,7 +228,7 @@ EOF
 # ---------------------------------------------------------------------------- #
 
 resource "google_discovery_engine_data_connector" "gemini_enterprise_bq_connector" {
-  for_each = local.bq_configs
+  for_each = var.create_data_stores ? local.bq_configs : {}
 
   project     = var.main_project_id
   location      = var.geolocation # Ensure this is "us", "eu", or "global"
@@ -256,14 +250,14 @@ resource "google_discovery_engine_data_connector" "gemini_enterprise_bq_connecto
   }
 
   refresh_interval = "86400s" # Daily
-  kms_key_name = google_kms_crypto_key.cmek_crypto_key.id
+  kms_key_name = local.cmek_key_id
   provider = google-beta
 
   depends_on = [
     google_discovery_engine_cmek_config.default,
     google_kms_crypto_key_iam_member.discoveryengine_sa_kms_access,
     google_kms_crypto_key_iam_member.gcs_sa_kms_access,
-    google_kms_crypto_key.cmek_crypto_key,
+    data.google_kms_crypto_key.cmek_crypto_key,
     google_project_service.services,
     time_sleep.wait_for_services,
   ]
@@ -271,7 +265,7 @@ resource "google_discovery_engine_data_connector" "gemini_enterprise_bq_connecto
 
 # Add a delay to allow the DataStore to be created by the connector
 resource "time_sleep" "wait_for_bq_datastore" {
-  for_each = local.bq_configs
+  for_each = var.create_data_stores ? local.bq_configs : {}
   create_duration = "30s"
   depends_on = [google_discovery_engine_data_connector.gemini_enterprise_bq_connector]
 }
@@ -288,6 +282,10 @@ resource "google_discovery_engine_acl_config" "gemini_enterprise_acl_config" {
     idp_type = "GSUITE"
   }
   provider = google-beta
+
+  depends_on = [
+    time_sleep.wait_for_services
+  ]
 }
 
 # ---------------------------------------------------------------------------- #

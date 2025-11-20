@@ -14,7 +14,7 @@
 
 locals {
   load_balancing_scheme = var.deployment_type == "internal" ? "INTERNAL_MANAGED" : "EXTERNAL_MANAGED"
-  ip_address = var.deployment_type == "internal" ? google_compute_address.gemini_enterprise_internal_ip[0].address : google_compute_global_address.gemini_enterprise_external_ip[0].address
+  ip_address = var.deployment_type == "internal" ? google_compute_address.gemini_enterprise_internal_ip[0].address : google_compute_address.gemini_enterprise_external_ip[0].address
 }
 
 # Define the Backend Service on the Load Balancer and integrate all components.
@@ -73,10 +73,10 @@ resource "google_compute_forwarding_rule" "gemini_enterprise_http_forwarding_rul
   ip_protocol           = "TCP"
   port_range            = "80" # HTTP port
   load_balancing_scheme = local.load_balancing_scheme
-  network               = var.deployment_type == "internal" ? google_compute_network.gemini_enterprise_vpc.self_link : null
+  network               = var.deployment_type == "internal" ? google_compute_network.gemini_enterprise_vpc.id : google_compute_network.gemini_enterprise_vpc.id
   subnetwork            = var.deployment_type == "internal" ? google_compute_subnetwork.gemini_enterprise_vpc_subnet.self_link : null
   ip_address            = local.ip_address
   target                = google_compute_region_target_http_proxy.gemini_enterprise_http_proxy.id
 
-  depends_on = [time_sleep.wait_for_org_policy]
+
 }

@@ -26,6 +26,8 @@ This deployment uses a Regional *Internal* HTTP(S) Load Balancer (ILB) by settin
 
 4.  **Permissions:** Ensure the service account or user running Terraform has the necessary permissions to create all resources defined in `gemini-stage-0` and `gemini-stage-1`.
 
+5.  **Organization Policy:** If deploying the **External** variant (not the primary focus of this doc, but relevant if reusing this blueprint), you must ensure the `compute.restrictLoadBalancerCreationForTypes` organization policy allows `EXTERNAL_MANAGED_HTTP_HTTPS` load balancers.
+
 ## Deployment Steps
 
 1.  **Configure Stage 0:**

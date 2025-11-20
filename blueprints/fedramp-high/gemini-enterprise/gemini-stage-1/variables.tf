@@ -12,40 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "access_policy_number" {
-  description = "There can only be one Access Policy per GCP Org. Use gcloud access-context-manager policies list --organization <org-number> to list it."
-  type        = number
-}
 
-variable "domain" {
-  description = "the domain of the google organization"
-  type        = string
-}
 
-variable "main_project_id" {
-  description = "The GCP Project name."
-  type        = string
-}
 
-variable "prefix" {
-  description = "Prefix for naming resources in this blueprint."
-  type        = string
-  default     = "cnap"
-}
 
-variable "region" {
-  description = "GCP Region to deploy into."
-  type        = string
-}
 
-variable "deployment_type" {
-  description = "Type of deployment: 'internal' or 'external'"
+variable "stage_0_state_bucket" {
+  description = "The name of the GCS bucket used for Stage 0 Terraform state."
   type        = string
-  default     = "external" # Default to external as per original design
-  validation {
-    condition     = contains(["internal", "external"], var.deployment_type)
-    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
-  }
 }
 
 variable "gemini_enterprise_domain" {
@@ -65,13 +39,6 @@ variable "gemini_config_id" {
   type        = string
 }
 
-variable "admin_group" {
-  description = "The principal of the Gemini Enterprise administrators group."
-  type        = string
-}
 
-variable "user_group" {
-  description = "The principal of the Gemini Enterprise users group."
-  type        = string
-}
+
 

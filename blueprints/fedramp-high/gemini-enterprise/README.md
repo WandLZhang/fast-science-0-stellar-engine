@@ -19,12 +19,22 @@ The blueprint establishes a robust infrastructure including:
 3.  **Discovery Engine:** Configuration of Discovery Engine data stores, and connectors for GCS and BigQuery.
 4.  **Load Balancing:** A Regional HTTPS Load Balancer (either INTERNAL_MANAGED or EXTERNAL_MANAGED based on `deployment_type`) to securely expose the Gemini Enterprise application.
 5.  **Security Controls:**
-    *   **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context.
+    *   **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context. Supports both Google Identity and **Workforce Identity Federation** for external IdPs.
     *   **Access Context Manager:** Defines and enforces granular access policies based on attributes like user identity, device security status, time of day, and geo-location.
+    *   **Chrome Enterprise Premium (Zero Trust):** Optional integration to enforce strict device-based access policies (e.g., Corporate Owned, Encrypted, Screen Lock) for a Zero Trust security posture.
     *   **Cloud Armor:** Provides WAF capabilities and DDoS protection, initially configured to only allow traffic from the US (Applicable for EXTERNAL deployments).
     *   **CMEK:** Ensures data at rest in GCS, BigQuery, and Discovery Engine is encrypted with customer-managed keys.
     *   **IAM:** Least privilege IAM roles and service accounts.
     *   **Org Policies:** Enforces organizational constraints to maintain compliance.
+
+## Remote Terraform State Management
+
+This blueprint utilizes a **remote GCS backend** for Terraform state storage to ensure state persistence, collaboration, and security.
+
+*   **State Bucket:** A GCS bucket named `${PREFIX}-gemini-enterprise-tf-state-${PROJECT_ID}` is automatically created by the `deploy.sh` script.
+*   **Encryption:** The state bucket is encrypted with a Customer-Managed Encryption Key (CMEK) to meet FedRAMP High requirements.
+*   **Access Control:** The `deploy.sh` script automatically grants the `roles/cloudkms.cryptoKeyEncrypterDecrypter` role to the user running the deployment. This permission is **required** to access the encrypted state file, for example, when Stage 1 needs to read outputs from Stage 0.
+*   **Flexibility:** Because the state is remote, you can run Stage 1 from a different machine or session than Stage 0, provided you have the necessary credentials and KMS permissions (which the script handles for you).
 
 ## Deployment Stages
 
@@ -47,8 +57,8 @@ This stage provisions the core infrastructure.
 | `google_compute_subnetwork`                       | General & Proxy Subnets                                     | `network.tf`           |
 | `google_compute_address`                          | Static Internal or External IP for LB                       | `network.tf`           |
 | `google_compute_region_network_endpoint_group`    | Internet NEG for `vertexaisearch.cloud.google.com`          | `network.tf`           |
-| `google_kms_key_ring`                             | `gemini-enterprise-cmek-keyring`                            | `discovery-engine.tf`  |
-| `google_kms_crypto_key`                           | `gemini-enterprise-cmek-key` (CMEK)                         | `discovery-engine.tf`  |
+| `google_kms_key_ring`                             | `gemini-enterprise-cmek-keyring` (Conditional)              | `discovery-engine.tf`  |
+| `google_kms_crypto_key`                           | `gemini-enterprise-cmek-key` (Conditional)                  | `discovery-engine.tf`  |
 | `google_kms_crypto_key_iam_member`                | Grant CMEK perms to SAs                                     | `discovery-engine.tf`  |
 | `google_discovery_engine_cmek_config`             | Default CMEK for Discovery Engine                           | `discovery-engine.tf`  |
 | `google_storage_bucket`                           | CMEK-encrypted buckets for data stores                      | `discovery-engine.tf`  |
@@ -65,6 +75,13 @@ This stage provisions the core infrastructure.
 | `google_compute_region_url_map`                   | HTTP to HTTPS Redirect URL Map                              | `load_balancer.tf`     |
 | `google_compute_region_target_http_proxy`         | HTTP Proxy for Redirect                                     | `load_balancer.tf`     |
 | `google_compute_forwarding_rule`                  | Port 80 HTTP Redirect Rule                                  | `load_balancer.tf`     |
+
+**## Prerequisites
+
+*   **Google Cloud Project**: A GCP project with billing enabled.
+*   **Organization Policy**: If deploying the **External** variant, you must ensure the `compute.restrictLoadBalancerCreationForTypes` organization policy allows `EXTERNAL_MANAGED_HTTP_HTTPS` load balancers. This blueprint does **not** modify this policy automatically.
+*   **Terraform**: Installed locally.
+*   **gcloud CLI**: Installed and authenticated.
 
 **Prerequisites for Stage 0:**
 
@@ -127,13 +144,27 @@ This stage configures the main HTTPS frontend for the application.
 
 ## Deployment Flow
 
-1.  Meet prerequisites for Stage 0.
-2.  Configure `gemini-stage-0/terraform.tfvars`, paying attention to `deployment_type`.
-3.  Apply Stage 0 Terraform: `terraform init`, `terraform apply`.
-4.  Perform manual steps after Stage 0 (data loading).
-5.  Run the `gem4gov onboard` CLI to configure the application engine and get the `customer_id`.
-6.  Meet prerequisites for Stage 1 (SSL cert, DNS).
-7.  Configure `gemini-stage-1/terraform.tfvars`, ensuring `deployment_type` matches Stage 0.
-8.  Apply Stage 1 Terraform: `terraform init`, `terraform apply`.
+1.  **Run the Interactive Deployment Script:**
+    *   Execute `./deploy.sh` from the root directory.
+    *   Select **Option 1** to deploy Stage 0.
+    *   The script will interactively guide you through configuration, including:
+        *   Project & Region selection.
+        *   **Identity Provider Selection:** Choose between Google Identity (GSUITE) or Workforce Identity Federation (THIRD_PARTY).
+        *   **Chrome Enterprise Premium:** Option to enable Zero Trust device policies.
+        *   **Data Stores:** Option to create initial Data Stores for Discovery Engine.
+    *   The script generates `gemini-stage-0/terraform.tfvars` and applies Terraform.
 
-This multi-stage approach ensures that infrastructure is in place before application-level configuration and frontend exposure, maintaining a secure and orderly deployment.
+2.  **Perform Manual Steps:**
+    *   Populate GCS buckets and BigQuery tables with data.
+    *   Manually trigger data import from GCS to Discovery Engine.
+
+3.  **Run the `gem4gov` CLI:**
+    *   Run `gem4gov onboard` to configure the application engine and get the `customer_id` (Config ID).
+
+4.  **Deploy Stage 1:**
+    *   Execute `./deploy.sh` again and select **Option 2**.
+    *   **Automatic State Lookup:** The script will detect your Stage 0 configuration and offer to reuse it. It automatically retrieves `PROJECT_ID`, `PREFIX`, and `DOMAIN` from the Stage 0 remote state, minimizing manual input.
+    *   Provide the `gemini_config_id` (from `gem4gov`) and SSL Certificate name.
+    *   The script generates `gemini-stage-1/terraform.tfvars` and applies Terraform.
+
+This multi-stage approach, orchestrated by `deploy.sh`, ensures that infrastructure is in place before application-level configuration and frontend exposure, maintaining a secure and orderly deployment.

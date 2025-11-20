@@ -6,8 +6,7 @@ This blueprint deploys the necessary infrastructure to host a Gemini Enterprise 
 
 Before applying this Terraform module, ensure the following manual steps and configurations are completed:
 
-1.  **Chrome Enterprise Premium:**
-    *   Manually enable and configure Chrome Enterprise Premium within the Google Cloud Console for your organization. This is required for certain contextual awareness policies and configurations, adding to your zero-trust security posture. ([Learn how to purchase Chrome Enterprise Premium here](https://support.google.com/chrome/a/answer/15832585?hl=en))
+1.  **Organization Policy**: If deploying the **External** variant, you must ensure the `compute.restrictLoadBalancerCreationForTypes` organization policy allows `EXTERNAL_MANAGED_HTTP_HTTPS` load balancers. This blueprint does **not** modify this policy automatically.
 
 2.  **Google Workspace Groups for IAP:**
     *   In the [Google Workspace Admin Console](https://admin.google.com/), create the following groups:
@@ -19,7 +18,18 @@ Before applying this Terraform module, ensure the following manual steps and con
     *   In the Google Cloud Console, navigate to "APIs & Services" > "OAuth consent screen".
     *   Configure the OAuth consent screen. Select "Internal" user type if only for your organization. Provide an app name (e.g., "Gemini Enterprise IAP"), user support email, and developer contact information.
 
-**IMPORTANT:** This blueprint is designed to be deployed in a **FedRAMP High GCP project**, to ensure a clean slate for meeting stringent FedRAMP High security and compliance requirements.
+4.  **Chrome Enterprise Premium (Optional):**
+    *   Manually enable and configure Chrome Enterprise Premium within the Google Cloud Console for your organization. This is required for certain contextual awareness policies and endpoint configurations, adding to your zero-trust security posture. ([Learn how to purchase Chrome Enterprise Premium here](https://support.google.com/chrome/a/answer/15832585?hl=en))
+    *   **Note:** Chrome Enterprise Premium is required to enforce advanced policies such as mandated MFA, Endpoint protection, and Encryption status. However, basic Access Context Manager capabilities, such as setting IP Ranges and Geographic restrictions, are available at the Load Balancer / IAP level without a premium subscription.
+
+
+24: 
+25: 5.  **CMEK Configuration:**
+26:     *   The `deploy.sh` script automatically handles the creation of a Customer-Managed Encryption Key (CMEK) for the Terraform state bucket and passes this key to Terraform for use with Discovery Engine resources.
+27:     *   The key is created with a **90-day rotation period** and **HSM protection level** to meet FedRAMP High requirements.
+28:     *   Ensure your project has sufficient quota for Cloud KMS keys and HSM usage.
+29: 
+30: **IMPORTANT:** This blueprint is designed to be deployed in a **FedRAMP High GCP project**, to ensure a clean slate for meeting stringent FedRAMP High security and compliance requirements.
 
 ## IAM Permissions for Deployment
 
@@ -85,6 +95,16 @@ The blueprint sets up the following key components:
             *   US-based access.
             *   Access only during business hours (Mon-Fri, 9 AM - 5 PM ET).
             *   Access expiring at the end of 2026.
+    *   **Chrome Enterprise Premium (Recommended):** Enables "Strict" and "Moderate" device policies that check for:
+        *   **Device Encryption** (BitLocker/FileVault)
+        *   **OS Version** (Minimum requirements)
+        *   **Screen Lock**
+        *   **Corporate Ownership**
+        *   **Endpoint Verification** (via Chrome extension)
+    *   **Basic (No Premium):** Enables "Moderate" and "Lenient" policies based on:
+        *   **IP Address** (US Region)
+        *   **Time of Day** (7AM-9PM M-F)
+        *   **Expiration Date**
     *   **Chrome Enterprise Premium & Managed Browsers:** To meet the device policy requirements (especially for `strict_device`), users will typically need to use Chrome browsers managed by your Google Workspace organization through Chrome Enterprise Premium. This allows your organization to enforce security settings, extensions, and report on browser status, which feeds into the Access Context Manager device policy evaluation. Configuration is done within the [Google Workspace Admin Console](https://admin.google.com/) under [Chrome Browser management](https://admin.google.com/ac/chrome/browsers).
         *   To collect the necessary device information for Access Context Manager, ensure the **[Endpoint Verification](https://chromewebstore.google.com/detail/callobklhcbilhphinckomhgkigmfocg?utm_source=item-share-cb)** Chrome extension (ID: `callobklhcbilhphinckomhgkigmfocg`) is force-installed on managed browsers. This is extension is added to your users via the "[Apps & extensions](https://admin.google.com/ac/chrome/apps/user)" section within the Chrome Browser management section of the Google Workspace Admin Console.
     *   **Cloud Armor:** Regional security policy to allow US traffic and deny others.
@@ -101,8 +121,15 @@ The blueprint sets up the following key components:
 
 ## Deployment Steps
 
+**Recommended:** Use the interactive `deploy.sh` script at the root of the repository. It automates the creation of `terraform.tfvars` and handles:
+*   Identity Provider selection (GSUITE vs. THIRD_PARTY).
+*   Chrome Enterprise Premium configuration.
+*   Data Store setup.
+
+**Manual Method:**
 1.  Navigate to `blueprints/fedramp-high/gemini-enterprise/gemini-stage-0/`.
 2.  Create a `terraform.tfvars` file based on the `terraform.tfvars.sample` sample, filling in all required values.
+    *   **Note:** If using Workforce Identity Federation, set `acl_idp_type = "THIRD_PARTY"` and provide `acl_workforce_pool_name`.
 3.  Initialize Terraform: `terraform init`
 4.  Review the plan: `terraform plan`
 5.  Apply the configuration: `terraform apply`

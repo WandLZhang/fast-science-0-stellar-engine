@@ -50,10 +50,11 @@ resource "google_compute_address" "gemini_enterprise_internal_ip" {
   address_type = "INTERNAL"
 }
 
-resource "google_compute_global_address" "gemini_enterprise_external_ip" {
+resource "google_compute_address" "gemini_enterprise_external_ip" {
   count        = var.deployment_type == "external" ? 1 : 0
   project      = var.main_project_id
   name         = "gemini-enterprise-external-ip"
+  region       = var.region
   address_type = "EXTERNAL"
 }
 
