@@ -13,7 +13,22 @@
 # limitations under the License.
 
 resource "google_access_context_manager_access_levels" "access-levels" {
+  count = var.access_policy_number != "" ? 1 : 0
   parent = "accessPolicies/${var.access_policy_number}"
+
+  # Access level for allowlisted source IP ranges
+  dynamic "access_levels" {
+    for_each = length(var.allowed_ip_ranges) > 0 ? [1] : []
+    content {
+      name  = "accessPolicies/${var.access_policy_number}/accessLevels/ip_based_access"
+      title = "IP-Based Access Control"
+      basic {
+        conditions {
+          ip_subnetworks = var.allowed_ip_ranges
+        }
+      }
+    }
+  }
 
   # Access level for US Region
   access_levels {
@@ -74,25 +89,28 @@ resource "google_access_context_manager_access_levels" "access-levels" {
   }
 
   # Access level for "strict" service, including Mac/Windows OS, Encryption enabled, Corp owned device, Expiring Access by end of 2024, Time (7AM-9PM Monday-Friday), & US Region.
-  access_levels {
-    name  = "accessPolicies/${var.access_policy_number}/accessLevels/strict_device"
-    title = "Strict Device Policy"
-    basic {
-      conditions {
-        required_access_levels = ["accessPolicies/${var.access_policy_number}/accessLevels/us", "accessPolicies/${var.access_policy_number}/accessLevels/time", "accessPolicies/${var.access_policy_number}/accessLevels/expire"]
-        device_policy {
-          require_screen_lock = true
-          os_constraints {
-            os_type = "DESKTOP_MAC"
-          }
-          os_constraints {
-            os_type = "DESKTOP_WINDOWS"
-          }
+  dynamic "access_levels" {
+    for_each = var.enable_chrome_enterprise_premium ? [1] : []
+    content {
+      name  = "accessPolicies/${var.access_policy_number}/accessLevels/strict_device"
+      title = "Strict Device Policy"
+      basic {
+        conditions {
+          required_access_levels = ["accessPolicies/${var.access_policy_number}/accessLevels/us", "accessPolicies/${var.access_policy_number}/accessLevels/time", "accessPolicies/${var.access_policy_number}/accessLevels/expire"]
+          device_policy {
+            require_screen_lock = true
+            os_constraints {
+              os_type = "DESKTOP_MAC"
+            }
+            os_constraints {
+              os_type = "DESKTOP_WINDOWS"
+            }
 
-          allowed_encryption_statuses = [
-            "ENCRYPTED",
-          ]
-          require_corp_owned = true
+            allowed_encryption_statuses = [
+              "ENCRYPTED",
+            ]
+            require_corp_owned = true
+          }
         }
       }
     }

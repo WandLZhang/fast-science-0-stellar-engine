@@ -30,6 +30,9 @@ read -p "Select an option [1-4]: " DEPLOYMENT_CHOICE
 
 if [[ "$DEPLOYMENT_CHOICE" == "4" ]]; then
     exit 0
+elif [[ ! "$DEPLOYMENT_CHOICE" =~ ^[1-3]$ ]]; then
+    echo -e "${RED}Invalid deployment type selected. Please run ./deploy.sh and try again${NC}"
+    exit 1
 fi
 
 # --- Authentication & Project Selection ---
@@ -80,6 +83,32 @@ if [ -z "$PROJECT_ID" ]; then
     exit 1
 fi
 
+# Set billing quota project
+echo "Setting billing quota project..."
+gcloud config set billing/quota_project "${PROJECT_ID}"
+
+# Discover Org ID early for subsequent commands
+echo "Discovering Organization ID..."
+ORG_ID=$(gcloud projects get-ancestors "${PROJECT_ID}" --format="value(id)" | tail -n 1)
+echo -e "Found Organization ID: ${YELLOW}${ORG_ID}${NC}"
+
+# --- Enable Required APIs ---
+echo "Enabling required APIs (Access Context Manager, Org Policy, Cloud KMS, Cloud Storage, IAM)..."
+if ! gcloud services enable \
+    assuredworkloads.googleapis.com \
+    accesscontextmanager.googleapis.com \
+    compute.googleapis.com \
+    orgpolicy.googleapis.com \
+    cloudkms.googleapis.com \
+    storage.googleapis.com \
+    iam.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    serviceusage.googleapis.com \
+    --project "${PROJECT_ID}"; then
+    echo -e "${RED}Error: Failed to enable required APIs. Check your permissions.${NC}"
+    exit 1
+fi
+
 # --- Prefix Handling ---
 if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then # Brownfield
     IS_BROWNFIELD="true"
@@ -110,11 +139,203 @@ else
     echo -e "${GREEN}Gemini Enterprise - New GCP Project - Deployment Helper${NC}"
 fi
 echo "-----------------------------------"
-echo "1. Deploy Stage 0 (Foundation)"
-echo "2. Deploy Stage 1 (Load Balancer & Access)"
-read -p "Select an option [1-2]: " OPTION
+echo "1. Deploy Foundation Infrastructure (Terraform - Stage 0)"
+echo "2. Create Gemini Enterprise application (gem4gov CLI)"
+echo "3. Deploy Networking / Access Infrastructure (Terraform - Stage 1)"
+read -p "Select an option [1-3]: " OPTION
+
+if [[ "$OPTION" == "2" ]]; then
+    echo ""
+    echo -e "${BLUE}--- gem4gov CLI Setup & Execution ---${NC}"
+    
+    # Check for python3 and pip3
+    if ! command -v pip3 &> /dev/null; then
+        echo -e "${RED}Error: pip3 is not installed. Please install Python 3 and pip3.${NC}"
+        exit 1
+    fi
+
+    echo "This step will install the gem4gov CLI and configure the Gemini Enterprise application."
+    echo ""
+    
+    # Install
+    if [[ -d "gem4gov-cli" ]]; then
+        echo "Installing gem4gov CLI..."
+        pip3 install -e gem4gov-cli
+    else
+        echo -e "${RED}Error: gem4gov-cli directory not found.${NC}"
+        exit 1
+    fi
+
+    # Add Python user base bin to PATH
+    USER_BASE_BIN=$(python3 -m site --user-base)/bin
+    if [[ -d "$USER_BASE_BIN" ]]; then
+        export PATH="$PATH:$USER_BASE_BIN"
+        echo "Added $USER_BASE_BIN to PATH for this session."
+    fi
+
+    # Retrieve values from Terraform State if available (and not already set)
+    # Determine the bucket name first
+    if [[ -z "$BUCKET_NAME" ]]; then
+        if [[ "$IS_BROWNFIELD" == "true" ]]; then
+            # Re-run tenant bucket discovery if needed, though IS_BROWNFIELD logic usually runs later.
+            # Since Option 2 can be run standalone, we need to ensure we can find the bucket.
+            # We reuse the logic from the main script if variables are set, otherwise we might need to prompt or discover.
+            # Assuming deploy.sh flow, if user selected Opt 2, they passed the brownfield checks or we need to repeat them?
+            # The script structure prompts for deployment type first.
+            
+            # If IS_BROWNFIELD is true, we need to find the tenant bucket again if not set.
+            if [[ -z "$STATE_BUCKET" ]]; then
+                 BASE_NAME=$(echo "$PROJECT_ID" | sed 's/-main-0$//')
+                 TENANT_IAC_PROJECT="${BASE_NAME}-iac-core-0"
+                 # Quick check if we can list buckets in the assumed project
+                 TENANT_BUCKETS=$(gcloud storage ls --project "${TENANT_IAC_PROJECT}" 2>/dev/null || true)
+                 STATE_BUCKET=$(echo "$TENANT_BUCKETS" | grep "iac-0/$" | head -n 1)
+                 if [[ -n "$STATE_BUCKET" ]]; then
+                     BUCKET_NAME=$(echo "$STATE_BUCKET" | sed 's/gs:\/\///' | sed 's/\/$//')
+                 fi
+            fi
+        else
+            # Greenfield / Custom
+            if [[ -n "$PREFIX" && -n "$PROJECT_ID" ]]; then
+                BUCKET_NAME="${PREFIX}-gemini-enterprise-tf-state-${PROJECT_ID}"
+            fi
+        fi
+    fi
+
+    # Now attempt to fetch remote state
+    REMOTE_STATE_CONTENT="{}"
+    if [[ -n "$BUCKET_NAME" ]]; then
+        echo "Attempting to retrieve remote state from gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate..."
+        REMOTE_STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || echo "{}")
+        
+        # If empty, try 'terraform.tfstate' (legacy path)
+        if [[ "$REMOTE_STATE_CONTENT" == "{}" ]]; then
+             REMOTE_STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/terraform.tfstate" 2>/dev/null || echo "{}")
+        fi
+    fi
+
+    if [[ "$REMOTE_STATE_CONTENT" != "{}" ]]; then
+        echo "Retrieving configuration from Remote Terraform state..."
+        
+        # Use jq to parse the remote state JSON content
+        # Note: Remote state format differs slightly from `terraform output -json`.
+        # It has a "outputs" key.
+        
+        if [[ -z "$PROJECT_ID" ]]; then
+            PROJECT_ID=$(echo "$REMOTE_STATE_CONTENT" | jq -r '.outputs.main_project_id.value // empty')
+        fi
+        
+        # Identity Provider Config
+        ACL_IDP_TYPE=$(echo "$REMOTE_STATE_CONTENT" | jq -r '.outputs.acl_idp_type.value // empty')
+        ACL_POOL_NAME=$(echo "$REMOTE_STATE_CONTENT" | jq -r '.outputs.acl_workforce_pool_name.value // empty')
+        ACL_PROVIDER_ID=$(echo "$REMOTE_STATE_CONTENT" | jq -r '.outputs.acl_workforce_provider_id.value // empty')
+
+        # Data Store IDs (GCS and BigQuery)
+        GCS_IDS=$(echo "$REMOTE_STATE_CONTENT" | jq -r '.outputs.gcs_discovery_engine_data_stores.value | values[]' 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+        BQ_IDS=$(echo "$REMOTE_STATE_CONTENT" | jq -r '.outputs.bq_discovery_engine_data_store_ids.value | values[]' 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+        
+        # Combine IDs
+        DATA_STORE_IDS_CSV=""
+        if [[ -n "$GCS_IDS" ]]; then
+            DATA_STORE_IDS_CSV="$GCS_IDS"
+        fi
+        if [[ -n "$BQ_IDS" ]]; then
+            if [[ -n "$DATA_STORE_IDS_CSV" ]]; then
+                DATA_STORE_IDS_CSV="${DATA_STORE_IDS_CSV},${BQ_IDS}"
+            else
+                DATA_STORE_IDS_CSV="$BQ_IDS"
+            fi
+        fi
+        
+        # Extract just the ID from the resource name for the pool
+        # Format: locations/global/workforcePools/<pool_id>
+        if [[ -n "$ACL_POOL_NAME" ]]; then
+            ACL_POOL_ID=$(basename "$ACL_POOL_NAME")
+        fi
+    else
+        echo -e "${YELLOW}Warning: Could not retrieve remote state from bucket ${BUCKET_NAME}.${NC}"
+    fi
+
+    # Fallbacks / Prompts
+    if [[ -z "$PROJECT_ID" ]]; then
+        read -p "Enter the Google Cloud Project ID: " PROJECT_ID
+    fi
+    
+    if [[ -z "$DATA_STORE_IDS_CSV" ]]; then
+        echo -e "${YELLOW}Warning: No Data Store IDs found in Terraform state. The Gemini Enterprise application will be created without data stores.${NC}"
+    fi
+
+    # Construct Command
+    CMD_ARGS="--project-id $PROJECT_ID"
+    
+    if [[ -n "$DATA_STORE_IDS_CSV" ]]; then
+        CMD_ARGS="$CMD_ARGS --data-stores $DATA_STORE_IDS_CSV"
+    fi
+
+    # Default Compliance Regime (safe default for this blueprint)
+    CMD_ARGS="$CMD_ARGS --compliance-regime FEDRAMP_HIGH"
+
+    # Workforce Identity Args
+    if [[ "$ACL_IDP_TYPE" == "THIRD_PARTY" ]]; then
+        if [[ -n "$ACL_POOL_ID" && -n "$ACL_PROVIDER_ID" ]]; then
+            CMD_ARGS="$CMD_ARGS --workforce-pool-id $ACL_POOL_ID --workforce-provider-id $ACL_PROVIDER_ID"
+        else
+            echo -e "${YELLOW}Workforce Identity selected but Pool/Provider IDs missing from state.${NC}"
+            read -p "Enter Workforce Pool ID: " INPUT_POOL
+            read -p "Enter Workforce Provider ID: " INPUT_PROVIDER
+            CMD_ARGS="$CMD_ARGS --workforce-pool-id $INPUT_POOL --workforce-provider-id $INPUT_PROVIDER"
+        fi
+    fi
+
+    # Run
+    echo "Running gem4gov application create..."
+    if command -v gem4gov &> /dev/null; then
+        gem4gov application create $CMD_ARGS
+    else
+        echo -e "${YELLOW}Warning: 'gem4gov' command not found in PATH.${NC}"
+        echo -e "${YELLOW}Attempting to run via python module...${NC}"
+        python3 -m gem4gov application create $CMD_ARGS
+    fi
+
+    echo ""
+    echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
+    echo -e "1. Run the ${BLUE}./deploy.sh${NC} script again and select ${BLUE}3. Deploy Networking / Access Infrastructure (Terraform - Stage 1)${NC} step to finish deploying the Load Balancer and providing access to end-users."
+    exit 0
+fi
 
 if [[ "$OPTION" == "1" ]]; then
+    # --- Assured Workloads Check ---
+    echo ""
+    read -p "Is this project deployed in a FedRAMP High Assured Workloads folder? (y/N): " IS_ASSURED
+    if [[ "$IS_ASSURED" == "y" || "$IS_ASSURED" == "Y" ]]; then
+        read -p "Enter the region for the Assured Workload (e.g., us, us-east4): " WORKLOAD_REGION
+        
+        if [[ -z "$WORKLOAD_REGION" ]]; then
+            echo -e "${RED}Error: Region is required for Assured Workloads.${NC}"
+            exit 1
+        fi
+        
+        echo "Fetching FedRAMP High Assured Workload folders in ${WORKLOAD_REGION}..."
+        WORKLOAD_NAME=$(gcloud assured workloads list --location="${WORKLOAD_REGION}" --organization="${ORG_ID}" --filter="complianceRegime=FEDRAMP_HIGH" --format="value(displayName)" 2>/dev/null)
+        
+        if [[ -z "$WORKLOAD_NAME" ]]; then
+            echo -e "${RED}Error: Could not find FedRAMP High Assured Workload folder in ${WORKLOAD_REGION}. Please check the region and your permissions.${NC}"
+            exit 1
+        fi
+
+        echo ""
+        echo -e "${YELLOW}ACTION REQUIRED: Please update your Assured Workload environment manually.${NC}"
+        echo -e "1. Navigate to the following URL in your browser:"
+        echo -e "${BLUE}https://console.cloud.google.com/compliance/assuredworkloads?organizationId=${ORG_ID}${NC}"
+        echo -e "2. Click on the FedRAMP High Assured Workload named: ${GREEN}${WORKLOAD_NAME}${NC}"
+        echo -e "3. Click on the button to ${GREEN}\"Review available updates\"${NC} and apply them."
+        echo ""
+        read -p "Press Enter after you have confirmed the updates have been made..."
+        
+        echo -e "${GREEN}Assured Workload folder ${WORKLOAD_NAME} validated / updated${NC}"
+        echo ""
+    fi
+
     # 0.75 Reuse Configuration Check (Before Project ID)
     SKIP_PROMPTS=false
     if [[ -f "gemini-stage-0/terraform.tfvars" ]]; then
@@ -438,13 +659,19 @@ if [[ "$OPTION" == "1" && "$SKIP_PROMPTS" == "true" ]]; then
         ENABLE_CEP_BOOL=$(get_tfvar_value "$TFVARS_FILE" "enable_chrome_enterprise_premium")
         ACL_IDP_TYPE=$(get_tfvar_value "$TFVARS_FILE" "acl_idp_type")
         ACL_POOL_NAME=$(get_tfvar_value "$TFVARS_FILE" "acl_workforce_pool_name")
+        ACL_PROVIDER_ID=$(get_tfvar_value "$TFVARS_FILE" "acl_workforce_provider_id")
         
         echo -e "Using Project ID: ${YELLOW}${PROJECT_ID}${NC}"
         echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
         echo -e "Using Region: ${YELLOW}${REGION}${NC}"
         echo -e "Using Domain: ${YELLOW}${DOMAIN}${NC}"
     fi
-if [[ "$OPTION" == "2" && -f "gemini-stage-1/terraform.tfvars" ]]; then
+
+if [[ "$OPTION" == "3" ]]; then
+    SKIP_PROMPTS=false
+fi
+
+if [[ "$OPTION" == "3" && -f "gemini-stage-1/terraform.tfvars" ]]; then
     SKIP_PROMPTS=false
     echo -e "${YELLOW}Found existing configuration in gemini-stage-1/terraform.tfvars.${NC}"
     read -p "Reuse existing configuration? (Y/n): " REUSE_CONFIG
@@ -498,8 +725,6 @@ echo -e "Using Prefix: ${YELLOW}${PREFIX}${NC}"
 GEOLOCATION="us"
 
 
-
-
 # --- Stage 0 Specific Prompts ---
 if [[ "$OPTION" == "1" ]]; then
 
@@ -542,7 +767,7 @@ if [[ "$OPTION" == "1" ]]; then
 
         if [[ "$ACL_SELECTION" == "2" ]]; then
             echo "Fetching Workforce Identity Pools for Organization ${ORG_ID}..."
-            POOLS=$(gcloud iam workforce-pools list --organization="${ORG_ID}" --location="global" --format="value(name)" 2>/dev/null)
+            POOLS=$(gcloud iam workforce-pools list --organization="${ORG_ID}" --location="global" --format="value(name)")
             
             if [[ -z "$POOLS" ]]; then
                 echo -e "${RED}No Workforce Identity Pools found in Organization ${ORG_ID}.${NC}"
@@ -550,25 +775,86 @@ if [[ "$OPTION" == "1" ]]; then
                 # Loop continues, allowing user to choose 1
             else
                 echo "Available Workforce Pools:"
-                IFS=$'\n' read -rd '' -a POOL_ARRAY <<< "$POOLS"
+                # Use a while loop for portability instead of mapfile
+                POOL_ARRAY=()
+                while IFS= read -r line; do
+                    POOL_ARRAY+=("$line")
+                done <<< "$POOLS"
+                
                 for i in "${!POOL_ARRAY[@]}"; do
-                    echo "$((i+1))) ${POOL_ARRAY[i]}"
+                    # Display just the pool ID for cleaner selection
+                    echo "$((i+1))) $(basename "${POOL_ARRAY[i]}")"
                 done
                 
-                read -p "Select a Workforce Pool (1-${#POOL_ARRAY[@]}): " POOL_INDEX
+                count=${#POOL_ARRAY[@]}
+                prompt_range="(1-${count})"
+                if [[ "$count" -eq 1 ]]; then
+                    prompt_range="(1)"
+                fi
+                read -p "Select a Workforce Pool ${prompt_range}: " POOL_INDEX
+
                 if [[ "$POOL_INDEX" -ge 1 && "$POOL_INDEX" -le "${#POOL_ARRAY[@]}" ]]; then
-                    SELECTED_POOL="${POOL_ARRAY[$((POOL_INDEX-1))]}"
-                    ACL_IDP_TYPE="THIRD_PARTY"
-                    ACL_POOL_NAME="${SELECTED_POOL}"
-                    echo -e "ACL Identity Provider: ${GREEN}THIRD_PARTY (Pool: ${SELECTED_POOL})${NC}"
-                    break
+                    SELECTED_POOL_NAME="${POOL_ARRAY[$((POOL_INDEX-1))]}"
+                    SELECTED_POOL_ID=$(basename "${SELECTED_POOL_NAME}")
+
+                    echo "Fetching providers for pool ${SELECTED_POOL_ID}..."
+                    PROVIDERS=$(gcloud iam workforce-pools providers list --workforce-pool="${SELECTED_POOL_ID}" --location="global" --format="value(name)")
+
+                    if [[ -z "$PROVIDERS" ]]; then
+                        echo -e "${RED}No providers found for Workforce Pool ${SELECTED_POOL_ID}.${NC}"
+                        # Loop continues so user can re-select or choose GSUITE
+                    else
+                        echo "Available Providers:"
+                        # Use a while loop for portability
+                        PROVIDER_ARRAY=()
+                        while IFS= read -r line; do
+                            PROVIDER_ARRAY+=("$line")
+                        done <<< "$PROVIDERS"
+
+                        for i in "${!PROVIDER_ARRAY[@]}"; do
+                            echo "$((i+1))) $(basename "${PROVIDER_ARRAY[i]}")"
+                        done
+                        
+                        p_count=${#PROVIDER_ARRAY[@]}
+                        p_prompt_range="(1-${p_count})"
+                        if [[ "$p_count" -eq 1 ]]; then
+                            p_prompt_range="(1)"
+                        fi
+                        read -p "Select a provider to use for authentication ${p_prompt_range}: " PROVIDER_INDEX
+
+                        if [[ "$PROVIDER_INDEX" -ge 1 && "$PROVIDER_INDEX" -le "${#PROVIDER_ARRAY[@]}" ]]; then
+                            SELECTED_PROVIDER_NAME="${PROVIDER_ARRAY[$((PROVIDER_INDEX-1))]}"
+                            SELECTED_PROVIDER_ID=$(basename "${SELECTED_PROVIDER_NAME}")
+                            
+                            echo ""
+                            echo -e "${YELLOW}ACTION REQUIRED: Please verify the attribute mapping for your provider.${NC}"
+                            echo -e "1. Navigate to the Workforce Identity Pools page:"
+                            echo -e "${BLUE}https://console.cloud.google.com/iam-admin/workforce-identity-pools?orgonly=true&organizationId=${ORG_ID}&supportedpurview=organizationId${NC}"
+                            echo -e "2. Select the pool: ${GREEN}${SELECTED_POOL_ID}${NC}"
+                            echo -e "3. Go to the ${GREEN}Providers${NC} tab and select your provider: ${GREEN}${SELECTED_PROVIDER_ID}${NC}"
+                            echo -e "4. Click ${GREEN}EDIT${NC} and go to the ${GREEN}Attribute Mapping${NC} section."
+                            echo -e "5. Ensure that the attribute ${YELLOW}google.email${NC} is mapped from your identity provider's email attribute."
+                            echo -e "   (Example mapping: ${YELLOW}assertion.email${NC} or ${YELLOW}assertion.sub${NC})"
+                            echo ""
+                            read -p "Press Enter after you have confirmed the attribute mapping is correct..."
+
+                            ACL_IDP_TYPE="THIRD_PARTY"
+                            ACL_POOL_NAME="${SELECTED_POOL_NAME}" # Store the full resource name
+                            ACL_PROVIDER_ID="${SELECTED_PROVIDER_ID}"
+                            echo -e "ACL Identity Provider: ${GREEN}THIRD_PARTY (Pool: ${SELECTED_POOL_ID})${NC}"
+                            break # Exit the 'while true' loop successfully
+                        else
+                            echo -e "${RED}Invalid provider selection. Please try again.${NC}"
+                        fi
+                    fi
                 else
-                    echo -e "${RED}Invalid selection. Please try again.${NC}"
+                    echo -e "${RED}Invalid pool selection. Please try again.${NC}"
                 fi
             fi
         else
             ACL_IDP_TYPE="GSUITE"
             ACL_POOL_NAME=""
+            ACL_PROVIDER_ID=""
             echo -e "ACL Identity Provider: ${GREEN}GSUITE${NC}"
             echo ""
             break
@@ -582,17 +868,29 @@ if [[ "$OPTION" == "1" ]]; then
             DEFAULT_ADMIN_GROUP="gcp-gemini-enterprise-admins@${DOMAIN}"
             DEFAULT_USER_GROUP="gcp-gemini-enterprise-users@${DOMAIN}"
             
-            echo "Press Enter to accept the default values for Admin and User Groups."
-            read -p "Enter Admin Group Email [${DEFAULT_ADMIN_GROUP}]: " INPUT_ADMIN_GROUP
-            ADMIN_GROUP=${INPUT_ADMIN_GROUP:-$DEFAULT_ADMIN_GROUP}
+            echo ""
+            echo "Default Gemini Enterprise Groups:"
+            echo "  Admins: ${DEFAULT_ADMIN_GROUP}"
+            echo "  Users:  ${DEFAULT_USER_GROUP}"
+            read -p "Do you want to use these default groups? (Y/n): " USE_DEFAULTS
+            
+            if [[ "$USE_DEFAULTS" == "n" || "$USE_DEFAULTS" == "N" ]]; then
+                read -p "Enter Admin Group Email [${DEFAULT_ADMIN_GROUP}]: " INPUT_ADMIN_GROUP
+                ADMIN_GROUP=${INPUT_ADMIN_GROUP:-$DEFAULT_ADMIN_GROUP}
+                
+                read -p "Enter User Group Email [${DEFAULT_USER_GROUP}]: " INPUT_USER_GROUP
+                USER_GROUP=${INPUT_USER_GROUP:-$DEFAULT_USER_GROUP}
+            else
+                ADMIN_GROUP="${DEFAULT_ADMIN_GROUP}"
+                USER_GROUP="${DEFAULT_USER_GROUP}"
+            fi
+
             # Add group: prefix if not present and looks like an email
             if [[ "$ADMIN_GROUP" != *":"* ]]; then
                 ADMIN_GROUP="group:${ADMIN_GROUP}"
             fi
             echo -e "Using Admin Group: ${YELLOW}${ADMIN_GROUP}${NC}"
 
-            read -p "Enter User Group Email [${DEFAULT_USER_GROUP}]: " INPUT_USER_GROUP
-            USER_GROUP=${INPUT_USER_GROUP:-$DEFAULT_USER_GROUP}
             # Add group: prefix if not present and looks like an email
             if [[ "$USER_GROUP" != *":"* ]]; then
                 USER_GROUP="group:${USER_GROUP}"
@@ -606,13 +904,13 @@ if [[ "$OPTION" == "1" ]]; then
             echo ""
             echo "Examples:"
             echo " - All users in a specific IdP group:"
-            echo "   principalSet://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/group/GROUP_ID"
+            echo "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/group/GROUP_ID"
             echo ""
             echo " - All users with a specific attribute (e.g., department=engineering):"
-            echo "   principalSet://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/attribute.department/engineering"
+            echo "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/attribute.department/engineering"
             echo ""
             echo " - All users in the pool (Use with caution):"
-            echo "   principalSet://iam.googleapis.com/locations/global/workforcePools/${ACL_POOL_NAME}/*"
+            echo "   principalSet://iam.googleapis.com/${ACL_POOL_NAME}/*"
             echo ""
             
             read -p "Enter Admin Principal Set: " ADMIN_GROUP
@@ -688,7 +986,7 @@ KEY_LOCATION="${GEOLOCATION}"
 KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${STATE_KEY_NAME}"
 
 # In Brownfield or Custom, we might have discovered/provided a key already.
-if [[ ("$IS_BROWNFIELD" == "true" || "$IS_CUSTOM" == "true") && -n "$KMS_KEY_ID" ]]; then
+if { [ "$IS_BROWNFIELD" == "true" ] || [ "$IS_CUSTOM" == "true" ]; } && [ -n "$KMS_KEY_ID" ]; then
     KEY_ID="$KMS_KEY_ID"
     # Extract components from the discovered key to avoid re-creation attempts using wrong names
     KEY_LOCATION=$(echo "$KEY_ID" | cut -d'/' -f4)
@@ -702,13 +1000,6 @@ fi
 if [[ "$OPTION" == "1" ]]; then
     echo -e "${BLUE}--- Starting Stage 0 Deployment ---${NC}"
 
-    # --- Enable Required APIs (Unconditional) ---
-    echo "Enabling Cloud KMS and Storage APIs..."
-    if ! gcloud services enable cloudkms.googleapis.com storage.googleapis.com --project "${PROJECT_ID}"; then
-        echo -e "${RED}Error: Failed to enable required APIs. Check your permissions.${NC}"
-        exit 1
-    fi
-
     # --- Ensure App CMEK Key Exists (Unconditional) ---
     # This key is used for:
     # 1. Terraform State Bucket (via default-encryption-key)
@@ -716,10 +1007,19 @@ if [[ "$OPTION" == "1" ]]; then
     # 3. Discovery Engine Data Stores (via Terraform)
     # It must exist in GEOLOCATION (us) to support multi-region resources.
 
-    echo -e "Checking for CMEK Key in ${GEOLOCATION}..."
-    KEY_LOCATION="${GEOLOCATION}"
-    KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${STATE_KEY_NAME}"
-    KEY_PROJECT_ID="${PROJECT_ID}"
+    if { [ "$IS_BROWNFIELD" == "true" ] || [ "$IS_CUSTOM" == "true" ]; } && [ -n "$KMS_KEY_ID" ]; then
+        KEY_ID="$KMS_KEY_ID"
+        KEY_PROJECT_ID=$(echo "$KEY_ID" | cut -d'/' -f2)
+        KEY_LOCATION=$(echo "$KEY_ID" | cut -d'/' -f4)
+        KEYRING_NAME=$(echo "$KEY_ID" | cut -d'/' -f6)
+        STATE_KEY_NAME=$(echo "$KEY_ID" | cut -d'/' -f8)
+        echo -e "Using Discovered/Provided CMEK Key: ${YELLOW}${KEY_ID}${NC}"
+    else
+        echo -e "Checking for CMEK Key in ${GEOLOCATION}..."
+        KEY_LOCATION="${GEOLOCATION}"
+        KEY_ID="projects/${PROJECT_ID}/locations/${KEY_LOCATION}/keyRings/${KEYRING_NAME}/cryptoKeys/${STATE_KEY_NAME}"
+        KEY_PROJECT_ID="${PROJECT_ID}"
+    fi
 
     # Check if the bucket already exists and has a default KMS key
     EXISTING_BUCKET_KEY=$(gcloud storage buckets describe "gs://${BUCKET_NAME}" --format="value(encryption.defaultKmsKeyName)" 2>/dev/null || true)
@@ -756,6 +1056,13 @@ if [[ "$OPTION" == "1" ]]; then
         # 2. Ensure Key exists in GEOLOCATION
         if ! gcloud kms keys describe "${STATE_KEY_NAME}" --keyring "${KEYRING_NAME}" --location "${KEY_LOCATION}" --project "${KEY_PROJECT_ID}" &>/dev/null; then
             echo "Creating Key ${STATE_KEY_NAME} in ${GEOLOCATION}..."
+            # Calculate next rotation time (cross-platform)
+            if [[ "$(uname)" == "Darwin" ]]; then
+                NEXT_ROTATION_TIME=$(date -u -v+90d +%Y-%m-%dT%H:%M:%SZ)
+            else
+                NEXT_ROTATION_TIME=$(date -u -d '+90 days' +%Y-%m-%dT%H:%M:%SZ)
+            fi
+
             if ! gcloud kms keys create "${STATE_KEY_NAME}" \
                 --keyring "${KEYRING_NAME}" \
                 --location "${KEY_LOCATION}" \
@@ -763,7 +1070,7 @@ if [[ "$OPTION" == "1" ]]; then
                 --protection-level "hsm" \
                 --project "${KEY_PROJECT_ID}" \
                 --rotation-period "7776000s" \
-                --next-rotation-time "$(date -u -d '+90 days' +%Y-%m-%dT%H:%M:%SZ)"; then
+                --next-rotation-time "${NEXT_ROTATION_TIME}"; then
                 echo -e "${RED}Error: Failed to create KMS Key.${NC}"
                 exit 1
             fi
@@ -823,6 +1130,25 @@ if [[ "$OPTION" == "1" ]]; then
         fi
     fi
 
+    # Automated Org Policy Check for Internet NEGs
+    echo "Verifying Organization Policy for Internet NEGs..."
+    NEG_POLICY_JSON=$(gcloud org-policies describe compute.disableInternetNetworkEndpointGroup --project="${PROJECT_ID}" --effective --format="json" 2>/dev/null || true)
+
+    if [ -n "$NEG_POLICY_JSON" ]; then
+        # Check if enforced is true
+        if echo "$NEG_POLICY_JSON" | grep -q "\"enforced\": true"; then
+             echo -e "${RED}CRITICAL WARNING: Organization Policy 'compute.disableInternetNetworkEndpointGroup' is ENFORCED.${NC}"
+             echo "This policy prevents the creation of Internet Network Endpoint Groups, which are required for this deployment."
+             echo "Please disable this org policy (set enforcement to false) and re-run the script."
+             exit 1
+        fi
+        echo -e "${GREEN}Organization Policy 'compute.disableInternetNetworkEndpointGroup' is NOT enforced.${NC}"
+    else
+        echo -e "${YELLOW}Could not verify Organization Policy 'compute.disableInternetNetworkEndpointGroup'.${NC}"
+        echo "Please verify manually that it is NOT enforced."
+    fi
+    echo ""
+
     # Automated Org Policy Check for External Deployment
     if [[ "$DEPLOYMENT_TYPE" == "external" ]]; then
         echo "Verifying Organization Policy for External Load Balancer..."
@@ -855,11 +1181,13 @@ if [[ "$OPTION" == "1" ]]; then
             echo "Please verify manually that 'compute.restrictLoadBalancerCreationForTypes' allows 'EXTERNAL_MANAGED_HTTP_HTTPS'."
         fi
     fi
+    echo ""
     
     echo -e "${YELLOW}IMPORTANT: Before proceeding, ensure you have completed the following manual prerequisites:${NC}"
     echo "1. Organization Policy: 'compute.restrictLoadBalancerCreationForTypes' allows 'EXTERNAL_MANAGED_HTTP_HTTPS' (if External)."
-    echo "2. OAuth Consent Screen: Configured as Internal."
-    echo "3. Google Workspace Groups: Created admin/user groups (${ADMIN_GROUP}, ${USER_GROUP})."
+    echo "2. Organization Policy: 'compute.disableInternetNetworkEndpointGroup' is disabled."
+    echo "3. OAuth Consent Screen: Configured as Internal."
+    echo "4. User Role Groups: Created admin/user groups in Cloud Identity / third-party identity provider (${ADMIN_GROUP}, ${USER_GROUP})."
 
     echo ""
     read -p "Have you completed these steps? (y/N): " CONFIRM_PRE
@@ -871,26 +1199,97 @@ if [[ "$OPTION" == "1" ]]; then
     # 6. Chrome Enterprise Premium (Zero Trust)
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
         read -p "Use Chrome Enterprise Premium's Endpoint Security? (Requires subscription) (y/N): " CEP_CHOICE
-    if [[ "$CEP_CHOICE" == "y" || "$CEP_CHOICE" == "Y" ]]; then
-        ENABLE_CEP_BOOL="true"
-    else
-        ENABLE_CEP_BOOL="false"
-    fi
+        if [[ "$CEP_CHOICE" == "y" || "$CEP_CHOICE" == "Y" ]]; then
+            ENABLE_CEP_BOOL="true"
+        else
+            ENABLE_CEP_BOOL="false"
+        fi
         echo -e "Enable Zero Trust: ${YELLOW}${ENABLE_CEP_BOOL}${NC}"
         echo ""
 
         # 7. Data Stores (Discovery Engine)
-        read -p "Create Data Stores for Gemini Enterprise? (Y/n): " DS_CHOICE
-        if [[ "$DS_CHOICE" == "n" || "$DS_CHOICE" == "N" ]]; then
-            CREATE_DS_BOOL="false"
-        else
+        read -p "Do you want to create Gemini Enterprise Data Stores (Cloud Storage / BigQuery)? (y/N): " DS_CHOICE
+        
+        GCS_DATA_STORES_STRING="[]"
+        BQ_DATA_STORES_STRING="[]"
+        
+        if [[ "$DS_CHOICE" == "y" || "$DS_CHOICE" == "Y" ]]; then
             CREATE_DS_BOOL="true"
+            GCS_DATA_STORES_ARRAY=()
+            BQ_DATA_STORES_ARRAY=()
+            
+            while true; do
+                echo ""
+                echo "Configure a new Data Store:"
+                echo "1) Google Cloud Storage (GCS)"
+                echo "2) BigQuery (BQ)"
+                echo "3) Done (Finish adding data stores)"
+                read -p "Select data store type [1-3]: " DS_TYPE
+                
+                if [[ "$DS_TYPE" == "1" ]]; then
+                    read -p "Enter the name of the GCS data store: " GCS_NAME
+                    if [[ -n "$GCS_NAME" ]]; then
+                        GCS_DATA_STORES_ARRAY+=("$GCS_NAME")
+                        echo "Added GCS Data Store: $GCS_NAME"
+                    else
+                        echo "Skipping... name cannot be empty."
+                    fi
+                elif [[ "$DS_TYPE" == "2" ]]; then
+                    read -p "Enter the BigQuery Dataset ID: " BQ_DATASET
+                    read -p "Enter the BigQuery Table ID: " BQ_TABLE
+                    if [[ -n "$BQ_DATASET" && -n "$BQ_TABLE" ]]; then
+                        # Format as HCL object
+                        BQ_OBJ="{ dataset_id = \"$BQ_DATASET\", table_id = \"$BQ_TABLE\" }"
+                        BQ_DATA_STORES_ARRAY+=("$BQ_OBJ")
+                        echo "Added BigQuery Data Store: $BQ_DATASET.$BQ_TABLE"
+                    else
+                        echo "Skipping... Dataset ID and Table ID are required."
+                    fi
+                elif [[ "$DS_TYPE" == "3" ]]; then
+                    break
+                else
+                    echo "Invalid selection. Please try again."
+                fi
+            done
+            
+            # Format Arrays for Terraform
+            if [ ${#GCS_DATA_STORES_ARRAY[@]} -gt 0 ]; then
+                IFS=,
+                GCS_DATA_STORES_STRING="[${GCS_DATA_STORES_ARRAY[*]}]"
+                unset IFS
+            fi
+            
+            if [ ${#BQ_DATA_STORES_ARRAY[@]} -gt 0 ]; then
+                IFS=,
+                BQ_DATA_STORES_STRING="[${BQ_DATA_STORES_ARRAY[*]}]"
+                unset IFS
+            fi
+            
+        else
+            CREATE_DS_BOOL="false"
         fi
         echo -e "Create Data Stores: ${YELLOW}${CREATE_DS_BOOL}${NC}"
         echo ""
-    fi
 
-    cd gemini-stage-0
+        # 8. Company Name
+        read -p "Enter the name of your Department or Agency: " COMPANY_NAME
+        echo -e "Using Company Name: ${YELLOW}${COMPANY_NAME}${NC}"
+        echo ""
+
+        # 9. IP Restriction
+        read -p "Do you want to restrict incoming traffic to specific IP CIDR ranges? (y/N): " RESTRICT_IP_CHOICE
+        ALLOWED_IP_RANGES_ARRAY=()
+        if [[ "$RESTRICT_IP_CHOICE" == "y" || "$RESTRICT_IP_CHOICE" == "Y" ]]; then
+            echo "Enter allowed IP CIDR ranges (e.g., 1.2.3.4/32). Press Enter without typing to finish."
+            while true; do
+                read -p "IP Range: " INPUT_IP
+                if [[ -z "$INPUT_IP" ]]; then
+                    break
+                fi
+                ALLOWED_IP_RANGES_ARRAY+=("\"$INPUT_IP\"")
+            done
+        fi
+    fi
 
     # Remove legacy backend.tf if it exists (Fix for duplicate backend error)
     rm -f backend.tf
@@ -915,7 +1314,15 @@ if [[ "$OPTION" == "1" ]]; then
     fi
 
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
-        cat > terraform.tfvars <<EOF
+        # Format array for Terraform: ["range1", "range2"]
+        ALLOWED_IP_RANGES_STRING="[]"
+        if [ ${#ALLOWED_IP_RANGES_ARRAY[@]} -gt 0 ]; then
+            IFS=,
+            ALLOWED_IP_RANGES_STRING="[${ALLOWED_IP_RANGES_ARRAY[*]}]"
+            unset IFS
+        fi
+
+        cat > gemini-stage-0/terraform.tfvars <<EOF
 deployment_type = "${DEPLOYMENT_TYPE}"
 domain = "${DOMAIN}"
 main_project_id = "${PROJECT_ID}"
@@ -928,15 +1335,18 @@ access_policy_number = ${ACCESS_POLICY_NUMBER}
 create_data_stores = ${CREATE_DS_BOOL}
 acl_idp_type = "${ACL_IDP_TYPE}"
 acl_workforce_pool_name = "${ACL_POOL_NAME}"
+acl_workforce_provider_id = "${ACL_PROVIDER_ID}"
 kms_key_id = "${KEY_ID}"
 enable_chrome_enterprise_premium = ${ENABLE_CEP_BOOL}
 terraform_state_bucket = "${BUCKET_NAME}"
 use_shared_vpc = ${USE_SHARED_VPC}
 create_resource_keys = ${CREATE_RESOURCE_KEYS}
+allowed_ip_ranges = ${ALLOWED_IP_RANGES_STRING}
+company_name = "${COMPANY_NAME}"
 EOF
 
         if [[ "$USE_SHARED_VPC" == "true" ]]; then
-            cat >> terraform.tfvars <<EOF
+            cat >> gemini-stage-0/terraform.tfvars <<EOF
 network_project_id = "${SHARED_VPC_HOST_PROJECT}"
 shared_vpc_network_name = "${SHARED_VPC_NETWORK}"
 shared_vpc_subnet_name = "${SHARED_VPC_SUBNET}"
@@ -944,7 +1354,7 @@ shared_vpc_proxy_subnet_name = "${SHARED_VPC_PROXY_SUBNET}"
 EOF
         fi
 
-        cat >> terraform.tfvars <<EOF
+        cat >> gemini-stage-0/terraform.tfvars <<EOF
 
 # Example Data Stores
 gcs_data_store_names = ["company-docs", "knowledge-base", "team-playbooks"]
@@ -970,6 +1380,7 @@ EOF
 
     # Initialize Terraform
     echo "Initializing Terraform (Stage 0)..."
+    cd gemini-stage-0
     terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-0"
 
     # Apply Terraform
@@ -980,19 +1391,19 @@ EOF
     echo -e "${GREEN}Stage 0 Complete!${NC}"
     
     GEMINI_IP=$(terraform output -raw gemini_enterprise_ip)
+    cd ..
 
     echo ""
     echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
-    echo -e "1. Run the ${BLUE}Gem4Gov CLI${NC} to configure your Gemini Enterprise instance."
-    echo "   - This will provide you with the 'Gemini Config ID'."
-    echo -e "2. Point the ${BLUE}gemini_enterprise_ip${NC} (${GEMINI_IP}) to the DNS A record on the subdomain you would like to host the app on."
+    echo -e "1. Run the ${BLUE}./deploy.sh${NC} script again and select ${BLUE}2. Create Gemini Enterprise application (gem4gov CLI)${NC} to create a Gemini Enterprise application in a default FedRAMP High authorized state."
+    echo "   - The output of this Step will provide you with the "Gemini Enterprise Widget Config ID" which will be used in the ${BLUE}3. Deploy Networking / Access Infrastructure (Terraform - Stage 1)${NC} step."
+    echo -e "2. Point the ${BLUE}gemini_enterprise_ip${NC} (${GEMINI_IP}) to the DNS A record on the subdomain you will use for the Gemini Enterprise application."
     echo -e "3. Provision an SSL Certificate and upload it to Google Cloud into Certificate Manager."
-    echo -e "4. Update ${BLUE}gemini-stage-1/terraform.tfvars${NC} with these values."
-    echo -e "5. Run this script again and select ${BLUE}Option 2 (Deploy Stage 1)${NC}."
+    echo -e "4. Run the ${BLUE}./deploy.sh${NC} script again and select ${BLUE}3. Deploy Networking / Access Infrastructure (Terraform - Stage 1)${NC} step to finish deploying the Load Balancer and providing access to end-users."
     exit 0
 fi
 
-if [[ "$OPTION" == "2" ]]; then
+if [[ "$OPTION" == "3" ]]; then
     echo ""
     echo "----------------------------------------------------------------"
     echo "Stage 1 Configuration (Load Balancer & DNS)"
@@ -1008,12 +1419,20 @@ if [[ "$OPTION" == "2" ]]; then
 
 
 
-    # Attempt to discover Google Org Domain from Stage 0 remote state
-    if [[ -z "$DOMAIN" ]]; then
-        STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null)
+    # Retrieve Stage 0 Remote State Output if needed
+    if [[ -z "$DOMAIN" || -z "$ACL_IDP_TYPE" ]]; then
+        STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || true)
+        
         if [[ -n "$STATE_CONTENT" ]]; then
             # Extract domain from outputs.domain.value
-            DOMAIN=$(echo "$STATE_CONTENT" | grep -A 5 '"domain":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
+            if [[ -z "$DOMAIN" ]]; then
+                DOMAIN=$(echo "$STATE_CONTENT" | grep -A 5 '"domain":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
+            fi
+            
+            # Extract ACL IDP Type
+            if [[ -z "$ACL_IDP_TYPE" ]]; then
+                ACL_IDP_TYPE=$(echo "$STATE_CONTENT" | grep -A 5 '"acl_idp_type":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
+            fi
         fi
     fi
 
@@ -1033,12 +1452,12 @@ if [[ "$OPTION" == "2" ]]; then
         read -p "Enter the name of your pre-uploaded SSL Certificate in Google Cloud [${DEFAULT_SSL_CERT}]: " SSL_CERT_NAME
         SSL_CERT_NAME=${SSL_CERT_NAME:-$DEFAULT_SSL_CERT}
 
-        # Prompt for Gemini Config ID
+        # Prompt for Gemini Enterprise Widget Config ID
         echo ""
         echo "Please run the Gem4Gov CLI tool now if you haven't already."
-        echo "The CLI will output a Gemini Config ID."
+        echo "The CLI will output a Gemini Enterprise Widget Config ID."
         while [[ -z "$GEMINI_CONFIG_ID" ]]; do
-            read -p "Enter your Gemini Config ID: " GEMINI_CONFIG_ID
+            read -p "Enter your Gemini Enterprise Widget Config ID: " GEMINI_CONFIG_ID
         done
 
         # Prompt for Gemini Enterprise Domain
@@ -1055,6 +1474,25 @@ if [[ "$OPTION" == "2" ]]; then
     # Remove legacy backend.tf if it exists
     rm -f backend.tf
 
+    # Generate terraform.tfvars
+    if [[ "$IS_BROWNFIELD" == "true" ]]; then
+        CREATE_RESOURCE_KEYS="false"
+    else
+        # For Greenfield or Custom, default to true unless overridden in tfvars
+        # Check if user already set create_resource_keys in tfvars (for Custom)
+        if [[ -f "terraform.tfvars" ]]; then
+             USER_SET_KEYS=$(get_tfvar_value "terraform.tfvars" "create_resource_keys")
+             if [[ -n "$USER_SET_KEYS" ]]; then
+                 CREATE_RESOURCE_KEYS="$USER_SET_KEYS"
+                 echo -e "Using user-defined create_resource_keys: ${YELLOW}${CREATE_RESOURCE_KEYS}${NC}"
+             else
+                 CREATE_RESOURCE_KEYS="true"
+             fi
+        else
+             CREATE_RESOURCE_KEYS="true"
+        fi
+    fi
+
     # Generate terraform.tfvars for Stage 1
     if [[ "$SKIP_PROMPTS" == "false" ]]; then
         cat > terraform.tfvars <<EOF
@@ -1064,10 +1502,10 @@ ssl_certificate_name = "${SSL_CERT_NAME}"
 gemini_config_id = "${GEMINI_CONFIG_ID}"
 EOF
         if [[ -n "$SHARED_VPC_NETWORK" ]]; then
-            echo "network_name = \"${SHARED_VPC_NETWORK}\"" >> gemini-stage-1/terraform.tfvars
+            echo "network_name = \"${SHARED_VPC_NETWORK}\"" >> terraform.tfvars
         fi
         if [[ -n "$SHARED_VPC_HOST_PROJECT" ]]; then
-            echo "host_project_id = \"${SHARED_VPC_HOST_PROJECT}\"" >> gemini-stage-1/terraform.tfvars
+            echo "host_project_id = \"${SHARED_VPC_HOST_PROJECT}\"" >> terraform.tfvars
         fi
         echo "Generated gemini-stage-1/terraform.tfvars"
     else
@@ -1084,9 +1522,59 @@ EOF
     terraform apply -var-file="terraform.tfvars" -auto-approve
     
     echo -e "${GREEN}Stage 1 Complete!${NC}"
+
+    # --- Post-Deployment: Third Party OAuth Setup ---
+    
+    if [[ "$ACL_IDP_TYPE" == "THIRD_PARTY" ]]; then
+        echo ""
+        echo -e "${YELLOW}ACTION REQUIRED: Complete the Identity-Aware Proxy (IAP) configuration manually.${NC}"
+        echo -e "Because you selected THIRD_PARTY (Workforce Identity Federation), you must configure the OAuth Client and IAP settings manually."
+        
+        # Discover Pool ID if not set
+        if [[ -z "$ACL_POOL_NAME" ]]; then
+             STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || true)
+             ACL_POOL_NAME=$(echo "$STATE_CONTENT" | grep -A 5 '"acl_workforce_pool_name":' | grep '"value":' | head -n 1 | cut -d':' -f2 | tr -d ' ",')
+        fi
+        
+        # Extract just the ID from the full name if necessary, though Console usually takes the ID
+        WORKFORCE_POOL_ID=$(basename "$ACL_POOL_NAME")
+        BACKEND_SERVICE_NAME="${PREFIX}-backend-service"
+
+        echo ""
+        echo -e "${BLUE}Step 1: Create an OAuth Client${NC}"
+        echo -e "1. Navigate to APIs & Services > Credentials: ${BLUE}https://console.cloud.google.com/apis/credentials?project=${PROJECT_ID}${NC}"
+        echo "2. Click 'Create Credentials' > 'OAuth client ID'."
+        echo "3. Application type: 'Web application'."
+        echo "4. Name: 'Gemini Enterprise IAP Client'."
+        echo "5. Click 'Create'. (Do not add redirect URIs yet)."
+        echo "6. Copy the 'Client ID' and 'Client Secret'."
+        echo -e "${NC}" # Ensure color reset before prompt
+        read -p "Press Enter after you have created the client..."
+
+        echo ""
+        echo -e "${BLUE}Step 2: Update Redirect URI${NC}"
+        echo "1. Edit the newly created OAuth Client."
+        echo -e "2. Add the following Authorized redirect URI (replace [CLIENT_ID] with the actual ID you just copied): ${YELLOW}https://iap.googleapis.com/v1/oauth/clientIds/[CLIENT_ID]:handleRedirect${NC}"
+        echo "3. Save the changes."
+        echo -e "${NC}" # Ensure color reset before prompt
+        read -p "Press Enter after you have updated the redirect URI..."
+
+        echo ""
+        echo -e "${BLUE}Step 3: Configure IAP for Workforce Identity${NC}"
+        echo -e "1. Navigate to IAP: ${BLUE}https://console.cloud.google.com/security/iap?project=${PROJECT_ID}${NC}"
+        echo -e "2. Locate the Backend Service: ${GREEN}${BACKEND_SERVICE_NAME}${NC}"
+        echo "3. Select the \"Settings\" in the 3-dots menu next to the backend service resource."
+        echo "4. Select \"Custom OAuth (for specific control, branding, or external users)\" and configure the following:"
+        echo "   - OAuth client ID: (Paste from Step 1)"
+        echo "   - OAuth client secret: (Paste from Step 1)"
+        echo "6. Click 'Save'."
+        echo -e "${NC}" # Ensure color reset before prompt
+        read -p "Press Enter after you have configured IAP..."
+        echo ""
+        
+        echo -e "${GREEN}OAuth and IAP Manual Configuration marked as complete.${NC}"
+    fi
     echo ""
     echo -e "Welcome to your ${BLUE}G${RED}o${YELLOW}o${BLUE}g${GREEN}l${RED}e${NC} Cloud Gemini Enterprise App! Access your app at https://${GEMINI_DOMAIN}"
     exit 0
 fi
-
-

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-variable "access_policy_number" {
-  description = "There can only be one Access Policy per GCP Org. Use gcloud access-context-manager policies list --organization <org-number> to list it."
-  type        = number
-}
 
 variable "domain" {
   description = "FQDN for the load-balancer hosted apps, where the subdomain will be prepended to."
@@ -35,9 +30,15 @@ variable "prefix" {
   default     = "cnap"
 }
 
-variable "region" {
-  description = "GCP Region to deploy into."
+variable "environment" {
+  description = "Environment identifier"
   type        = string
+  default     = "prod"
+}
+
+variable "access_policy_number" {
+  description = "There can only be one Access Policy per GCP Org. Use gcloud access-context-manager policies list --organization <org-number> to list it."
+  type        = number
 }
 
 variable "admin_group" {
@@ -50,26 +51,10 @@ variable "user_group" {
   type        = string
 }
 
-variable "gcs_label_environment" {
-  description = "Environment label for the GCS bucket."
-  type        = string
-  default     = "prod"
-}
-
 variable "gemini_enterprise_gcs_bucket_name" {
   description = "The name of the GCS bucket to be used as the data source for the Discovery Engine Data Connector."
   type        = string
   default     = "your-bucket-name-placeholder"
-}
-
-variable "deployment_type" {
-  description = "Type of deployment: 'internal' or 'external'"
-  type        = string
-  default     = "external" # Default to external as per original design
-  validation {
-    condition     = contains(["internal", "external"], var.deployment_type)
-    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
-  }
 }
 
 variable "geolocation" {
@@ -78,19 +63,14 @@ variable "geolocation" {
   default     = "us"
 }
 
-variable "gcs_data_store_names" {
-  description = "A list of names to use for creating GCS buckets and associated Discovery Engine Data Stores."
-  type        = list(string)
-  default     = []
+variable "region" {
+  description = "GCP Region to deploy into."
+  type        = string
 }
 
-variable "bq_data_store_configs" {
-  description = "A list of objects defining BigQuery datasets and tables to create and connect to Discovery Engine. Each object should have 'dataset_id' and 'table_id'."
-  type        = list(object({
-    dataset_id = string
-    table_id   = string
-  
-  }))
+variable "allowed_ip_ranges" {
+  description = "The IP range to allow traffic from."
+  type        = list(string)
   default     = []
 }
 
@@ -118,16 +98,26 @@ variable "access_end_day" {
   default     = 5
 }
 
-variable "internal_lb_subnet_range" {
-  description = "The IP CIDR range for the internal load balancer subnet."
-  type        = string
-  default     = "10.10.10.0/24"
+variable "create_resource_keys" {
+  description = "Whether to create a separate CMEK key for resources (Discovery Engine, GCS, BigQuery). Set to true for Greenfield deployments."
+  type        = bool
+  default     = false
 }
 
 variable "kms_key_id" {
   description = "The full resource name of the Cloud KMS key to use for CMEK (e.g. projects/p/locations/l/keyRings/r/cryptoKeys/k). If not provided, a new key will be created."
   type        = string
   default     = null
+}
+
+variable "deployment_type" {
+  description = "Type of deployment: 'internal' or 'external'"
+  type        = string
+  default     = "external" # Default to external as per original design
+  validation {
+    condition     = contains(["internal", "external"], var.deployment_type)
+    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
+  }
 }
 
 variable "create_data_stores" {
@@ -148,6 +138,12 @@ variable "acl_idp_type" {
 
 variable "acl_workforce_pool_name" {
   description = "The resource name of the Workforce Identity Pool (required if acl_idp_type is 'THIRD_PARTY'). Format: locations/global/workforcePools/<pool_id>"
+  type        = string
+  default     = ""
+}
+
+variable "acl_workforce_provider_id" {
+  description = "The ID of the Workforce Identity Pool Provider (required if acl_idp_type is 'THIRD_PARTY'). Format: <provider_id> (without acl_workforce_pool_name prefix)"
   type        = string
   default     = ""
 }
@@ -194,8 +190,29 @@ variable "shared_vpc_proxy_subnet_name" {
   default     = ""
 }
 
-variable "create_resource_keys" {
-  description = "Whether to create a separate CMEK key for resources (Discovery Engine, GCS, BigQuery). Set to true for Greenfield deployments."
-  type        = bool
-  default     = false
+variable "gcs_data_store_names" {
+  description = "A list of names to use for creating GCS buckets and associated Discovery Engine Data Stores."
+  type        = list(string)
+  default     = []
+}
+
+variable "bq_data_store_configs" {
+  description = "A list of objects defining BigQuery datasets and tables to create and connect to Discovery Engine. Each object should have 'dataset_id' and 'table_id'."
+  type        = list(object({
+    dataset_id = string
+    table_id   = string
+  
+  }))
+  default     = []
+}
+
+variable "internal_lb_subnet_range" {
+  description = "The IP CIDR range for the internal load balancer subnet."
+  type        = string
+  default     = "10.10.10.0/24"
+}
+
+variable "company_name" {
+  description = "The name of the company, business or entity that is associated with the Gemini Enterprise application. Setting this may help improve LLM related features."
+  type        = string
 }

@@ -23,6 +23,7 @@ resource "google_project_service" "services" {
   project = var.main_project_id
   for_each = toset([
     "discoveryengine.googleapis.com",
+    "compute.googleapis.com",
     "cloudkms.googleapis.com",
     "bigquery.googleapis.com",
     "aiplatform.googleapis.com",
@@ -69,13 +70,25 @@ resource "google_project_service_identity" "storage" {
   ]
 }
 
+# Create all project-level bigquery.googleapis.com service agents
+resource "google_project_service_identity" "bigquery" {
+  provider = google-beta
+  project = var.main_project_id
+  service = "bigquery.googleapis.com"
+
+  depends_on = [
+    google_project_service.services,
+    time_sleep.wait_for_services
+  ]
+}
+
 # Create all project-level iap.googleapis.com service agents
-resource "google_project_service_identity" "iap_sa" {
+resource "google_project_service_identity" "iap" {
   provider = google-beta
   project = var.main_project_id
   service = "iap.googleapis.com"
 
-    depends_on = [
+  depends_on = [
     google_project_service.services,
     time_sleep.wait_for_services
   ]

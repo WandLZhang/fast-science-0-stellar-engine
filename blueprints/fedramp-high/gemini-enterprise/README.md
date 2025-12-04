@@ -24,7 +24,7 @@
 
 This blueprint deploys a secure and compliant environment for hosting Gemini Enterprise on Google Cloud Platform, specifically tailored for FedRAMP High requirements. It leverages Vertex AI Search and Discovery Engine. The deployment is divided into two main Terraform stages (`gemini-stage-0` and `gemini-stage-1`) and interacts with the `gem4gov` CLI tool.
 
-**This blueprint supports both EXTERNAL and INTERNAL load balancer deployments, configurable via the `deployment_type` variable in `gemini-stage-0/terraform.tfvars` and `gemini-stage-1/terraform.tfvars`.**
+**This blueprint supports both EXTERNAL and INTERNAL load balancer deployments, configurable via the `deployment_type` variable in `gemini-stage-0/terraform.tfvars`.**
 
 It is designed to be highly automated via the `deploy.sh` script, which intelligently handles the differences between a "Greenfield" (fresh) deployment and a "Brownfield" (Stellar Engine) integration.
 
@@ -44,8 +44,8 @@ The blueprint establishes a robust infrastructure including:
 3.  **Discovery Engine:** Configuration of Discovery Engine data stores, and connectors for GCS and BigQuery (Optional). (Uses a dedicated key separate from the Terraform state key).
 4.  **Load Balancing:** A Regional HTTPS Load Balancer (either INTERNAL_MANAGED or EXTERNAL_MANAGED based on `deployment_type`) to securely expose the Gemini Enterprise application.
 5.  **Security Controls:**
-    - **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context. Supports both Google Identity and **Workforce Identity Federation** for external IdPs.
-    - **Access Context Manager:** Defines and enforces granular access policies based on attributes like user identity, device security status, time of day, and geo-location.
+    - **Identity-Aware Proxy (IAP):** Enforces fine-grained access control based on user identity and context. Supports both **Google Identity** and **Workforce Identity Federation** for external IdPs.
+    - **Access Context Manager:** Defines and enforces granular access policies based on attributes like user identity, time of day, geo-location, and device security status (requires Chrome Enterprise Premium subscription).
     - **Chrome Enterprise Premium (Zero Trust):** Optional integration to enforce strict device-based access policies (e.g., Corporate Owned, Encrypted, Screen Lock) for a Zero Trust security posture.
     - **Cloud Armor:** Provides WAF capabilities and DDoS protection, initially configured to only allow traffic from the US (Applicable for EXTERNAL deployments).
     - **CMEK (Customer-managed encryption key):** Ensures data at rest in GCS, BigQuery, and Discovery Engine is encrypted with customer-managed keys.
@@ -267,9 +267,15 @@ Stage 0 provisions the core networking and security infrastructure.
 **Required Roles on Target Project:**
 
 - `roles/compute.admin` (Network, LB, Firewall management)
+- `roles/cloudkms.admin` (Create CMEKs in Cloud KMS)
+- `roles/discoveryengine.admin` (Gemini Enterprise application / data store creation)
 - `roles/iap.admin` (IAP configuration)
+- `roles/oauthconfig.editor` (Configure OAuth application for the project)
 - `roles/resourcemanager.projectIamAdmin` (Setting IAM policies)
 - `roles/secretmanager.admin` (If creating secrets)
+- `roles/serviceusage.serviceUsageAdmin` (Enable Google Cloud APIs)
+- `roles/storage.admin` (Create remote Terraform state bucket / Gemini Enterprise GCS data stores)
+- `roles/bigquery.admin` (Create Gemini Enterprise BigQuery data stores)
 - `roles/dns.admin` (If managing Cloud DNS)
 
 **Specific Permissions:**
@@ -327,7 +333,6 @@ For a smooth deployment experience, we recommend granting the following roles to
 - `roles/editor`
 - `roles/compute.networkAdmin`
 - `roles/iap.admin`
-- `roles/run.admin`
 - `roles/secretmanager.admin`
 - `roles/resourcemanager.projectIamAdmin`
 
@@ -787,12 +792,17 @@ Before applying this Terraform module, ensure the following manual steps and con
 
 1.  **Organization Policy**: If deploying the **External** variant, you must ensure the `compute.restrictLoadBalancerCreationForTypes` organization policy allows `EXTERNAL_MANAGED_HTTP_HTTPS` load balancers. This blueprint does **not** modify this policy automatically.
 
-2.  **Google Workspace Groups for IAP:**
-
-    - In the [Google Workspace Admin Console](https://admin.google.com/), create the following groups:
-      - `gcp-gemini-enterprise-admins@<your-domain>`
-      - `gcp-gemini-enterprise-users@<your-domain>`
-    - Add the necessary users to these groups who will need access to the Gemini Enterprise application through the Identity-Aware Proxy.
+2.  **Group Creation for IAP / Gemini Enterprise Access :**
+    - If identity provider is Cloud Identity...
+      - In the [Google Workspace Admin Console](https://admin.google.com/), create the following groups:
+        - `gcp-gemini-enterprise-admins@<your-domain>`
+        - `gcp-gemini-enterprise-users@<your-domain>`
+      - Add the necessary users to these groups who will need access to the Gemini Enterprise application through the Identity-Aware Proxy.
+    - If identity provider is Third-Party Identity Provider (i.e. Microsoft Entra, Okta, etc.)...
+      - [Setup Workforce Identity Federation](https://docs.cloud.google.com/iam/docs/configuring-workforce-identity-federation) at the GCP Organization-level
+      - Ensure Group IDs are being passed to the Secure Token Service API and the attribute-mapping in the Workforce Identity Provider maps the list of Group IDs to `google.groups` (i.e. `google.groups=assertion.groups`)
+        - [Microsoft Entra] (https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims?tabs=appui#configure-groups-optional-claims)
+        - [Okta](https://developer.okta.com/docs/guides/customize-tokens-groups-claim/main/)
 
 3.  **OAuth Consent Screen:**
 
@@ -819,18 +829,26 @@ The user or service account applying this Terraform configuration needs the foll
 
 - `roles/accesscontextmanager.policyAdmin`: To manage Access Context Manager policies and levels.
 - `roles/orgpolicy.policyAdmin`: To set organization policies.
+- `roles/assuredworkloads.reader`: To determine if project is within Assured Workloads FedRAMP High boundary
+- `roles/iam.workforcePoolAdmin`: To create Workforce Identity Pools / Providers (if using Third-Party Identity Provider)
 
 **Project Level:**
 
-- `roles/compute.networkAdmin`: For all networking resources (VPC, subnets, firewalls, LBs, NEGs).
-- `roles/compute.securityAdmin`: For Cloud Armor security policies.
-- `roles/iap.admin`: To configure IAP on backend services.
-- `roles/serviceusage.serviceUsageAdmin`: To enable required APIs.
-- `roles/resourcemanager.projectIamAdmin`: To manage project IAM bindings and service identities.
-- `roles/cloudkms.admin`: For KMS key rings, keys, and IAM permissions.
-- `roles/storage.admin`: For GCS buckets.
-- `roles/bigquery.admin`: For BigQuery datasets and tables.
-- `roles/discoveryengine.admin`: For all Discovery Engine resources.
+- `roles/viewer`: To grant read-only access to most project resources
+- `roles/aiplatform.admin`: To disable implicit model data caching in the project
+- `roles/compute.loadBalancerAdmin`: For all load balancer resources (frontends, backends, NEGs, etc.)
+- `roles/compute.networkAdmin`: For all networking resources (VPC, subnets, firewalls, etc.)
+- `roles/compute.securityAdmin`: For Cloud Armor security policies
+- `roles/oauthconfig.editor`: To configure OAuth for IAP
+- `roles/iap.admin`: To configure IAP on backend services
+- `roles/iap.settingsAdmin`: To configure the IAP settings for third-party identity provider
+- `roles/serviceusage.serviceUsageAdmin`: To enable required APIs
+- `roles/resourcemanager.projectIamAdmin`: To manage project IAM bindings and service identities
+- `roles/cloudkms.admin`: For KMS key rings, keys, and IAM permissions
+- `roles/storage.admin`: For GCS buckets
+- `roles/bigquery.admin`: For BigQuery datasets and tables
+- `roles/discoveryengine.admin`: For all Discovery Engine resources
+- `roles/iam.serviceAccountCreator`: To create Service Accounts in the project
 
 ### Achieving Stricter Least Privilege
 
@@ -914,7 +932,7 @@ The blueprint sets up the following key components:
 
 1.  Navigate to `blueprints/fedramp-high/gemini-enterprise/gemini-stage-0/`.
 2.  Create a `terraform.tfvars` file based on the `terraform.tfvars.sample` sample, filling in all required values.
-    - **Note:** If using Workforce Identity Federation, set `acl_idp_type = "THIRD_PARTY"` and provide `acl_workforce_pool_name`.
+    - **Note:** If using Workforce Identity Federation, set `acl_idp_type = "THIRD_PARTY"` and provide `acl_workforce_pool_name` and `acl_workforce_provider_id`.
 3.  Initialize Terraform: `terraform init`
 4.  Review the plan: `terraform plan`
 5.  Apply the configuration: `terraform apply`
@@ -958,7 +976,7 @@ This module provides outputs such as:
 - `bq_discovery_engine_data_store_ids`: A map of the Data Store IDs managed by the BigQuery connectors.
 - `gemini_enterprise_ip_address`: The reserved static IP for the load balancer.
 
-These outputs are used by the "gem for Gov CLI" tool and the `gemini-stage-1` blueprint.
+These outputs are used by the "gem4gov" CLI tool and the `gemini-stage-1` blueprint.
 
 ---
 
@@ -1006,7 +1024,7 @@ After the foundational infrastructure is provisioned by the `gemini-stage-0` and
   - `roles/resourcemanager.projectIamAdmin`
   - `roles/serviceusage.serviceUsageAdmin`
   - `roles/storage.admin`
-  - `roles/bigquery.dataViewer`
+  - `roles/bigquery.admin`
 
 ### Installation
 
@@ -1067,7 +1085,7 @@ The tool will guide you through interactive prompts for:
 - Engine Creation
 - Regulatory Boundary Configuration (FedRAMP High, IL5 coming soon)
 
-Upon completion, it will output Project ID, Data Store ID, Engine ID, and the **Widget Config ID** (this is the `customer_id` needed for `gemini-stage-1`).
+Upon completion, it will output Project ID, Data Store ID, Engine ID, and the **Widget Config ID** (this is the `customer_id` needed for `gemini-stage-1`). It will also output the `Gemini Enterprise UI URL` that will take you directly to the authentication page of the Gemini Enterprise application. The end users will be redirected to this URL after making it through the security controls on the Load Balncer.
 
 ---
 
@@ -1105,26 +1123,20 @@ This Terraform module (gemini-stage-1) provisions the network frontend component
 
     - Install and run the `gem4gov` CLI tool (see instructions below).
     - Follow the prompts. Since `gemini-stage-0` handled most infrastructure, you will mainly be focused on the **Engine Creation** steps.
-    - Note the **`config_id`** provided in the output. This is your `customer_id`.
+    - Note the **`Gemini Enterprise Widget Config ID`** provided in the output. This is your `customer_id`.
 
 3.  **Domain and SSL Certificate:**
 
     - **DNS Configuration:** You should have already pointed an 'A' record for your desired subdomain (e.g., `gemini.yourdomain.com`) to the static IP address (`gemini-enterprise-ip`) created in `gemini-stage-0`.
     - **Obtain/Upload SSL Certificate:**
       - Acquire an SSL certificate for your subdomain.
-      - Upload this certificate to Google Cloud Certificate Manager in the same project where `gemini-stage-0` was deployed. You can do this via the Cloud Console:
-        1.  Go to Network Security > Certificate Manager.
-        2.  Click "Create Certificate".
-        3.  Choose "Upload my own certificate", provide the certificate and private key.
-        4.  Note the **Name** you give to this certificate.
-      - **Alternatively, using gcloud for Regional Self-Managed Certificates:**
-        - To upload a self-managed SSL certificate for regional load balancers, the `gcloud` command is typically used. This method creates what Certificate Manager refers to as a "Classic certificate".
+      - Upload the SSL certificate to Google Cloud Certificate Manager in the same project where `gemini-stage-0` was deployed. Regional Self-Managed SSL certificates (to be used with a regional load balancer) can **only** be uploaded via `gcloud` command. The certificate will be visible in Certificate Manager as a "Classic certificate".
         - Run the following command:
           ```bash
           gcloud compute ssl-certificates create YOUR_CERTIFICATE_NAME \
-              --certificate=PATH_TO_YOUR_CERTIFICATE_FILE \
-              --private-key=PATH_TO_YOUR_PRIVATE_KEY_FILE \
-              --region=YOUR_REGION
+            --certificate=PATH_TO_YOUR_CERTIFICATE_FILE \
+            --private-key=PATH_TO_YOUR_PRIVATE_KEY_FILE \
+            --region=YOUR_REGION
           ```
           Replace `YOUR_CERTIFICATE_NAME`, `PATH_TO_YOUR_CERTIFICATE_FILE`, `PATH_TO_YOUR_PRIVATE_KEY_FILE`, and `YOUR_REGION` accordingly.
         - **Note:** The current Terraform configuration in `load_balancer.tf` uses the `google_compute_region_ssl_certificate` data source, which is compatible with certificates created via this `gcloud` command.
@@ -1141,7 +1153,7 @@ This Terraform module (gemini-stage-1) provisions the network frontend component
     ```hcl
     stage_0_state_bucket = "YOUR_STAGE_0_STATE_BUCKET" # From Stage 0 outputs
     gemini_enterprise_domain = "gemini.yourdomain.com"
-    customer_id = "CONFIG_ID_FROM_GEM4GOV" # Widget Config ID from gem4gov output
+    customer_id = "OUTPUT_FROM_GEM4GOV_CLI" # Widget Config ID from gem4gov output
     ssl_certificate_name = "YOUR_CERTIFICATE_MANAGER_NAME" # Name of the uploaded cert
     ```
 

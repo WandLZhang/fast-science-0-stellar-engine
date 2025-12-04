@@ -13,58 +13,9 @@
 # limitations under the License.
 
 locals {
-  kms_rotation_period = "7776000s" # 90 days
   gcs_lifecycle_age   = 30
   bq_connector_refresh_interval = "86400s" # Daily
   wait_for_bq_datastore_duration = "120s"
-  # Use provided key or the newly created resource key
-  cmek_key_id = var.create_resource_keys ? google_kms_crypto_key.resources[0].id : var.kms_key_id
-}
-
-# Data source to validate/read the provided key
-data "google_kms_crypto_key" "cmek_crypto_key" {
-  name     = element(split("/", var.kms_key_id), 7)
-  key_ring = join("/", slice(split("/", var.kms_key_id), 0, 6))
-}
-
-
-
-
-# Get project details for the main project
-data "google_project" "main" {
-  project_id = var.main_project_id
-}
-
-# Grant Discovery Engine Service Agent access to the KMS key
-resource "google_kms_crypto_key_iam_member" "discoveryengine_sa_kms_access" {
-  crypto_key_id = local.cmek_key_id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.main.number}@gcp-sa-discoveryengine.iam.gserviceaccount.com"
-
-  depends_on = [
-    google_project_service_identity.discoveryengine,
-    time_sleep.wait_for_services
-  ]
-}
-
-# ---------------------------------------------------------------------------- #
-# Grant GCS Service Agent access to the KMS key
-resource "google_kms_crypto_key_iam_member" "gcs_sa_kms_access" {
-  crypto_key_id = local.cmek_key_id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:service-${data.google_project.main.number}@gs-project-accounts.iam.gserviceaccount.com"
-
-  depends_on = [
-    google_project_service_identity.storage,
-    time_sleep.wait_for_services
-  ]
-}
-
-# Grant BigQuery Service Agent access to the KMS key
-resource "google_kms_crypto_key_iam_member" "bq_sa_kms_access" {
-  crypto_key_id = local.cmek_key_id
-  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  member        = "serviceAccount:bq-${data.google_project.main.number}@bigquery-encryption.iam.gserviceaccount.com"
 }
 
 # ---------------------------------------------------------------------------- #
@@ -79,6 +30,7 @@ resource "google_discovery_engine_cmek_config" "default" {
   location       = var.geolocation # should be "US"
   cmek_config_id = "default_cmek_config"
   kms_key        = local.cmek_key_id
+  set_default    = true
   provider       = google-beta
 
   depends_on = [
@@ -117,8 +69,8 @@ resource "google_storage_bucket" "gemini_enterprise_data" {
   }
 
   labels = {
-    environment = var.gcs_label_environment
-    service     = "gemini-enterprise-gcs"
+    environment = var.environment
+    service     = "${var.prefix}-gcs"
     data_store  = each.key
   }
 
@@ -276,35 +228,13 @@ resource "google_discovery_engine_acl_config" "gemini_enterprise_acl_config" {
   project  = var.main_project_id
   location = var.geolocation # Must match the connector location
   idp_config {
-    idp_type = "GSUITE"
+    idp_type = var.acl_idp_type
+    dynamic "external_idp_config" {
+      for_each = var.acl_idp_type == "THIRD_PARTY" ? [1] : []
+      content {
+        workforce_pool_name = var.acl_workforce_pool_name
+      }
+    }
   }
   provider = google-beta
-
-  depends_on = [
-    time_sleep.wait_for_services
-  ]
-}
-
-# ---------------------------------------------------------------------------- #
-#  Outputs                                                                     #
-# ---------------------------------------------------------------------------- #
-
-output "gcs_discovery_engine_data_stores" {
-  description = "A map of GCS Discovery Engine Data Store names and their full resource names."
-  value       = { for k, v in google_discovery_engine_data_store.gemini_enterprise_gcs_ds : k => v.name }
-}
-
-output "gcs_gemini_enterprise_data_buckets" {
-  description = "A map of GCS bucket names created for Gemini Enterprise data."
-  value       = { for k, v in google_storage_bucket.gemini_enterprise_data : k => v.name }
-}
-
-output "bq_discovery_engine_connectors" {
-  description = "A map of BigQuery Discovery Engine Connector IDs and their collection IDs."
-  value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => v.collection_id }
-}
-
-output "bq_discovery_engine_data_store_ids" {
-  description = "A map of BigQuery Discovery Engine Data Store IDs created by the connectors."
-  value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => basename(v.entities[0].data_store) }
 }

@@ -23,7 +23,7 @@ output "user_group" {
 }
 
 output "gemini_enterprise_ip" {
-  value       = var.deployment_type == "internal" ? google_compute_address.gemini_enterprise_internal_ip[0].address : google_compute_address.gemini_enterprise_external_ip[0].address
+  value       = google_compute_address.gemini_enterprise_ip.address
   description = "The reserved IP address for the load balancer."
 }
 
@@ -42,11 +42,6 @@ output "access_policy_number" {
   description = "The Access Policy number."
 }
 
-output "domain" {
-  value       = var.domain
-  description = "The domain of the google organization."
-}
-
 output "main_project_id" {
   value       = var.main_project_id
   description = "The GCP Project name."
@@ -60,6 +55,21 @@ output "prefix" {
 output "region" {
   value       = var.region
   description = "GCP Region."
+}
+
+output "acl_idp_type" {
+  value = var.acl_idp_type
+  description = "The Identity Provider type for Discovery Engine ACLs. Options: 'GSUITE', 'THIRD_PARTY'."
+}
+
+output "acl_workforce_pool_name" {
+  value       = var.acl_workforce_pool_name
+  description = "The resource name of the Workforce Identity Pool (required if acl_idp_type is 'THIRD_PARTY'). Format: locations/global/workforcePools/<pool_id>"
+}
+
+output "acl_workforce_provider_id" {
+  value        = var.acl_workforce_provider_id
+  description  = "The ID of the Workforce Identity Pool Provider (required if acl_idp_type is 'THIRD_PARTY'). Format: <provider_id> (without acl_workforce_pool_name prefix)"
 }
 
 output "enable_chrome_enterprise_premium" {
@@ -90,4 +100,24 @@ output "shared_vpc_subnet_name" {
 output "shared_vpc_proxy_subnet_name" {
   value       = var.use_shared_vpc ? var.shared_vpc_proxy_subnet_name : null
   description = "The Shared VPC Proxy Subnet Name."
+}
+
+output "gcs_discovery_engine_data_stores" {
+  description = "A map of GCS Discovery Engine Data Store names and their full resource names."
+  value       = { for k, v in google_discovery_engine_data_store.gemini_enterprise_gcs_ds : k => v.name }
+}
+
+output "gcs_gemini_enterprise_data_buckets" {
+  description = "A map of GCS bucket names created for Gemini Enterprise data."
+  value       = { for k, v in google_storage_bucket.gemini_enterprise_data : k => v.name }
+}
+
+output "bq_discovery_engine_connectors" {
+  description = "A map of BigQuery Discovery Engine Connector IDs and their collection IDs."
+  value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => v.collection_id }
+}
+
+output "bq_discovery_engine_data_store_ids" {
+  description = "A map of BigQuery Discovery Engine Data Store IDs created by the connectors."
+  value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => basename(v.entities[0].data_store) }
 }

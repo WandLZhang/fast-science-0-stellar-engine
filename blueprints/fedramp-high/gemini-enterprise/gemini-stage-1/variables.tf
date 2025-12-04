@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
-
-
-
 variable "stage_0_state_bucket" {
   description = "The name of the GCS bucket used for Stage 0 Terraform state."
   type        = string
@@ -25,7 +20,6 @@ variable "stage_0_state_bucket" {
 variable "gemini_enterprise_domain" {
   description = "Your domain that you associated the reserved IP from stage 0 to"
   type        = string
-  default     = "prod"
 }
 
 # Variable for the customer-provided SSL certificate name
@@ -50,7 +44,3 @@ variable "host_project_id" {
   type        = string
   default     = ""
 }
-
-
-
-
