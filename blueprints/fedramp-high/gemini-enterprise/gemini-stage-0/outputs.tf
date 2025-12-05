@@ -102,22 +102,25 @@ output "shared_vpc_proxy_subnet_name" {
   description = "The Shared VPC Proxy Subnet Name."
 }
 
-output "gcs_discovery_engine_data_stores" {
-  description = "A map of GCS Discovery Engine Data Store names and their full resource names."
-  value       = { for k, v in google_discovery_engine_data_store.gemini_enterprise_gcs_ds : k => v.name }
+output "gcs_data_store_ids" {
+  description = "A list of GCS Discovery Engine Data Store IDs."
+  value       = [for v in google_discovery_engine_data_store.gemini_enterprise_gcs_data_store : v.data_store_id]
 }
 
-output "gcs_gemini_enterprise_data_buckets" {
-  description = "A map of GCS bucket names created for Gemini Enterprise data."
-  value       = { for k, v in google_storage_bucket.gemini_enterprise_data : k => v.name }
+output "gcs_data_store_to_bucket" {
+  description = "A mapping of GCS Data Store IDs to their corresponding GCS Bucket names."
+  value       = { for k, v in google_discovery_engine_data_store.gemini_enterprise_gcs_data_store : v.data_store_id => google_storage_bucket.gemini_enterprise_gcs_bucket[k].name }
 }
 
-output "bq_discovery_engine_connectors" {
-  description = "A map of BigQuery Discovery Engine Connector IDs and their collection IDs."
-  value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => v.collection_id }
+output "bq_data_store_ids" {
+  description = "A list of BigQuery Discovery Engine Data Store IDs."
+  value       = [for v in google_discovery_engine_data_store.gemini_enterprise_bq_data_store : v.data_store_id]
 }
 
-output "bq_discovery_engine_data_store_ids" {
-  description = "A map of BigQuery Discovery Engine Data Store IDs created by the connectors."
-  value       = { for k, v in google_discovery_engine_data_connector.gemini_enterprise_bq_connector : k => basename(v.entities[0].data_store) }
+output "bq_data_store_to_dataset_table" {
+  description = "A mapping of BigQuery Data Store IDs to their corresponding Dataset and Table."
+  value       = { for k, v in google_discovery_engine_data_store.gemini_enterprise_bq_data_store : v.data_store_id => {
+    dataset_id = google_bigquery_dataset.gemini_enterprise_bq_dataset[k].dataset_id
+    table_id   = google_bigquery_table.gemini_enterprise_bq_table[k].table_id
+  }}
 }

@@ -9,6 +9,7 @@ import string
 import json
 import yaml
 import os
+import time
 from data_stores import (
     generate_id,
     validate_data_store,
@@ -943,7 +944,34 @@ def create_engine(credentials, project_id, engine_id, display_name, company_name
 
     try:
         response = request.execute()
-        click.echo(f"Engine created successfully!")
+        
+        # Check if response is an Operation (LRO)
+        if 'name' in response and 'operations' in response['name']:
+             click.echo(f"Engine creation initiated. Waiting for Engine to be ready...")
+             
+             engine_full_name = f"projects/{project_id}/locations/us/collections/default_collection/engines/{engine_id}"
+             
+             while True:
+                try:
+                    # Poll the Engine resource directly
+                    eng_request = service.projects().locations().collections().engines().get(name=engine_full_name)
+                    eng_response = eng_request.execute()
+                    
+                    # If we get here, the engine exists.
+                    click.echo("Engine created successfully!")
+                    break
+                except HttpError as e:
+                    if e.resp.status == 404:
+                        # Not found yet, keep waiting
+                        click.echo(".", nl=False)
+                        time.sleep(5)
+                    else:
+                        raise e
+             click.echo(nl=True)
+        else:
+             # If it's not an operation or already done (unlikely for create)
+             click.echo(f"Engine created successfully!")
+
     except Exception as e:
         click.echo(f"An error occurred while creating the engine: {e}")
         click.echo(click.style("Exiting Onboarding process...", fg="red"))
@@ -986,13 +1014,27 @@ def configure_idp_for_widget(credentials, project_id, engine_id, workforce_pool_
             url
         ]
 
-        result = subprocess.run(curl_command, capture_output=True, text=True)
 
-        if result.returncode == 0:
-            click.echo("Successfully configured identity provider for the search widget.")
+        # Retry logic for widget config availability
+        max_retries = 5
+        for attempt in range(max_retries):
+            result = subprocess.run(curl_command, capture_output=True, text=True)
+            
+            if result.returncode == 0 and "error" not in result.stdout.lower():
+                click.echo("Successfully configured identity provider for the search widget.")
+
+                break
+            
+
+            
+            if attempt < max_retries - 1:
+                click.echo("Waiting for widget config to be ready...", nl=False)
+                time.sleep(5)
+                click.echo(nl=True)
         else:
-            click.echo(f"An error occurred while configuring the identity provider for the search widget:")
+            click.echo(f"An error occurred while configuring the identity provider for the search widget after {max_retries} attempts:")
             click.echo(result.stderr)
+            click.echo(result.stdout)
 
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         click.echo(f"An error occurred: {e}")
@@ -1034,13 +1076,27 @@ def disable_user_event_collection(credentials, project_id, engine_id):
             url
         ]
 
-        result = subprocess.run(curl_command, capture_output=True, text=True)
 
-        if result.returncode == 0:
-            click.echo("Successfully disabled user event collection.")
+        # Retry logic for widget config availability
+        max_retries = 5
+        for attempt in range(max_retries):
+            result = subprocess.run(curl_command, capture_output=True, text=True)
+            
+            if result.returncode == 0 and "error" not in result.stdout.lower():
+                click.echo("Successfully disabled user event collection.")
+
+                break
+            
+
+            
+            if attempt < max_retries - 1:
+                click.echo("Waiting for widget config to be ready...", nl=False)
+                time.sleep(5)
+                click.echo(nl=True)
         else:
-            click.echo(f"An error occurred while disabling user event collection:")
+            click.echo(f"An error occurred while disabling user event collection after {max_retries} attempts:")
             click.echo(result.stderr)
+            click.echo(result.stdout)
 
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         click.echo(f"An error occurred: {e}")
