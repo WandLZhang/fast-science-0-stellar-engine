@@ -21,7 +21,7 @@ SKIP_PROMPTS="false"
 # --- Colors ---
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
+YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
@@ -175,15 +175,18 @@ select_deployment_type() {
     fi
 
     if [[ "$DEPLOYMENT_CHOICE" == "1" ]]; then # Brownfield
+        DEPLOYMENT_TYPE_TEXT="Brownfield (Stellar Engine Integration)"
         IS_BROWNFIELD="true"
         IS_CUSTOM="false"
         PREFIX=$(echo "$PROJECT_ID" | cut -d'-' -f1 | cut -d'-' -f1-6)
         echo -e "Derived Prefix: ${YELLOW}${PREFIX}${NC}"
     elif [[ "$DEPLOYMENT_CHOICE" == "2" ]]; then # Greenfield
+        DEPLOYMENT_TYPE_TEXT="Greenfield (New GCP Project Deployment)"
         IS_BROWNFIELD="false"
         IS_CUSTOM="false"
         read -p "Enter a prefix for your resources: " PREFIX
     elif [[ "$DEPLOYMENT_CHOICE" == "3" ]]; then # Custom Brownfield
+        DEPLOYMENT_TYPE_TEXT="Custom Brownfield (Manual Configuration)"
         IS_BROWNFIELD="false"
         IS_CUSTOM="true"
         read -p "Enter a prefix for your resources (default: sedev): " INPUT_PREFIX
@@ -924,9 +927,7 @@ deploy_stage_0() {
 
 # --- Gem4Gov Functions ---
 
-configure_gem4gov() {
-    echo -e "${BLUE}--- Configure Gemini Enterprise App (gem4gov) ---${NC}"
-    
+ensure_gem4gov_installed() {
     if ! command -v gem4gov &> /dev/null; then
         if [[ -d "gem4gov-cli" ]]; then
             echo "Installing gem4gov CLI..."
@@ -936,6 +937,15 @@ configure_gem4gov() {
             echo -e "${RED}gem4gov-cli directory not found.${NC}"
             return 1
         fi
+    fi
+    return 0
+}
+
+configure_gem4gov() {
+    echo -e "${BLUE}--- Configure Gemini Enterprise App (gem4gov) ---${NC}"
+    
+    if ! ensure_gem4gov_installed; then
+        return 1
     fi
 
     # Retrieve outputs from Stage 0 state
@@ -985,8 +995,188 @@ configure_gem4gov() {
     $CMD
     
     echo -e "${GREEN}Gemini Enterprise Application configured.${NC}"
+    echo -e "${GREEN}Please wait approximately 10 minutes before using your Gemini Enterprise application as it finishes provisioning.${NC}"
     echo -e "${YELLOW}Note the 'Gemini Enterprise Widget Config ID' from the output above for the next stage.${NC}"
     pause
+}
+
+update_app_compliance() {
+    echo -e "${BLUE}--- Update Gemini Enterprise App Compliance ---${NC}"
+
+    if ! ensure_gem4gov_installed; then
+        return 1
+    fi
+
+    # Ensure Project ID is set
+    if [[ -z "$PROJECT_ID" ]]; then
+        echo -e "${RED}Project ID is required. Please select a project first.${NC}"
+        return 1
+    fi
+
+    read -p "Enter Gemini Enterprise Engine ID: " ENGINE_ID
+    if [[ -z "$ENGINE_ID" ]]; then
+        echo -e "${RED}Engine ID is required.${NC}"
+        return 1
+    fi
+
+    echo "Select Compliance Regime:"
+    echo "1. FedRAMP High"
+    echo "2. IL4"
+    read -p "Select an option [1-2]: " COMPLIANCE_SEL
+
+    COMPLIANCE_REGIME=""
+    if [[ "$COMPLIANCE_SEL" == "1" ]]; then
+        COMPLIANCE_REGIME="FEDRAMP_HIGH"
+    elif [[ "$COMPLIANCE_SEL" == "2" ]]; then
+        COMPLIANCE_REGIME="IL4"
+    else
+        echo -e "${RED}Invalid selection.${NC}"
+        return 1
+    fi
+
+    CMD="gem4gov app update-compliance --project-id ${PROJECT_ID} --engine-id ${ENGINE_ID} --compliance-regime ${COMPLIANCE_REGIME}"
+    
+    echo "Running: $CMD"
+    $CMD
+    
+    pause
+}
+
+upload_ssl_certificate() {
+    echo -e "${BLUE}--- Upload SSL Certificate ---${NC}"
+    
+    # Ensure Project ID is set
+    if [[ -z "$PROJECT_ID" ]]; then
+        echo -e "${RED}Project ID is required. Please select a project first.${NC}"
+        return 1
+    fi
+
+    echo -e "${YELLOW}Requirements for Self-Managed SSL Certificates:${NC}"
+    echo -e "1. Certificate and Key must be in ${BLUE}PEM format${NC}."
+    echo -e "2. Private Key must ${RED}NOT${NC} be protected by a passphrase."
+    echo -e "3. Encryption algorithm must be either ${BLUE}RSA${NC} or ${BLUE}ECDSA${NC}."
+    echo -e "   - RSA-2048 or ECDSA P-256 are recommended."
+    echo ""
+    echo -e "For more details, see: https://docs.cloud.google.com/load-balancing/docs/ssl-certificates/self-managed-certs#create-key-and-cert"
+    echo ""
+
+    read -p "Enter Certificate Name (e.g., my-cert): " CERT_NAME
+    if [[ -z "$CERT_NAME" ]]; then
+        echo -e "${RED}Certificate Name is required.${NC}"
+        return 1
+    fi
+
+    # Default region
+    DEFAULT_REGION=${REGION:-"us-east4"}
+    read -p "Enter Region [${DEFAULT_REGION}]: " INPUT_REGION
+    CERT_REGION=${INPUT_REGION:-$DEFAULT_REGION}
+
+    while true; do
+        read -p "Enter path to Certificate File (.crt/.pem): " CERT_PATH
+        # Expand tilde if present
+        CERT_PATH="${CERT_PATH/#\~/$HOME}"
+        if [[ -f "$CERT_PATH" ]]; then
+            if grep -q "-----BEGIN CERTIFICATE-----" "$CERT_PATH"; then
+                break
+            else
+                echo -e "${RED}Error: File does not appear to be a PEM-formatted certificate (missing '-----BEGIN CERTIFICATE-----').${NC}"
+            fi
+        else
+            echo -e "${RED}File not found: $CERT_PATH${NC}"
+        fi
+    done
+
+    while true; do
+        read -p "Enter path to Private Key File (.key/.pem): " KEY_PATH
+        # Expand tilde if present
+        KEY_PATH="${KEY_PATH/#\~/$HOME}"
+        if [[ -f "$KEY_PATH" ]]; then
+            if grep -qE "-----BEGIN .*PRIVATE KEY-----" "$KEY_PATH"; then
+                break
+            else
+                echo -e "${RED}Error: File does not appear to be a PEM-formatted private key (missing '-----BEGIN ... PRIVATE KEY-----').${NC}"
+            fi
+        else
+            echo -e "${RED}File not found: $KEY_PATH${NC}"
+        fi
+    done
+
+    echo ""
+    echo "Creating Regional SSL Certificate..."
+    echo "Name: ${CERT_NAME}"
+    echo "Region: ${CERT_REGION}"
+    echo "Certificate: ${CERT_PATH}"
+    echo "Key: ${KEY_PATH}"
+    echo ""
+    
+    if gcloud compute ssl-certificates create "$CERT_NAME" \
+        --certificate="$CERT_PATH" \
+        --private-key="$KEY_PATH" \
+        --region="$CERT_REGION" \
+        --project="$PROJECT_ID"; then
+        echo -e "${GREEN}SSL Certificate '${CERT_NAME}' created successfully!${NC}"
+    else
+        echo -e "${RED}Failed to create SSL Certificate.${NC}"
+    fi
+    
+    pause
+}
+
+replace_gemini_app() {
+    echo -e "${BLUE}--- Replace Gemini Enterprise Application / Load Balancer Routing ---${NC}"
+    echo -e "${YELLOW}WARNING: This will create a NEW Gemini Enterprise Application and update the Load Balancer to route traffic to it.${NC}"
+    echo -e "${YELLOW}The old application will NOT be deleted automatically.${NC}"
+    echo ""
+    read -p "Are you sure you want to proceed? (y/N): " CONFIRM
+    if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
+        return 0
+    fi
+
+    # 1. Create new App
+    configure_gem4gov
+
+    # 2. Update Networking (Stage 1)
+    echo ""
+    echo -e "${YELLOW}IMPORTANT: When prompted to 'Reuse existing configuration' for Stage 1, answer 'n' (No).${NC}"
+    echo -e "${YELLOW}You MUST enter the NEW Gemini Enterprise Widget Config ID from the previous step.${NC}"
+    echo ""
+    pause
+
+    configure_stage_1 || return 1
+    deploy_stage_1
+}
+
+helper_menu() {
+    while true; do
+        clear
+        print_header
+        echo -e "${BLUE}--- Helper Functions ---${NC}"
+        echo "1. Update Gemini Enterprise App Compliance (gem4gov-cli)"
+        echo "2. Replace Gemini Enterprise Application / Load Balancer Routing"
+        echo "3. Upload SSL Certificate"
+        echo "4. Back to Main Menu"
+        echo "-----------------------------------"
+        read -p "Select an option [1-4]: " OPTION
+
+        case $OPTION in
+            1)
+                update_app_compliance
+                ;;
+            2)
+                replace_gemini_app
+                ;;
+            3)
+                upload_ssl_certificate
+                ;;
+            4)
+                return 0
+                ;;
+            *)
+                echo "Invalid option."
+                pause
+                ;;
+        esac
+    done
 }
 
 # --- Stage 1 Functions ---
@@ -1018,6 +1208,33 @@ configure_stage_1() {
     fi
 
     read -p "Enter Gemini Enterprise Domain (e.g., gemini.example.com): " GEMINI_DOMAIN
+    
+    # Validate DNS
+    echo "Validating DNS for ${GEMINI_DOMAIN}..."
+    if [[ -z "$STATE_CONTENT" ]]; then
+        STATE_CONTENT=$(gcloud storage cat "gs://${BUCKET_NAME}/terraform/state/stage-0/default.tfstate" 2>/dev/null || echo "{}")
+    fi
+    
+    LB_IP=$(echo "$STATE_CONTENT" | jq -r '.outputs.gemini_enterprise_ip.value // empty')
+    
+    if [[ -n "$LB_IP" ]]; then
+        CURRENT_IP=$(dig +short "$GEMINI_DOMAIN" | grep "$LB_IP")
+        if [[ -n "$CURRENT_IP" ]]; then
+             echo -e "${GREEN}DNS Validation Successful: ${GEMINI_DOMAIN} resolves to ${LB_IP}${NC}"
+        else
+             RESOLVED_IPS=$(dig +short "$GEMINI_DOMAIN" | tr '\n' ' ')
+             echo -e "${YELLOW}WARNING: DNS Validation Failed!${NC}"
+             echo -e "Expected IP: ${LB_IP}"
+             echo -e "Resolved IPs: ${RESOLVED_IPS:-None}"
+             echo -e "${YELLOW}Please ensure your DNS A record is correctly pointing to ${LB_IP}.${NC}"
+             read -p "Continue anyway? (y/N): " CONFIRM_DNS
+             if [[ "$CONFIRM_DNS" != "y" && "$CONFIRM_DNS" != "Y" ]]; then
+                 return 1
+             fi
+        fi
+    else
+        echo -e "${YELLOW}Warning: Could not retrieve Load Balancer IP from state. Skipping DNS validation.${NC}"
+    fi
     
     # Auto-discover SSL Certificates
     echo "Discovering SSL Certificates in Region ${REGION}..."
@@ -1133,20 +1350,21 @@ main_menu() {
         clear
         print_header
         echo -e "Current Project: ${YELLOW}${PROJECT_ID:-None}${NC}"
-        echo -e "Deployment Type: ${YELLOW}${DEPLOYMENT_CHOICE:-None}${NC}"
+        echo -e "Deployment Type: ${YELLOW}${DEPLOYMENT_TYPE_TEXT:-None}${NC}"
         echo "-----------------------------------"
-        echo "1. Configure & Deploy Infrastructure (gemini-stage-0)"
-        echo "2. Create Gemini Enterprise App (gem4gov-cli)"
-        echo "3. Configure & Deploy Networking (gemini-stage-1)"
-        echo "4. Re-select Deployment Type / Project"
-        echo "5. Exit"
+        echo -e "1. ${BLUE}Step 1${NC} - Configure & Deploy Infrastructure (gemini-stage-0)"
+        echo -e "2. ${BLUE}Step 2${NC} - Create Gemini Enterprise App (gem4gov-cli)"
+        echo -e "3. ${BLUE}Step 3${NC} - Configure & Deploy Networking (gemini-stage-1)"
+        echo -e "4. ${YELLOW}Helper Functions${NC}"
+        echo -e "5. ${YELLOW}Re-select Deployment Type / Project${NC}"
+        echo -e "6. ${RED}Exit${NC}"
         echo "-----------------------------------"
-        read -p "Select an option [1-5]: " OPTION
+        read -p "Select an option [1-6]: " OPTION
 
         case $OPTION in
             1)
                 if [[ -z "$PROJECT_ID" ]]; then
-                    echo -e "${RED}Please select a project first (Option 4).${NC}"
+                    echo -e "${RED}Please select a project first (Option 5).${NC}"
                     pause
                     continue
                 fi
@@ -1155,7 +1373,7 @@ main_menu() {
                 ;;
             2)
                 if [[ -z "$PROJECT_ID" ]]; then
-                    echo -e "${RED}Please select a project first (Option 4).${NC}"
+                    echo -e "${RED}Please select a project first (Option 5).${NC}"
                     pause
                     continue
                 fi
@@ -1163,20 +1381,23 @@ main_menu() {
                 ;;
             3)
                 if [[ -z "$PROJECT_ID" ]]; then
-                    echo -e "${RED}Please select a project first (Option 4).${NC}"
+                    echo -e "${RED}Please select a project first (Option 5).${NC}"
                     pause
                     continue
                 fi
-                configure_stage_1
+                configure_stage_1 || continue
                 deploy_stage_1
                 ;;
             4)
+                helper_menu
+                ;;
+            5)
                 auth_and_project_setup
                 enable_apis
                 select_deployment_type
                 discover_brownfield_resources
                 ;;
-            5)
+            6)
                 echo "Exiting..."
                 exit 0
                 ;;
