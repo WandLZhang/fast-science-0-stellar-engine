@@ -800,8 +800,9 @@ configure_stage_0() {
     echo ""
     echo -e "${BLUE}--- Allowed IP Ranges ---${NC}"
     echo "Enter IP ranges allowed to access the Load Balancer (CIDR format)."
-    echo "Leave empty to allow all (0.0.0.0/0) if External, or specific internal ranges if Internal."
-    read -p "Enter IP Ranges (comma-separated, e.g., 10.0.0.0/8,192.168.1.0/24): " IP_RANGES_INPUT
+    echo "RECOMMENDED: Set this to the IP range of the agency's corporate gateway to ensure that only authorized network traffic can reach the Load Balancer."
+    echo "Leaving this empty will only enforce a US geolocation-based access policy."
+    read -p "Enter IP Ranges (comma-separated, e.g., 203.0.113.0/24,192.168.1.0/24): " IP_RANGES_INPUT
     
     ALLOWED_IPS="[]"
     if [[ -n "$IP_RANGES_INPUT" ]]; then
@@ -832,6 +833,7 @@ configure_stage_0() {
     echo ""
     echo -e "${YELLOW}IMPORTANT: Before proceeding, ensure you have completed the following manual prerequisites:${NC}"
     echo "1. OAuth Consent Screen: Configured as Internal."
+    echo -e "   Link: ${BLUE}https://console.cloud.google.com/auth/branding?orgonly=true&project=${PROJECT_ID}&supportedpurview=organizationId${NC}"
     echo "2. User Role Groups: Created admin/user groups in Cloud Identity / third-party identity provider (${ADMIN_GROUP}, ${USER_GROUP})."
     echo ""
     read -p "Have you completed these steps? (y/N): " CONFIRM_PRE
@@ -958,10 +960,20 @@ deploy_stage_0() {
     rm -f backend.tf
     
     echo "Initializing Terraform..."
-    terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-0"
+    if ! terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-0"; then
+        echo -e "${RED}Terraform Init failed! Please try resolving the error and running the Step again.${NC}"
+        cd ..
+        pause
+        return 1
+    fi
     
     echo "Applying Terraform..."
-    terraform apply -auto-approve
+    if ! terraform apply; then
+        echo -e "${RED}Terraform Apply failed! Please try resolving the error and running the Step again.${NC}"
+        cd ..
+        pause
+        return 1
+    fi
     
     GEMINI_IP=$(terraform output -raw gemini_enterprise_ip 2>/dev/null || echo "N/A")
     cd ..
@@ -969,10 +981,10 @@ deploy_stage_0() {
     
     echo ""
     echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
-    echo -e "1. From the Main Menu select ${BLUE}2. Create Gemini Enterprise App (gem4gov-cli)${NC}."
-    echo -e "2. Point the ${BLUE}gemini_enterprise_ip${NC} (${GEMINI_IP}) to the DNS A record on the subdomain you will use."
-    echo -e "3. Provision an SSL Certificate and upload it to Google Cloud into Certificate Manager."
-    echo -e "4. From the Main Menu select ${BLUE}3. Configure & Deploy Networking (gemini-stage-1)${NC}."
+    echo -e "1. From the Main Menu select ${BLUE}Step 2 - Create Gemini Enterprise App (gem4gov-cli)${NC}."
+    echo -e "2. Setup DNS A Record that points the desired Gemini Enterprise subdomain (i.e. gemini.yourdomain.com) to the provisioned Load Balancer IP address (${GEMINI_IP})."
+    echo -e "3. Provision an SSL Certificate and upload it to Google Cloud Certificate Manager (${YELLOW}Helper Functions > Upload SSL Certificate${NC})."
+    echo -e "4. From the Main Menu select ${BLUE}Step 3 - Configure & Deploy Load Balancer / Access Policies (gemini-stage-1)${NC}."
     pause
 }
 
@@ -1006,6 +1018,9 @@ configure_gem4gov() {
     # Parse needed values
     PROJECT_ID_STATE=$(echo "$STATE_CONTENT" | jq -r '.outputs.main_project_id.value // empty')
     PROJECT_ID=${PROJECT_ID_STATE:-$PROJECT_ID}
+    
+    # Parse Load Balancer IP for display
+    GEMINI_IP=$(echo "$STATE_CONTENT" | jq -r '.outputs.gemini_enterprise_ip.value // "N/A"')
     
     # Construct command
     CMD="gem4gov app create --project-id ${PROJECT_ID} --compliance-regime FEDRAMP_HIGH"
@@ -1046,8 +1061,15 @@ configure_gem4gov() {
     $CMD
     
     echo -e "${GREEN}Gemini Enterprise Application configured.${NC}"
-    echo -e "${GREEN}Please wait approximately 10 minutes before using your Gemini Enterprise application as it finishes provisioning.${NC}"
-    echo -e "${YELLOW}Note the 'Gemini Enterprise Widget Config ID' from the output above for the next stage.${NC}"
+
+    echo ""
+    echo -e "${YELLOW}IMPORTANT NEXT STEPS:${NC}"
+    echo -e "1. Take note of the 'Gemini Enterprise Widget Config ID' from the output above for the configuration of the Load Balancer.${NC}"
+    echo -e "2. Setup DNS A Record that points the desired Gemini Enterprise subdomain (i.e. gemini.yourdomain.com) to the provisioned Load Balancer IP address (${GEMINI_IP})."
+    echo -e "3. Provision an SSL Certificate and upload it to Google Cloud Certificate Manager (${YELLOW}Helper Functions > Upload SSL Certificate${NC})."
+    echo -e "4. From the Main Menu select ${BLUE}Step 3 - Configure & Deploy Load Balancer / Access Policies (gemini-stage-1)${NC}."
+    echo ""
+    echo -e "${GREEN}NOTE: Please wait approximately 10 minutes before using your Gemini Enterprise application as it finishes provisioning.${NC}"
     pause
 }
 
@@ -1092,6 +1114,8 @@ update_app_compliance() {
     
     pause
 }
+
+# --- Helper Functions ---
 
 upload_ssl_certificate() {
     echo -e "${BLUE}--- Upload SSL Certificate ---${NC}"
@@ -1331,10 +1355,20 @@ deploy_stage_1() {
     rm -f backend.tf
     
     echo "Initializing Terraform..."
-    terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-1"
+    if ! terraform init -migrate-state -backend-config="bucket=${BUCKET_NAME}" -backend-config="prefix=terraform/state/stage-1"; then
+        echo -e "${RED}Terraform Init failed! Please try resolving the error and running the Step again.${NC}"
+        cd ..
+        pause
+        return 1
+    fi
     
     echo "Applying Terraform..."
-    terraform apply -var-file="terraform.tfvars" -auto-approve
+    if ! terraform apply -var-file="terraform.tfvars"; then
+        echo -e "${RED}Terraform Apply failed! Please try resolving the error and running the Step again.${NC}"
+        cd ..
+        pause
+        return 1
+    fi
     
     cd ..
     echo -e "${GREEN}Stage 1 Deployment Complete!${NC}"
@@ -1405,7 +1439,7 @@ main_menu() {
         echo "-----------------------------------"
         echo -e "1. ${BLUE}Step 1${NC} - Configure & Deploy Infrastructure (gemini-stage-0)"
         echo -e "2. ${BLUE}Step 2${NC} - Create Gemini Enterprise App (gem4gov-cli)"
-        echo -e "3. ${BLUE}Step 3${NC} - Configure & Deploy Networking (gemini-stage-1)"
+        echo -e "3. ${BLUE}Step 3${NC} - Configure & Deploy Load Balancer / Access Policies (gemini-stage-1)"
         echo -e "4. ${YELLOW}Helper Functions${NC}"
         echo -e "5. ${YELLOW}Re-select Deployment Type / Project${NC}"
         echo -e "6. ${RED}Exit${NC}"
@@ -1419,8 +1453,8 @@ main_menu() {
                     pause
                     continue
                 fi
-                configure_stage_0
-                deploy_stage_0
+                configure_stage_0 || continue
+                deploy_stage_0 || continue
                 ;;
             2)
                 if [[ -z "$PROJECT_ID" ]]; then
@@ -1428,7 +1462,7 @@ main_menu() {
                     pause
                     continue
                 fi
-                configure_gem4gov
+                configure_gem4gov || continue
                 ;;
             3)
                 if [[ -z "$PROJECT_ID" ]]; then
@@ -1437,16 +1471,16 @@ main_menu() {
                     continue
                 fi
                 configure_stage_1 || continue
-                deploy_stage_1
+                deploy_stage_1 || continue
                 ;;
             4)
-                helper_menu
+                helper_menu || continue
                 ;;
             5)
-                auth_and_project_setup
-                enable_apis
-                select_deployment_type
-                discover_brownfield_resources
+                auth_and_project_setup || continue
+                enable_apis || continue
+                select_deployment_type || continue
+                discover_brownfield_resources || continue
                 ;;
             6)
                 echo "Exiting..."

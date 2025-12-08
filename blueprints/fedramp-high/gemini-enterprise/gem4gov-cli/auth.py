@@ -5,7 +5,7 @@ import subprocess
 
 required_roles = [
     'roles/discoveryengine.admin',
-    'roles/ml.admin',
+    'roles/aiplatform.admin',
     'roles/serviceusage.serviceUsageAdmin',
     'roles/storage.admin',
     'roles/bigquery.admin'
