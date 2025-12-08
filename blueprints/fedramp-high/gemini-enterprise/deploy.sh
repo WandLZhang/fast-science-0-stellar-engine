@@ -241,21 +241,43 @@ discover_brownfield_resources() {
         REGION=$(gcloud config get-value compute/region 2>/dev/null)
         REGION=${REGION:-"us-east4"}
         
-        echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT} (Location: ${REGION})..."
-        KEYRINGS=$(gcloud kms keyrings list --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-        
-        for keyring_path in $KEYRINGS; do
-            keyring_name=$(basename "$keyring_path")
-            KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
-            if [[ -n "$KEY" ]]; then
-                DEFAULT_CMEK_KEY=$KEY
-                break
-            fi
-        done
+        echo "Looking for default CMEK key..."
+
+        # 3a. Check for existing US Multi-Region Key (Gemini Enterprise specific)
+        # This key is created by Stage 0 if Geolocation is "us". We prioritize it for Discovery Engine compatibility.
+        US_KEY_NAME="gemini-enterprise-us-key"
+        US_KEYRING_NAME="gemini-enterprise-us-keyring"
+        echo "Checking for existing US multi-region key in ${PROJECT_ID}..."
+        US_KEY_ID=$(gcloud kms keys describe "${US_KEY_NAME}" --keyring "${US_KEYRING_NAME}" --location "us" --project "${PROJECT_ID}" --format="value(name)" 2>/dev/null)
+
+        if [[ -n "$US_KEY_ID" ]]; then
+             echo -e "Found US Multi-Region Key: ${YELLOW}${US_KEY_ID}${NC}"
+             DEFAULT_CMEK_KEY="${US_KEY_ID}"
+        else
+             # 3b. Fallback: Look for default CMEK key in Tenant IaC Project (Regional)
+             echo "Looking for default CMEK key in ${TENANT_IAC_PROJECT} (Location: ${REGION})..."
+             KEYRINGS=$(gcloud kms keyrings list --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+             
+             for keyring_path in $KEYRINGS; do
+                 keyring_name=$(basename "$keyring_path")
+                 KEY=$(gcloud kms keys describe "default" --keyring "$keyring_name" --location "${REGION}" --project "${TENANT_IAC_PROJECT}" --format="value(name)" 2>/dev/null)
+                 if [[ -n "$KEY" ]]; then
+                     DEFAULT_CMEK_KEY=$KEY
+                     break
+                 fi
+             done
+        fi
         
         if [[ -n "$DEFAULT_CMEK_KEY" ]]; then
             echo -e "Found Default CMEK Key: ${YELLOW}${DEFAULT_CMEK_KEY}${NC}"
             KMS_KEY_ID="${DEFAULT_CMEK_KEY}"
+            
+            if [[ "$KMS_KEY_ID" == *"/locations/us/"* ]]; then
+                echo -e "${GREEN}Success: Using US Multi-Region Key.${NC}"
+            else
+                echo -e "${YELLOW}Note: Using Regional Key (not US multi-region).${NC}"
+            fi
+            read -p "Press Enter to confirm key selection and continue..."
         else
             echo -e "${YELLOW}Warning: Could not find default CMEK key.${NC}"
         fi
@@ -666,9 +688,38 @@ configure_stage_0() {
     fi
 
     # 7. Access Policy
-    ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1 | xargs basename)
-    if [[ -z "$ACCESS_POLICY_NUMBER" ]]; then
+    echo "Discovering Access Policy..."
+    ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1)
+    if [ -z "$ACCESS_POLICY_NUMBER" ]; then
+        echo -e "${YELLOW}Warning: Could not auto-discover Access Policy Number.${NC}"
         read -p "Enter Access Policy Number: " ACCESS_POLICY_NUMBER
+        echo "An Access Policy is required for Access Context Manager."
+        read -p "Do you want to create a new Access Policy? (y/N): " CREATE_POLICY
+        if [[ "$CREATE_POLICY" == "y" || "$CREATE_POLICY" == "Y" ]]; then
+            read -p "Enter a title for the new Access Policy [Gemini-Enterprise-Policy]: " POLICY_TITLE
+            POLICY_TITLE=${POLICY_TITLE:-"Gemini-Enterprise-Policy"}
+            
+            echo "Creating Access Policy '${POLICY_TITLE}' in Organization ${ORG_ID}..."
+            if gcloud access-context-manager policies create --organization "${ORG_ID}" --title "${POLICY_TITLE}" --quiet; then
+                echo -e "${GREEN}Access Policy created successfully.${NC}"
+                # Retrieve the new policy number
+                ACCESS_POLICY_NUMBER=$(gcloud access-context-manager policies list --organization "${ORG_ID}" --format="value(name)" --quiet 2>/dev/null | head -n 1)
+            else
+                echo -e "${RED}Error: Failed to create Access Policy.${NC}"
+                echo "Please ensure you have the 'Access Context Manager Admin' role at the Organization level."
+                read -p "Enter Access Policy Number manually: " ACCESS_POLICY_NUMBER
+            fi
+        else
+            read -p "Enter Access Policy Number: " ACCESS_POLICY_NUMBER
+        fi
+    else
+        ACCESS_POLICY_NUMBER=$(basename "${ACCESS_POLICY_NUMBER}")
+        echo -e "Found Access Policy Number: ${YELLOW}${ACCESS_POLICY_NUMBER}${NC}"
+    fi
+
+    if [[ -z "$ACCESS_POLICY_NUMBER" ]]; then
+        echo -e "${RED}Error: Access Policy Number is required.${NC}"
+        return 1
     fi
 
     # 8. Deployment Type (LB)
