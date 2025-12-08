@@ -15,11 +15,17 @@
 # ---------------------------------------------------------------------------- #
 #  Networking Resources                                                        #
 # ---------------------------------------------------------------------------- #
+locals {
+  vpc_network_id      = var.use_shared_vpc ? data.google_compute_network.shared_vpc[0].id : google_compute_network.gemini_enterprise_vpc[0].id
+  vpc_subnet_id       = var.use_shared_vpc ? data.google_compute_subnetwork.shared_subnet[0].id : google_compute_subnetwork.gemini_enterprise_vpc_subnet[0].id
+  vpc_proxy_subnet_id = var.use_shared_vpc ? data.google_compute_subnetwork.shared_proxy_subnet[0].id : google_compute_subnetwork.gemini_enterprise_vpc_proxy_subnet[0].id
+  ip_address_type = var.deployment_type == "internal" ? "INTERNAL" : "EXTERNAL"
+}
 
 resource "google_compute_network" "gemini_enterprise_vpc" {
   count                   = var.use_shared_vpc ? 0 : 1
   project                 = var.main_project_id
-  name                    = "gemini-enterprise-vpc"
+  name                    = "${var.prefix}-vpc"
   auto_create_subnetworks = false
 }
 
@@ -32,7 +38,7 @@ data "google_compute_network" "shared_vpc" {
 resource "google_compute_subnetwork" "gemini_enterprise_vpc_subnet" {
   count                    = var.use_shared_vpc ? 0 : 1
   project                  = var.main_project_id
-  name                     = "gemini-enterprise-vpc-subnet"
+  name                     = "${var.prefix}-vpc-subnet"
   ip_cidr_range            = var.internal_lb_subnet_range
   region                   = var.region
   network                  = google_compute_network.gemini_enterprise_vpc[0].id
@@ -42,7 +48,7 @@ resource "google_compute_subnetwork" "gemini_enterprise_vpc_subnet" {
 resource "google_compute_subnetwork" "gemini_enterprise_vpc_proxy_subnet" {
   count         = var.use_shared_vpc ? 0 : 1
   project       = var.main_project_id
-  name          = "gemini-enterprise-vpc-proxy-subnet"
+  name          = "${var.prefix}-vpc-proxy-subnet"
   ip_cidr_range = "10.10.11.0/24"
   region        = var.region
   network       = google_compute_network.gemini_enterprise_vpc[0].id
@@ -64,34 +70,19 @@ data "google_compute_subnetwork" "shared_proxy_subnet" {
   name    = var.shared_vpc_proxy_subnet_name
 }
 
-locals {
-  vpc_network_id      = var.use_shared_vpc ? data.google_compute_network.shared_vpc[0].id : google_compute_network.gemini_enterprise_vpc[0].id
-  vpc_subnet_id       = var.use_shared_vpc ? data.google_compute_subnetwork.shared_subnet[0].id : google_compute_subnetwork.gemini_enterprise_vpc_subnet[0].id
-  vpc_proxy_subnet_id = var.use_shared_vpc ? data.google_compute_subnetwork.shared_proxy_subnet[0].id : google_compute_subnetwork.gemini_enterprise_vpc_proxy_subnet[0].id
-}
-
-resource "google_compute_address" "gemini_enterprise_internal_ip" {
-  count        = var.deployment_type == "internal" ? 1 : 0
+resource "google_compute_address" "gemini_enterprise_ip" {
   project      = var.main_project_id
-  name         = "gemini-enterprise-internal-ip"
+  name         = "${var.prefix}-${var.deployment_type}-ip"
   region       = var.region
-  subnetwork   = local.vpc_subnet_id
-  address_type = "INTERNAL"
-}
-
-resource "google_compute_address" "gemini_enterprise_external_ip" {
-  count        = var.deployment_type == "external" ? 1 : 0
-  project      = var.main_project_id
-  name         = "gemini-enterprise-external-ip"
-  region       = var.region
-  address_type = "EXTERNAL"
+  subnetwork   = var.deployment_type == "internal" ? local.vpc_subnet_id : null
+  address_type = local.ip_address_type
 }
 
 # -----------------------------------------------------------------------------
 # Internet NEG for vertexaisearch.cloud.google.com FQDN
 # -----------------------------------------------------------------------------
 resource "google_compute_region_network_endpoint_group" "gemini_enterprise_neg" {
-  name = "gemini-enterprise-internet-neg"
+  name                  = "${var.prefix}-internet-neg"
   project               = var.main_project_id
   network               = local.vpc_network_id
   network_endpoint_type = "INTERNET_FQDN_PORT"

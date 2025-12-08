@@ -14,12 +14,11 @@
 
 locals {
   load_balancing_scheme = var.deployment_type == "internal" ? "INTERNAL_MANAGED" : "EXTERNAL_MANAGED"
-  ip_address = var.deployment_type == "internal" ? google_compute_address.gemini_enterprise_internal_ip[0].address : google_compute_address.gemini_enterprise_external_ip[0].address
 }
 
 # Define the Backend Service on the Load Balancer and integrate all components.
 resource "google_compute_region_backend_service" "gemini_enterprise_backend" {
-  name                  = "gemini-enterprise-backend-service"
+  name                  = "${var.prefix}-backend-service"
   project               = var.main_project_id
   protocol              = "HTTPS"
   load_balancing_scheme = local.load_balancing_scheme
@@ -34,13 +33,18 @@ resource "google_compute_region_backend_service" "gemini_enterprise_backend" {
   # Enable IAP
   iap {
     enabled = true
-    # oauth2_client_id     = google_iap_brand.project_brand.application_title
-    # oauth2_client_secret = google_iap_client.project_client.secret
   }
 
   log_config {
     enable      = true
     sample_rate = 1
+  }
+  security_policy = google_compute_region_security_policy.gemini_enterprise_policy.self_link
+
+  lifecycle {
+    ignore_changes = [ 
+      iap
+    ]
   }
 }
 
@@ -75,8 +79,6 @@ resource "google_compute_forwarding_rule" "gemini_enterprise_http_forwarding_rul
   load_balancing_scheme = local.load_balancing_scheme
   network               = local.vpc_network_id
   subnetwork            = var.deployment_type == "internal" ? local.vpc_subnet_id : null
-  ip_address            = local.ip_address
+  ip_address            = google_compute_address.gemini_enterprise_ip.address
   target                = google_compute_region_target_http_proxy.gemini_enterprise_http_proxy.id
-
-
 }

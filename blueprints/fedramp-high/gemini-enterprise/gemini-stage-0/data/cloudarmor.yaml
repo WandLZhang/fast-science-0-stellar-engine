@@ -12,26 +12,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-basic_rules: #Rules called basic_rules
+basic_rules:
+  sqli:
+    expression: "sqli-v33-stable"
+    sensitivity: 2
+    priority: 100
+    preview: true
   xss:
-    expression: "xss-v33-stable" # Preconfigured rule name
+    expression: "xss-v33-stable"
+    sensitivity: 2
+    priority: 101
+    preview: true
   lfi:
-    expression: "lfi-v33-stable" # Preconfigured rule name
+    expression: "lfi-v33-stable"
+    sensitivity: 1
+    priority: 102
+    preview: true
   rfi:
-    expression: "rfi-v33-stable" # Preconfigured rule name
+    expression: "rfi-v33-stable"
+    sensitivity: 2
+    priority: 103
+    preview: true
   rce:
-    expression: "rce-v33-stable" # Preconfigured rule name
-  methodenforcement:
-    expression: "methodenforcement-v33-stable" # Preconfigured rule name
+    expression: "rce-v33-stable"
+    sensitivity: 2
+    priority: 104
+    preview: true
   scannerdetection:
-    expression: "scannerdetection-v33-stable" # Preconfigured rule name
+    expression: "scannerdetection-v33-stable"
+    sensitivity: 2
+    priority: 105
+    preview: true
   protocolattack:
-    expression: "protocolattack-v33-stable" # Preconfigured rule name
+    expression: "protocolattack-v33-stable"
+    sensitivity: 2
+    priority: 106
+    preview: true
   php:
-    expression: "php-v33-stable" # Preconfigured rule name
+    expression: "php-v33-stable"
+    sensitivity: 2
+    priority: 107
+    preview: true
   sessionfixation:
-    expression: "sessionfixation-v33-stable" # Preconfigured rule name
+    expression: "sessionfixation-v33-stable"
+    sensitivity: 1
+    priority: 108
+    preview: true
   java:
-    expression: "java-v33-stable" # Preconfigured rule name
+    expression: "java-v33-stable"
+    sensitivity: 2
+    priority: 109
+    preview: true
   nodejs:
-    expression: "nodejs-v33-stable" # Preconfigured rule name
+    expression: "nodejs-v33-stable"
+    sensitivity: 1
+    priority: 110
+    preview: true

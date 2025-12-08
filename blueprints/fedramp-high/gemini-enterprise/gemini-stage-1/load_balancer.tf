@@ -31,7 +31,7 @@ data "google_compute_region_ssl_certificate" "gemini_enterprise_cert" {
 # Data source to get the backend service created in stage-0
 data "google_compute_region_backend_service" "gemini_enterprise_backend" {
   project = data.terraform_remote_state.stage_0.outputs.main_project_id
-  name    = "gemini-enterprise-backend-service"
+  name    = "${data.terraform_remote_state.stage_0.outputs.prefix}-backend-service"
   region  = data.terraform_remote_state.stage_0.outputs.region
 }
 
@@ -41,28 +41,19 @@ data "google_compute_network" "gemini_enterprise_vpc" {
     try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.network_project_id : data.terraform_remote_state.stage_0.outputs.main_project_id
   )
   name    = var.network_name != "" ? var.network_name : (
-    try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.shared_vpc_network_name : "gemini-enterprise-vpc"
+    try(data.terraform_remote_state.stage_0.outputs.use_shared_vpc, false) ? data.terraform_remote_state.stage_0.outputs.shared_vpc_network_name : "${data.terraform_remote_state.stage_0.outputs.prefix}-vpc"
   )
 }
 
 # Data source to get the IP address created in stage-0
-data "google_compute_address" "gemini_enterprise_internal_ip" {
-  count   = data.terraform_remote_state.stage_0.outputs.deployment_type == "internal" ? 1 : 0
+data "google_compute_address" "gemini_enterprise_ip" {
   project = data.terraform_remote_state.stage_0.outputs.main_project_id
-  name    = "gemini-enterprise-internal-ip"
-  region  = data.terraform_remote_state.stage_0.outputs.region
-}
-
-data "google_compute_address" "gemini_enterprise_external_ip" {
-  count   = data.terraform_remote_state.stage_0.outputs.deployment_type == "external" ? 1 : 0
-  project = data.terraform_remote_state.stage_0.outputs.main_project_id
-  name    = "gemini-enterprise-external-ip"
+  name    = "${data.terraform_remote_state.stage_0.outputs.prefix}-${data.terraform_remote_state.stage_0.outputs.deployment_type}-ip"
   region  = data.terraform_remote_state.stage_0.outputs.region
 }
 
 locals {
   load_balancing_scheme = data.terraform_remote_state.stage_0.outputs.deployment_type == "internal" ? "INTERNAL_MANAGED" : "EXTERNAL_MANAGED"
-  ip_address = data.terraform_remote_state.stage_0.outputs.deployment_type == "internal" ? data.google_compute_address.gemini_enterprise_internal_ip[0].address : data.google_compute_address.gemini_enterprise_external_ip[0].address
 }
 
 # This resource defines the URL map with the specified routing rules.
@@ -78,21 +69,38 @@ resource "google_compute_region_url_map" "gemini_enterprise_load_balancer" {
     path_matcher = "path-matcher-1"
   }
 
-  path_matcher {
-    name            = "path-matcher-1"
-    default_service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
+  dynamic "path_matcher" {
+    for_each = data.terraform_remote_state.stage_0.outputs.acl_idp_type == "GSUITE" ? ["gsuite"] : []
+    content {
+      name            = "path-matcher-1"
+      default_service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
 
-    route_rules {
-      priority = 100
-      match_rules {
-        prefix_match = "/"
-      }
-      service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
-      route_action {
-        url_rewrite {
-          host_rewrite        = "vertexaisearch.cloud.google.com"
-          path_prefix_rewrite = "/us/home/cid/${var.gemini_config_id}?hl=en_US"
+      route_rules {
+        priority = 100
+        match_rules {
+          prefix_match = "/"
         }
+        service = data.google_compute_region_backend_service.gemini_enterprise_backend.id
+        route_action {
+          url_rewrite {
+            host_rewrite        = "vertexaisearch.cloud.google.com"
+            path_prefix_rewrite = "/us/home/cid/${var.gemini_config_id}?hl=en_US"
+          }
+        }
+      }
+    }
+  }
+
+  dynamic "path_matcher" {
+    for_each = data.terraform_remote_state.stage_0.outputs.acl_idp_type == "THIRD_PARTY" ? ["third_party"] : []
+    content {
+      name = "path-matcher-1"
+      default_url_redirect {
+        https_redirect         = true
+        host_redirect          = "auth.cloud.google"
+        path_redirect          = "/signin/${data.terraform_remote_state.stage_0.outputs.acl_workforce_pool_name}/providers/${data.terraform_remote_state.stage_0.outputs.acl_workforce_provider_id}?continueUrl=https%3A%2F%2Fvertexaisearch.cloud.google%2Fus%2Fhome%2Fcid%2F${var.gemini_config_id}&hl=en_US"
+        redirect_response_code = "FOUND"
+        strip_query            = false
       }
     }
   }
@@ -119,7 +127,7 @@ resource "google_compute_forwarding_rule" "gemini_enterprise_forwarding_rule" {
   load_balancing_scheme = local.load_balancing_scheme
   network               = data.google_compute_network.gemini_enterprise_vpc.self_link
   subnetwork            = data.terraform_remote_state.stage_0.outputs.deployment_type == "internal" ? data.google_compute_subnetwork.gemini_enterprise_vpc_subnet[0].self_link : null
-  ip_address            = local.ip_address
+  ip_address            = data.google_compute_address.gemini_enterprise_ip.address
   target                = google_compute_region_target_https_proxy.gemini_enterprise_https_proxy.id
 }
 

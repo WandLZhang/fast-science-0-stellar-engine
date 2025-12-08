@@ -15,10 +15,10 @@
 # -----------------------------------------------------------------------------
 # IAM ROLE ASSIGNMENTS
 # -----------------------------------------------------------------------------
-# --- Admin Group Roles ---
 # Using google_project_iam_member to additively assign each role.
 # This prevents conflicts with other IAM policies.
 
+# --- Admin Group Roles ---
 resource "google_project_iam_member" "admins_discoveryengine_admin" {
   project = var.main_project_id
   role    = "roles/discoveryengine.admin"
