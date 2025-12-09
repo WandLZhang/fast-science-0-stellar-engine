@@ -575,12 +575,12 @@ def update_compliance(project_id, engine_id, compliance_regime):
     click.echo(click.style(f"Gemini Enterprise Widget Config ID: {config_id}", fg='green'))
 
 
-@app.command("update-idp")
+@app.command("set-idp")
 @click.option('--project-id', required=True, help='GCP Project ID')
 @click.option('--engine-id', required=True, help='Gemini Enterprise Engine ID')
 @click.option('--workforce-pool-id', required=True, help='Workforce Identity Pool ID')
 @click.option('--workforce-provider-id', required=True, help='Workforce Identity Provider ID')
-def update_idp(project_id, engine_id, workforce_pool_id, workforce_provider_id):
+def set_idp(project_id, engine_id, workforce_pool_id, workforce_provider_id):
     """Configures the Identity Provider for a Gemini Enterprise application widget."""
     credentials = get_credentials()
     configure_idp_for_widget(credentials, project_id, engine_id, workforce_pool_id, workforce_provider_id)

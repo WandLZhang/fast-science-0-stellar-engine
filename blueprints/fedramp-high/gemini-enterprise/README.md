@@ -1186,12 +1186,12 @@ gem4gov app update-compliance --project-id <PROJECT_ID> --engine-id <ENGINE_ID> 
 
 Upon completion, it will output Project ID, Data Store ID, Engine ID, and the **Widget Config ID** (this is the `customer_id` needed for `gemini-stage-1`). It will also output the `Gemini Enterprise UI URL` that will take you directly to the authentication page of the Gemini Enterprise application. The end users will be redirected to this URL after making it through the security controls on the Load Balncer.
 
-#### `gem4gov app update-idp`
+#### `gem4gov app set-idp`
 
 Configures the Identity Provider for a Gemini Enterprise application widget.
 
 ```bash
-gem4gov app update-idp --project-id <PROJECT_ID> --engine-id <ENGINE_ID> --workforce-pool-id <POOL_ID> --workforce-provider-id <PROVIDER_ID>
+gem4gov app set-idp --project-id <PROJECT_ID> --engine-id <ENGINE_ID> --workforce-pool-id <POOL_ID> --workforce-provider-id <PROVIDER_ID>
 ```
 
 **Options:**
