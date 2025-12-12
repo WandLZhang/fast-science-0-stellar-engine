@@ -434,19 +434,24 @@ if promptUser "Stage 0 - Bootstrap -"; then
   fi
 
   # Check for logging sinks
-  logging_sinks=$(gcloud logging sinks list --organization="${ORGANIZATION_ID}" --format="value(name)" 2>/dev/null || echo "")
-  if [[ -n "$logging_sinks" ]]; then
-    log_warn "Found existing logging sinks at organization level:"
-    # shellcheck disable=SC2001
-    echo "$logging_sinks" | sed 's/^/  - /'
+  all_logging_sinks=$(gcloud logging sinks list --organization="${ORGANIZATION_ID}" --format="value(name)" 2>/dev/null || echo "")
+  custom_logging_sinks=$(echo "$all_logging_sinks" | grep -v -E "^_Default$|^_Required$" || true)
+
+  if [[ -n "$custom_logging_sinks" ]]; then
+    log_warn "Found existing CUSTOM logging sinks at organization level:"
+    echo "$custom_logging_sinks" | sed 's/^/  - /'
     org_resources_found=true
+  else
+    if [[ -n "$all_logging_sinks" ]]; then
+      log_info "Found default logging sinks (_Default, _Required) - these will not be deleted."
+    fi
   fi
 
   if [[ "$org_resources_found" == "true" ]]; then
     log_warn "These organization-level resources may conflict with the new deployment"
     log_warn "Note: Assured Workloads folders cannot be deleted and will cause soft-delete errors"
 
-    if handle_prompt_if "Would you like to delete these organization-level resources?"; then
+    if handle_prompt_if "Would you like to delete the custom organization-level resources listed above?"; then
       # Delete custom IAM roles
       if [[ -n "$custom_roles" ]]; then
         log_info "Deleting custom IAM roles..."
@@ -461,9 +466,9 @@ if promptUser "Stage 0 - Bootstrap -"; then
         done <<< "$custom_roles"
       fi
 
-      # Delete logging sinks
-      if [[ -n "$logging_sinks" ]]; then
-        log_info "Deleting logging sinks..."
+      # Delete CUSTOM logging sinks
+      if [[ -n "$custom_logging_sinks" ]]; then
+        log_info "Deleting CUSTOM logging sinks..."
         while IFS= read -r sink; do
           log_info "  Deleting sink: $sink"
           if gcloud logging sinks delete "$sink" --organization="${ORGANIZATION_ID}" --quiet 2>/dev/null; then
@@ -471,7 +476,7 @@ if promptUser "Stage 0 - Bootstrap -"; then
           else
             log_warn "    Failed to delete (may be in use or already deleted)"
           fi
-        done <<< "$logging_sinks"
+        done <<< "$custom_logging_sinks"
       fi
 
       log_info "Organization-level resource cleanup completed"
