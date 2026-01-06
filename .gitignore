@@ -73,3 +73,12 @@ gemini_session_state.md
 @gemini_session_state.md
 *.plan
 *.swp
+tmp_aw_policy.yaml
+*.backup.*
+experimental/last_operation.env
+*.backup.*
+
+# Experimental logs and state
+experimental/logs/
+experimental/state/
+*.bak
