@@ -268,8 +268,8 @@ def create_bq_data_store(credentials, project_id, data_store_id, display_name, d
         "solutionTypes": ["SOLUTION_TYPE_SEARCH"]
     }
 
-    request = service.projects().locations().dataStores().create(
-        parent=f'projects/{project_id}/locations/us',
+    request = service.projects().locations().collections().dataStores().create(
+        parent=f"projects/{project_id}/locations/us/collections/default_collection",
         body=data_store,
         dataStoreId=data_store_id
     )
