@@ -1,6 +1,6 @@
-# Stellar Engine — GCP Landing Zone Foundation (L0)
+# Fast Science — GCP Landing Zone Foundation (L0)
 
-Stellar Engine deploys a production-ready GCP Organization landing zone using Terraform. It creates the folders, projects, IAM, networking, and security controls that must exist before any workloads can run. Assured Workloads compliance overlays (FedRAMP High, IL4, IL5) are optional.
+An implementation of [Stellar Engine](https://github.com/gcp-stellar-engine/stellar-engine) for research institutions. This repo deploys a production-ready GCP Organization landing zone using Terraform — the folders, projects, IAM, networking, and security controls that must exist before researchers can run workloads. Built on Stellar Engine's IaC with compliance overlays (FedRAMP High, IL4, IL5) available when needed.
 
 ---
 
@@ -62,7 +62,7 @@ Running all 4 stages produces this GCP resource hierarchy:
 graph TB
     ORG["🏢 GCP Organization<br/><i>university.edu</i>"]
 
-    ORG --> AW["📁 StellarEngine-fs<br/><i>Assured Workloads (optional)</i>"]
+    ORG --> AW["📁 StellarEngine-univ<br/><i>Assured Workloads (optional)</i>"]
 
     AW --> CS["📁 Common Services"]
     AW --> NET["📁 Networking"]
@@ -71,21 +71,21 @@ graph TB
     AW --> INT["📁 Int"]
     AW --> TEST["📁 Test"]
 
-    CS --> P1["📦 fs-prod-iac-core-0<br/><i>Automation</i>"]
-    CS --> P2["📦 fs-prod-audit-logs-0<br/><i>Logging</i>"]
-    CS --> P3["📦 fs-prod-billing-exp-0<br/><i>Billing Export</i>"]
+    CS --> P1["📦 univ-prod-iac-core-0<br/><i>Automation</i>"]
+    CS --> P2["📦 univ-prod-audit-logs-0<br/><i>Logging</i>"]
+    CS --> P3["📦 univ-prod-billing-exp-0<br/><i>Billing Export</i>"]
 
-    NET --> P4["📦 fs-prod-net-vdss-host<br/><i>Hub VPC</i>"]
-    NET --> P5["📦 fs-prod-net-host<br/><i>Prod Spoke VPC</i>"]
-    NET --> P6["📦 fs-int-net-host<br/><i>Int Spoke VPC</i>"]
-    NET --> P7["📦 fs-test-net-host<br/><i>Test Spoke VPC</i>"]
+    NET --> P4["📦 univ-prod-net-vdss-host<br/><i>Hub VPC</i>"]
+    NET --> P5["📦 univ-prod-net-host<br/><i>Prod Spoke VPC</i>"]
+    NET --> P6["📦 univ-int-net-host<br/><i>Int Spoke VPC</i>"]
+    NET --> P7["📦 univ-test-net-host<br/><i>Test Spoke VPC</i>"]
 
-    SEC --> P8["📦 fs-dev-sec-core-0<br/><i>Dev KMS</i>"]
-    SEC --> P9["📦 fs-prod-sec-core-0<br/><i>Prod KMS</i>"]
+    SEC --> P8["📦 univ-dev-sec-core-0<br/><i>Dev KMS</i>"]
+    SEC --> P9["📦 univ-prod-sec-core-0<br/><i>Prod KMS</i>"]
 
     PROD --> T1P["📁 Tenant: genomics-lab Prod"]
-    T1P --> T1PI["📦 fs-prod-genomics-lab-iac-core-0"]
-    T1P --> T1PM["📦 fs-prod-genomics-lab-main-0"]
+    T1P --> T1PI["📦 univ-prod-genomics-lab-iac-core-0"]
+    T1P --> T1PM["📦 univ-prod-genomics-lab-main-0"]
 
     style ORG fill:#fff,stroke:#333,stroke-width:2px
     style AW fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
@@ -103,48 +103,60 @@ graph TB
 
 ## Prerequisites
 
-Before running any Terraform, complete these one-time setup steps.
+This guide assumes you have already completed the [GCP Enterprise Setup Checklist](https://cloud.google.com/docs/enterprise/setup-checklist) — specifically, you have a verified domain, a Google Cloud Organization, and either Google Workspace or Cloud Identity configured.
 
-### 1. GCP Organization
+### 1. Install Tools
 
-You need a GCP Organization with a verified domain.
+Install the following on your workstation:
+
+- **[Google Cloud SDK](https://cloud.google.com/sdk/docs/install)** (`gcloud` CLI)
+- **[Terraform](https://developer.hashicorp.com/terraform/install)** ≥ 1.7
+- **[jq](https://jqlang.github.io/jq/download/)** (used by helper scripts)
+
+Authenticate and set your account:
 
 ```bash
-# Get your Organization ID and domain
+gcloud auth login
+gcloud auth application-default login
+```
+
+### 2. GCP Organization
+
+You need a GCP Organization with a verified domain. Run in your terminal:
+
+```bash
 gcloud organizations list
 ```
 
-Get your **Customer ID** from [Admin Console](https://admin.google.com) → Account → Account settings.
+Example output:
+```
+DISPLAY_NAME       ID            DIRECTORY_CUSTOMER_ID
+university.edu     1234567890    C000001
+```
 
-### 2. Billing Account
+- **Organization ID** → the `ID` column
+- **Customer ID** → the `DIRECTORY_CUSTOMER_ID` column (used for Domain Restricted Sharing org policy — optional)
+
+### 3. Billing Account
+
+Run in your terminal:
 
 ```bash
-# Get your Billing Account ID
 gcloud beta billing accounts list
 ```
 
-### 3. Google Workspace Groups
-
-Create these groups in [Google Workspace Admin](https://admin.google.com) or Cloud Identity:
-
-| Group | Purpose |
-|-------|---------|
-| `gcp-billing-admins@yourdomain` | Billing administration |
-| `gcp-devops@yourdomain` | DevOps / automation |
-| `gcp-vpc-network-admins@yourdomain` | Network administration |
-| `gcp-organization-admins@yourdomain` | Organization administration |
-| `gcp-security-admins@yourdomain` | Security administration |
+Note the `ACCOUNT_ID` value (format: `012345-67890A-BCDEF0`).
 
 ### 4. Choose Your Prefix
 
-Pick a **globally unique prefix** of **≤7 characters** (e.g., `fs`, `univ`, `acme`). This flows through every resource name automatically — see [naming convention](documentation/naming-convention.md).
+Pick a prefix of **≤7 characters** using **only alphanumeric characters** (no hyphens or underscores). E.g.: `univ`. The prefix flows through every resource name automatically — see [naming convention](documentation/naming-convention.md).
 
 ### 5. Bootstrap Project
 
-Create a temporary "seed" project manually:
+Create a "seed" project. This is the first GCP project in your org — Stellar Engine uses it to bootstrap automation:
 
 ```bash
-export PREFIX="fs"                          # Your chosen prefix
+export PREFIX="univ"                        # Your chosen prefix
 export ORG_ID="1234567890"                  # Your org ID
 export BILLING_ID="012345-67890A-BCDEF0"    # Your billing account ID
 
@@ -152,9 +164,15 @@ export BILLING_ID="012345-67890A-BCDEF0"    # Your billing account ID
 gcloud projects create ${PREFIX}-bootstrap --organization=${ORG_ID}
 gcloud billing projects link ${PREFIX}-bootstrap --billing-account=${BILLING_ID}
 gcloud config set project ${PREFIX}-bootstrap
+
+# Set the quota project for Application Default Credentials
+# (required for org policy APIs when running Terraform locally)
+gcloud auth application-default set-quota-project ${PREFIX}-bootstrap
 ```
 
 ### 6. Enable Required APIs
+
+Run from the repo root:
 
 ```bash
 cd fast/stages-aw/0-bootstrap
@@ -164,9 +182,53 @@ chmod +x enableServices.sh
 
 This enables: IAM, Cloud KMS, Pub/Sub, Service Usage, Resource Manager, BigQuery, Assured Workloads, Cloud Billing, Logging, IAM Credentials, Org Policy.
 
-### 7. Grant Bootstrap IAM Roles
+### 7. Google Groups
+
+Stellar Engine uses groups (from the [GCP Enterprise Setup Checklist](https://cloud.google.com/docs/enterprise/setup-checklist)) for all org-level IAM bindings. Create these 5 groups using whichever method matches your identity setup:
+
+| Group | Purpose |
+|-------|---------|
+| `gcp-billing-admins@yourdomain` | Billing administration |
+| `gcp-devops@yourdomain` | DevOps / automation |
+| `gcp-vpc-network-admins@yourdomain` | Network administration |
+| `gcp-organization-admins@yourdomain` | Organization administration |
+| `gcp-security-admins@yourdomain` | Security administration |
+
+<details>
+<summary><b>Option A: Google Workspace Admin Console</b></summary>
+
+If your org uses Google Workspace, create groups in [Admin Console → Groups](https://admin.google.com/ac/groups).
+
+</details>
+
+<details>
+<summary><b>Option B: gcloud CLI (Cloud Identity / Workforce Identity Federation)</b></summary>
+
+If your org uses Cloud Identity or Workforce Identity Federation, create groups programmatically. This requires the Cloud Identity API enabled on your bootstrap project (created in step 5):
 
 ```bash
+# Enable Cloud Identity API on your bootstrap project
+gcloud services enable cloudidentity.googleapis.com
+
+export DOMAIN="yourdomain.com"
+export ORG_ID="1234567890"
+
+for GROUP in gcp-billing-admins gcp-devops gcp-vpc-network-admins gcp-organization-admins gcp-security-admins; do
+  gcloud identity groups create "${GROUP}@${DOMAIN}" \
+    --organization="${ORG_ID}" \
+    --display-name="${GROUP}" \
+    --description="Stellar Engine ${GROUP} group"
+done
+```
+
+These Cloud Identity groups work with Workforce Identity Federation — your external IdP maps federated identities into these GCP groups, which then receive IAM bindings from Stellar Engine.
+
+</details>
+
+### 8. Grant Bootstrap IAM Roles
+
+```bash
+cd fast/stages-aw/0-bootstrap
 chmod +x setIAM.sh
 ./setIAM.sh your-email@yourdomain.com ${ORG_ID}
 ```
@@ -187,32 +249,29 @@ cd fast/stages-aw/0-bootstrap
 cp terraform.tfvars.sample terraform.tfvars
 ```
 
-Edit `terraform.tfvars` with your values:
+Edit `terraform.tfvars` — lines marked `# ← CHANGE` are the values you must set to match your environment. Everything else can stay as-is:
 
 ```hcl
-# ─── Core Identity ─────────────────────────────────────────────
-prefix            = "fs"                          # ≤7 chars, globally unique
-bootstrap_project = "fs-bootstrap"                # The project you created above
-alert_email       = "cloud-ops@university.edu"
+# ─── MUST CHANGE: Your org-specific values ─────────────────────
+prefix            = "univ"                        # ← CHANGE: ≤7 chars
+bootstrap_project = "univ-bootstrap"              # ← CHANGE: the project you created in step 5
+alert_email       = "cloud-ops@university.edu"    # ← CHANGE: who receives alerts
 
-# ─── Organization ──────────────────────────────────────────────
 organization = {
-  domain      = "university.edu"
-  id          = 1234567890                        # from: gcloud organizations list
-  customer_id = "C000001"                         # from: Admin Console
+  domain      = "university.edu"                  # ← CHANGE: from gcloud organizations list
+  id          = 1234567890                        # ← CHANGE: from gcloud organizations list
+  customer_id = "C000001"                         # ← CHANGE: from gcloud organizations list (optional)
 }
 
-# ─── Billing ───────────────────────────────────────────────────
 billing_account = {
-  id = "012345-67890A-BCDEF0"                     # from: gcloud beta billing accounts list
+  id = "012345-67890A-BCDEF0"                     # ← CHANGE: from gcloud beta billing accounts list
 }
 
-# ─── Region ────────────────────────────────────────────────────
 regions = {
-  primary = "us-east4"                            # All bootstrap resources go here
+  primary = "us-east4"                            # ← CHANGE: your preferred region
 }
 
-# ─── Assured Workloads (OPTIONAL) ──────────────────────────────
+# ─── OPTIONAL: Change only if needed ───────────────────────────
 # Set regime to "COMPLIANCE_REGIME_UNSPECIFIED" to skip Assured Workloads
 # Set to "FEDRAMP_HIGH", "IL5", "IL4", etc. to enable compliance overlay
 assured_workloads = {
@@ -220,8 +279,7 @@ assured_workloads = {
   location = "us-east4"
 }
 
-# ─── Groups ────────────────────────────────────────────────────
-# Map to your actual Google Workspace group names (without @domain)
+# If you used the default group names in step 7, leave these as-is
 groups = {
   gcp-billing-admins      = "gcp-billing-admins"
   gcp-devops              = "gcp-devops"
@@ -230,7 +288,7 @@ groups = {
   gcp-security-admins     = "gcp-security-admins"
 }
 
-# ─── Org Policies ──────────────────────────────────────────────
+# ─── DEFAULTS: Leave as-is unless you know what you're doing ──
 org_policies_config = {
   import_defaults = false
   constraints = {
@@ -238,12 +296,10 @@ org_policies_config = {
   }
 }
 
-# ─── Features (minimal L0) ────────────────────────────────────
 fast_features = {
-  envs = true                                     # Environment folders for tenants
+  envs = true
 }
 
-# ─── Log Sinks ─────────────────────────────────────────────────
 log_sinks = {
   audit-logs = {
     filter = "logName:\"/logs/cloudaudit.googleapis.com%2Factivity\" OR logName:\"/logs/cloudaudit.googleapis.com%2Fsystem_event\" OR protoPayload.metadata.@type=\"type.googleapis.com/google.cloud.audit.TransparencyLog\""
@@ -263,7 +319,6 @@ log_sinks = {
   }
 }
 
-# ─── Outputs ───────────────────────────────────────────────────
 outputs_location = "~/fast-config"
 ```
 
@@ -305,7 +360,7 @@ Stage 0 outputs are automatically written to `~/fast-config/` (or GCS bucket) fo
 ## Stage 1: Resource Management
 
 **Directory:** `fast/stages-aw/1-resman/`  
-**What it creates:** Networking folder, Security folder, Environment folders (Prod/Int/Test), per-tenant folders and projects, automation service accounts per branch.
+**What it creates:** The organizational folder structure — Networking, Security, and Environment folders. Also creates automation service accounts and state buckets for Stages 2-3. This stage does **not** create department or researcher projects — those are handled by L1 (researcher-lab).
 
 ### Step 1 — Link outputs from Stage 0
 
@@ -324,30 +379,18 @@ cp terraform.tfvars.sample terraform.tfvars
 Edit `terraform.tfvars`:
 
 ```hcl
-# ─── Tenants ───────────────────────────────────────────────────
-# Each tenant gets a folder + IaC project + main project per environment
-tenants = {
-  genomics-lab = {
-    admin_principal  = "group:gcp-devops@university.edu"
-    descriptive_name = "Genomics Research Lab"
-    locations = {
-      gcs = "us-east4"
-      kms = "us-east4"
-    }
-  }
-}
-
 # ─── Environment Folders ──────────────────────────────────────
+# Start with Prod only. Add Int/Test later as needed.
 envs_folders = {
   Prod = { admin = "gcp-organization-admins@university.edu" }
-  Int  = { admin = "gcp-organization-admins@university.edu" }
-  Test = { admin = "gcp-organization-admins@university.edu" }
 }
 
 # ─── Features ─────────────────────────────────────────────────
 fast_features = {
   envs = true
 }
+
+# No tenant projects — department/researcher projects are created by L1 (researcher-lab)
 ```
 
 ### Step 3 — Apply
@@ -511,13 +554,13 @@ graph LR
 Your prefix automatically propagates to every resource:
 
 ```
-terraform.tfvars: prefix = "fs"
+terraform.tfvars: prefix = "univ"
     ↓
-main.tf: local.prefix = join("-", ["fs", "prod"])  →  "fs-prod"
+main.tf: local.prefix = join("-", ["univ", "prod"])  →  "univ-prod"
     ↓
-automation.tf: module { name = "iac-core-0", prefix = "fs-prod" }
+automation.tf: module { name = "iac-core-0", prefix = "univ-prod" }
     ↓
-GCP: project "fs-prod-iac-core-0" ✅
+GCP: project "univ-prod-iac-core-0" ✅
 ```
 
 See [naming convention documentation](documentation/naming-convention.md) for the full spec: `{base}-{regime}-{env}-{role}-{0-9}`.
