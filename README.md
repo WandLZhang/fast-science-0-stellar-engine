@@ -12,34 +12,28 @@ Stellar Engine is **Layer 0** (L0) of a three-tier "Fast Science" architecture:
 graph TB
     subgraph L0["L0 — stellar-engine (Central IT)"]
         direction TB
-        S0["Stage 0: Bootstrap<br/>Org, IAM, Automation"]
-        S1["Stage 1: Resource Mgmt<br/>Folders, Tenants"]
-        S2["Stage 2: Networking<br/>Hub-Spoke VPCs"]
-        S3["Stage 3: Security<br/>KMS, VPC-SC"]
+        S0["Stage 0: Bootstrap<br/>Org, IAM, Automation, Org Policies"]
+        S1["Stage 1: Resource Mgmt<br/>Folders, SAs, State Buckets"]
+        S2["Stage 2: Networking<br/>Hub VPC + NVAs + Spoke VPCs"]
+        S3["Stage 3: Security<br/>KMS Projects, Alerts"]
         S0 --> S1 --> S2 --> S3
     end
 
-    subgraph L1["L1 — researcher-lab (Central IT per-university)"]
+    subgraph L1["L1 — researcher-lab (Central IT)"]
         direction TB
-        IT1["Enable APIs"]
-        IT2["Create Service Accounts"]
-        IT3["IAM Roles"]
-        IT4["Org Policies"]
-        IT5["Shared VPC Attachment"]
-        IT6["Budget Alerts"]
-        IT1 --> IT2 --> IT3 --> IT4 --> IT5 --> IT6
+        PF["Project Factory<br/>YAML per researcher"]
+        PF --> PROJ["GCP Project<br/>billing, APIs, SA, Shared VPC"]
     end
 
-    subgraph L2["L2 — fast-science-blueprints (Researcher)"]
+    subgraph L2["L2 — workload repos (Researcher)"]
         direction LR
         BP1["Nextflow"]
         BP2["MedSigLIP"]
         BP3["Toxicology"]
-        BP4["CryoEM"]
     end
 
     S3 --> L1
-    IT6 --> L2
+    PROJ --> L2
 
     style L0 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
     style L1 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
@@ -48,9 +42,9 @@ graph TB
 
 | Layer | Repo | Owner | Purpose |
 |-------|------|-------|---------|
-| **L0** | `stellar-engine` (this repo) | Central IT | GCP org landing zone — folders, projects, networking, security |
-| **L1** | `researcher-lab` | Central IT per-university | Provision individual researcher projects within the landing zone |
-| **L2** | `fast-science-blueprints` | Researchers | Science workloads — Nextflow, MedSigLIP, Toxicology, etc. |
+| **L0** | [`fast-science-0-stellar-engine`](https://github.com/WandLZhang/fast-science-0-stellar-engine) (this repo) | Central IT | GCP org landing zone — folders, projects, networking, security |
+| **L1** | [`fast-science-1-researcher-lab`](https://github.com/WandLZhang/fast-science-1-researcher-lab) | Central IT | Provision researcher projects via project factory YAML |
+| **L2** | Workload repos | Researchers | Science workloads — Nextflow, MedSigLIP, Toxicology, etc. |
 
 ---
 
@@ -60,32 +54,27 @@ Running all 4 stages produces this GCP resource hierarchy:
 
 ```mermaid
 graph TB
-    ORG["🏢 GCP Organization<br/><i>university.edu</i>"]
+    ORG["🏢 GCP Organization"]
 
-    ORG --> AW["📁 StellarEngine-univ<br/><i>Assured Workloads (optional)</i>"]
+    ORG --> AW["📁 StellarEngine-prefix<br/><i>Assured Workloads folder</i>"]
 
     AW --> CS["📁 Common Services"]
     AW --> NET["📁 Networking"]
     AW --> SEC["📁 Security"]
     AW --> PROD["📁 Prod"]
-    AW --> INT["📁 Int"]
-    AW --> TEST["📁 Test"]
 
-    CS --> P1["📦 univ-prod-iac-core-0<br/><i>Automation</i>"]
-    CS --> P2["📦 univ-prod-audit-logs-0<br/><i>Logging</i>"]
-    CS --> P3["📦 univ-prod-billing-exp-0<br/><i>Billing Export</i>"]
+    CS --> P1["📦 prefix-prod-iac-core-0<br/><i>Automation + State Buckets</i>"]
+    CS --> P2["📦 prefix-prod-audit-logs-0<br/><i>Audit Logging</i>"]
+    CS --> P3["📦 prefix-prod-billing-exp-0<br/><i>Billing Export</i>"]
 
-    NET --> P4["📦 univ-prod-net-vdss-host<br/><i>Hub VPC</i>"]
-    NET --> P5["📦 univ-prod-net-host<br/><i>Prod Spoke VPC</i>"]
-    NET --> P6["📦 univ-int-net-host<br/><i>Int Spoke VPC</i>"]
-    NET --> P7["📦 univ-test-net-host<br/><i>Test Spoke VPC</i>"]
+    NET --> P4["📦 prefix-net-vdss-host<br/><i>Hub: DMZ VPC + Landing VPC + NVAs + Cloud NAT</i>"]
+    NET --> P5["📦 prefix-prod-net-host<br/><i>Prod Spoke: Shared VPC + Subnet</i>"]
 
-    SEC --> P8["📦 univ-dev-sec-core-0<br/><i>Dev KMS</i>"]
-    SEC --> P9["📦 univ-prod-sec-core-0<br/><i>Prod KMS</i>"]
+    SEC --> P8["📦 prefix-dev-sec-core-0<br/><i>Dev KMS</i>"]
+    SEC --> P9["📦 prefix-prod-sec-core-0<br/><i>Prod KMS</i>"]
 
-    PROD --> T1P["📁 Tenant: genomics-lab Prod"]
-    T1P --> T1PI["📦 univ-prod-genomics-lab-iac-core-0"]
-    T1P --> T1PM["📦 univ-prod-genomics-lab-main-0"]
+    PROD --> L1["📁 Researcher projects<br/><i>(created by L1 project factory)</i>"]
+    L1 --> RP["📦 prefix-dept-researcher<br/><i>24 APIs, SA, Shared VPC, logging</i>"]
 
     style ORG fill:#fff,stroke:#333,stroke-width:2px
     style AW fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
@@ -93,11 +82,9 @@ graph TB
     style NET fill:#fff3e0,stroke:#e65100
     style SEC fill:#fce4ec,stroke:#c62828
     style PROD fill:#f3e5f5,stroke:#6a1b9a
-    style INT fill:#f3e5f5,stroke:#6a1b9a
-    style TEST fill:#f3e5f5,stroke:#6a1b9a
+    style L1 fill:#f3e5f5,stroke:#6a1b9a
 ```
 
-**Stage 0** creates the top-level folder + Common Services (3 projects). **Stage 1** creates Networking/Security/Environment folders + per-tenant projects. **Stage 2** creates network host projects + VPCs. **Stage 3** creates KMS projects + keys.
 
 ---
 
@@ -414,36 +401,26 @@ terraform apply
 ```mermaid
 graph TB
     subgraph HUB["Hub — VDSS Host Project"]
-        DMZ["DMZ VPC<br/>(untrusted)"]
-        LAND["Landing VPC<br/>(trusted)"]
-        NAT["Cloud NAT"]
-        DNS["DNS Zones"]
-        DMZ --- NAT
+        DMZ["DMZ VPC<br/>Cloud NAT"]
+        NVA["NVA MIG<br/>(2x COS, dual-NIC)<br/>masquerade + routing"]
+        LAND["Landing VPC<br/>default route → NVA ILB"]
+        DNS["DNS Response Policies<br/>Private Google Access"]
+        KMS["KMS Keyring<br/>HSM-backed"]
+        DMZ <--> NVA <--> LAND
     end
 
-    subgraph PROD_SPOKE["Prod Spoke"]
-        PVPC["Prod VPC"]
-        PFW["Firewall Rules"]
+    subgraph PROD_SPOKE["Prod Spoke — Shared VPC Host"]
+        PVPC["Prod VPC<br/>Shared subnet"]
+        PFW["Firewall: IAP SSH"]
+        PSC["PSC Peering /22"]
     end
 
-    subgraph INT_SPOKE["Int Spoke"]
-        IVPC["Int VPC"]
-        IFW["Firewall Rules"]
-    end
+    LAND <-->|"VPC Peering<br/>exports 0.0.0.0/0 route"| PVPC
 
-    subgraph TEST_SPOKE["Test Spoke"]
-        TVPC["Test VPC"]
-        TFW["Firewall Rules"]
-    end
-
-    LAND <-->|"VPC Peering"| PVPC
-    LAND <-->|"VPC Peering"| IVPC
-    LAND <-->|"VPC Peering"| TVPC
+    PVPC -->|"Shared VPC<br/>service project"| RESEARCHER["📦 Researcher Project<br/>(created by L1)"]
 
     style HUB fill:#fff3e0,stroke:#e65100,stroke-width:2px
     style PROD_SPOKE fill:#e8f5e9,stroke:#2e7d32
-    style INT_SPOKE fill:#e3f2fd,stroke:#1565c0
-    style TEST_SPOKE fill:#f3e5f5,stroke:#6a1b9a
 ```
 
 ### Step 1 — Link outputs from previous stages
