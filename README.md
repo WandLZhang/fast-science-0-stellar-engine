@@ -552,13 +552,16 @@ Once all 4 stages complete successfully, your landing zone is ready.
 ✅ L0 Complete — Your GCP organization has:
    • Folder hierarchy with compliance boundary
    • Automation project with Terraform service accounts
-   • Hub-and-spoke networking with firewall rules
+   • Hub-and-spoke networking with NVAs and centralized NAT
    • KMS encryption keys (HSM-backed)
    • Org policies and audit logging
+   • Project factory SAs and state buckets (if enabled)
 
-→ Next: Provision researcher projects via L1 (researcher-lab)
-→ Then: Researchers run science workloads via L2 (fast-science-blueprints)
+→ Next: Create researcher projects via L1 project factory
+→ Then: Researchers deploy L2 workloads in their projects
 ```
+
+Proceed to the [L1 Researcher Labs](https://github.com/WandLZhang/fast-science-1-researcher-lab) repo to create researcher projects using Stellar Engine's project factory module. Each researcher gets a YAML file → a GCP project with 24 APIs, SA, billing, logging, and monitoring pre-configured.
 
 ---
 
