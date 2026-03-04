@@ -255,7 +255,8 @@ billing_account = {
 }
 
 regions = {
-  primary = "us-east4"                            # ← CHANGE: your preferred region
+  primary   = "us-east4"                          # ← CHANGE: your preferred region
+  secondary = "us-west1"                          # ← OPTIONAL: secondary region for multi-region NVA
 }
 
 # ─── OPTIONAL: Change only if needed ───────────────────────────
@@ -284,7 +285,8 @@ org_policies_config = {
 }
 
 fast_features = {
-  envs = true
+  envs            = true
+  project_factory = true   # Enable to use L1 project factory for researcher projects
 }
 
 log_sinks = {
@@ -401,26 +403,38 @@ terraform apply
 ```mermaid
 graph TB
     subgraph HUB["Hub — VDSS Host Project"]
-        DMZ["DMZ VPC<br/>Cloud NAT"]
-        NVA["NVA MIG<br/>(2x COS, dual-NIC)<br/>masquerade + routing"]
-        LAND["Landing VPC<br/>default route → NVA ILB"]
-        DNS["DNS Response Policies<br/>Private Google Access"]
-        KMS["KMS Keyring<br/>HSM-backed"]
-        DMZ <--> NVA <--> LAND
+        direction TB
+        subgraph PRIMARY_REGION["Primary Region"]
+            DMZ1["DMZ VPC subnet<br/>Cloud NAT"]
+            NVA1["NVA MIG (2x COS)<br/>dual-NIC, masquerade"]
+            LAND1["Landing VPC subnet"]
+            DMZ1 <--> NVA1 <--> LAND1
+        end
+        subgraph SECONDARY_REGION["Secondary Region (optional)"]
+            DMZ2["DMZ VPC subnet<br/>Cloud NAT"]
+            NVA2["NVA MIG (2x COS)<br/>dual-NIC, masquerade"]
+            LAND2["Landing VPC subnet"]
+            DMZ2 <--> NVA2 <--> LAND2
+        end
+        DNS["DNS Response Policies + Private Google Access"]
+        KMS["KMS Keyring (HSM-backed)"]
     end
 
     subgraph PROD_SPOKE["Prod Spoke — Shared VPC Host"]
-        PVPC["Prod VPC<br/>Shared subnet"]
-        PFW["Firewall: IAP SSH"]
-        PSC["PSC Peering /22"]
+        PVPC1["Primary subnet"]
+        PVPC2["Secondary subnet"]
     end
 
-    LAND <-->|"VPC Peering<br/>exports 0.0.0.0/0 route"| PVPC
+    LAND1 <-->|"VPC Peering<br/>0.0.0.0/0 routes"| PVPC1
+    LAND2 <-->|"VPC Peering<br/>0.0.0.0/0 routes"| PVPC2
 
-    PVPC -->|"Shared VPC<br/>service project"| RESEARCHER["📦 Researcher Project<br/>(created by L1)"]
+    PVPC1 -->|"Shared VPC"| RESEARCHER["Researcher Project<br/>(created by L1)"]
+    PVPC2 -->|"Shared VPC"| RESEARCHER
 
     style HUB fill:#fff3e0,stroke:#e65100,stroke-width:2px
     style PROD_SPOKE fill:#e8f5e9,stroke:#2e7d32
+    style PRIMARY_REGION fill:#fff8e1,stroke:#f57f17
+    style SECONDARY_REGION fill:#fff8e1,stroke:#f57f17,stroke-dasharray: 5 5
 ```
 
 ### Step 1 — Link outputs from previous stages
@@ -449,6 +463,32 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+### Multi-Region NVA (Optional)
+
+If you set `secondary` in your `regions` variable (`terraform.tfvars` in Stage 0), Stage 2 automatically deploys a full NVA stack in both regions:
+
+| Component | Primary | Secondary |
+|-----------|---------|-----------|
+| NVA MIG (2x COS VMs) | `nva-primary` | `nva-secondary` |
+| Landing ILB | `nva-vdss-primary` | `nva-vdss-secondary` |
+| DMZ ILB | `nva-dmz-primary` | `nva-dmz-secondary` |
+| Cloud NAT | `nat-<primary-region>` | `nat-<secondary-region>` |
+| Default route | `default-route-nva-primary` | `default-route-nva-secondary` |
+
+**Traffic flow:** Spoke VM &rarr; VPC peering &rarr; Landing VPC &rarr; NVA ILB &rarr; NVA (masquerade) &rarr; DMZ VPC &rarr; Cloud NAT &rarr; Internet.
+
+**Subnet YAML files required per region** (see `data/subnets/` for examples):
+
+| Folder | File | Purpose |
+|--------|------|---------|
+| `data/subnets/dmz/` | `dmz-secondary.yaml` | DMZ VPC subnet for NVA eth0 |
+| `data/subnets/landing/` | `vdss-shared-default-secondary.yaml` | Landing VPC subnet for NVA eth1 |
+| `data/subnets/<env>/` | `prod-default-secondary.yaml` | Spoke workload subnet |
+
+Each uses `region: secondary` which the factory resolves via `var.regions`.
+
+**ECMP note:** Both regions' `0.0.0.0/0` routes have equal priority (100). GCP uses ECMP hash-based selection for cross-VPC peering traffic, so a given flow may traverse either region's NVA regardless of the VM's location. Both NVAs have return routes for all spoke subnets, so this works correctly — the only effect is potential cross-region latency (~30-40ms) for some flows.
 
 ---
 
@@ -520,11 +560,13 @@ graph LR
 | **0-bootstrap** | `data/org-policies/*.yaml` — org policy rules | `variables.tf` — type definitions |
 | **0-bootstrap** | `data/custom-roles/*.yaml` — custom IAM roles | |
 | **1-resman** | `terraform.tfvars` — tenants, envs_folders, features | `branch-*.tf` — folder/SA creation logic |
-| **2-networking** | `data/cidrs.yaml`, `data/subnets/*.yaml`, `data/firewall-rules/*.yaml` | `net-vdss.tf`, `main.tf` — network topology |
+| **2-networking** | `data/cidrs.yaml`, `data/subnets/*.yaml`, `data/firewall-rules/*.yaml` | `main.tf` — network topology |
 | **3-security** | `terraform.tfvars` — kms_keys, vpc_sc | `core-dev.tf`, `core-prod.tf` — KMS project logic |
 | **3-security** | `data/vpc-sc/*.yaml` — VPC-SC perimeter definitions | |
 
 > **Why?** Keeping `.tf` files untouched means your fork stays merge-able with upstream [Cloud Foundation Fabric](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric). Your customizations live entirely in config/data files that upstream doesn't ship with real values.
+
+> **Exceptions:** This fork modifies a small number of `.tf` files to fix upstream limitations around multi-region NVA support. Each change is marked with an inline comment starting with `# Upstream:` explaining what the original code did and why it was changed. These are minimal, targeted changes that extend `for_each` loops and variable types — they don't rewrite any logic.
 
 ### How Naming Works
 

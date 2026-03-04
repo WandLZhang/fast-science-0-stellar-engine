@@ -26,8 +26,15 @@ locals {
       ]
     },
     {
-      name   = "landing"
-      routes = [for k, v in var.envs_folders : module.env-spoke-vpc[k].subnets["${var.regions.primary}/default-primary-region"].ip_cidr_range]
+      name = "landing"
+      # Upstream hardcoded primary-only: module.env-spoke-vpc[k].subnets["primary/..."]
+      # Changed to collect ALL spoke subnets so NVA return routes work for any region
+      routes = flatten([
+        for k, v in var.envs_folders : [
+          for subnet_key, subnet in module.env-spoke-vpc[k].subnets :
+          subnet.ip_cidr_range
+        ]
+      ])
     },
   ]
 }
@@ -179,12 +186,15 @@ module "ilb-nva-vdss" {
   }
 }
 
+# Upstream: single route to primary ILB only.
+# Changed to per-region routes so each region's traffic reaches its local NVA.
 resource "google_compute_route" "default" {
-  name         = "default-route-nva"
+  for_each     = var.regions
+  name         = "default-route-nva-${each.key}"
   project      = module.vdss-host-project.project_id
   dest_range   = "0.0.0.0/0"
   network      = module.vdss-vpc.name
-  next_hop_ilb = module.ilb-nva-vdss["primary"].forwarding_rules[""].id
+  next_hop_ilb = module.ilb-nva-vdss[each.key].forwarding_rules[""].id
   priority     = 100
 }
 

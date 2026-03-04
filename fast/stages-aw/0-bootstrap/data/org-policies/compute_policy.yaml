@@ -240,11 +240,11 @@ compute.trustedImageProjects:
 # Recommendations:
 #   Disable at org level and manage by exception for valid use cases
 # (for example, proxy/NAT appliances).
-# compute.vmCanIpForward
-#   rules:
-#   - allow:
-#       values:
-#         - under:folders/<folder_id>
+compute.vmCanIpForward:
+  rules:
+  - allow:
+      values:
+        - under:folders/269175234311    # Networking folder — NVA appliances need IP forwarding
 
 
 # This boolean constraint disables global serial port access to Compute Engine
