@@ -142,9 +142,9 @@ resource "google_compute_firewall" "custom-rules" {
     for_each = [""]
     content {
       metadata = (
-        try(each.value.enable_logging.include_metadata, null) == true
-        ? "INCLUDE_ALL_METADATA"
-        : "EXCLUDE_ALL_METADATA"
+        try(each.value.enable_logging.include_metadata, null) == false
+        ? "EXCLUDE_ALL_METADATA"
+        : "INCLUDE_ALL_METADATA"
       )
     }
   }
