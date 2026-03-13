@@ -35,7 +35,7 @@ variable "factories_config" {
     org_policies                  = optional(string)
     org_policy_custom_constraints = optional(string)
     context = optional(object({
-      org_policies = optional(map(map(string)), {})
+      org_policies = optional(any, {})
     }), {})
   })
   nullable = false

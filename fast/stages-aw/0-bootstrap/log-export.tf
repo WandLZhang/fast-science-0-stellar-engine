@@ -39,6 +39,7 @@ locals {
 module "log-export-project" {
   source = "../../../modules/project"
   name   = "audit-logs-0"
+  lien_reason     = "Protected by default as a core project."
   parent = coalesce(
     var.project_parent_ids.logging, module.branch-common-services-folder.folder.name
   )
@@ -61,7 +62,8 @@ module "log-export-project" {
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
     "cloudkms.googleapis.com",
-    "pubsub.googleapis.com"
+    "pubsub.googleapis.com",
+    "compute.googleapis.com"
   ]
 }
 
