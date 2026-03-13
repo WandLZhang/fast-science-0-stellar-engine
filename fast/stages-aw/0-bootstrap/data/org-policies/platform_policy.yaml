@@ -26,11 +26,6 @@ gcp.detailedAuditLoggingMode:
   rules:
   - enforce: true
 
-# This boolean constraint, when enforced, allows organizations to enable Access Transparency.
-# SHOULD HAVE
-gcp.accessTransparency.enforcement:
-  rules:
-  - enforce: true
 
 # This boolean constraint, when enforced, disables Cloud Logging for the Cloud
 # Healthcare API. Audit logs aren't affected by this constraint. Cloud Logs
