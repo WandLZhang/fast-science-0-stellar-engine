@@ -62,7 +62,8 @@ module "log-export-project" {
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
     "cloudkms.googleapis.com",
-    "pubsub.googleapis.com"
+    "pubsub.googleapis.com",
+    "compute.googleapis.com"
   ]
 }
 

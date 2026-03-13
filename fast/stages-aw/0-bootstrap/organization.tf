@@ -190,7 +190,7 @@ resource "google_assured_workloads_workload" "primary" {
   display_name                 = "StellarEngine-${var.prefix}"
   location                     = var.assured_workloads.location
   organization                 = var.organization.id
-  billing_account              = var.billing_account.id != null ? "billingAccounts/${var.billing_account.id}" : null
+  billing_account              = var.billing_account.id != null && var.billing_account.id != "" ? "billingAccounts/${var.billing_account.id}" : null
   provisioned_resources_parent = ""
   resource_settings {
     display_name  = "StellarEngine-${var.prefix}"
@@ -292,6 +292,11 @@ module "organization" {
       var.bootstrap_user != null ? null : var.factories_config.org_policy
     )
     org_policy_custom_constraints = "./data/custom-constraint-policies/"
+    context = {
+      org_policies = {
+        root_node = var.organization.id
+      }
+    }
   }
   logging_sinks = {
     for name, attrs in var.log_sinks : name => {
