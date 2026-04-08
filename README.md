@@ -14,7 +14,7 @@ graph TB
         direction TB
         S0["Stage 0: Bootstrap<br/>Org, IAM, Automation, Org Policies"]
         S1["Stage 1: Resource Mgmt<br/>Folders, SAs, State Buckets"]
-        S2["Stage 2: Networking<br/>Hub VPC + NVAs + Spoke VPCs"]
+        S2["Stage 2: Networking<br/>NCC Hub + Spoke VPCs + Cloud NAT"]
         S3["Stage 3: Security<br/>KMS Projects, Alerts"]
         S0 --> S1 --> S2 --> S3
     end
@@ -22,7 +22,7 @@ graph TB
     subgraph L1["L1 — researcher-lab (Central IT)"]
         direction TB
         PF["Project Factory<br/>YAML per researcher"]
-        PF --> PROJ["GCP Project<br/>billing, APIs, SA, Shared VPC"]
+        PF --> PROJ["GCP Project<br/>billing, APIs, SA, VPC + Cloud NAT"]
     end
 
     subgraph L2["L2 — workload repos (Researcher)"]
@@ -71,7 +71,8 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 | 14 | **Group: Org Admins** (e.g. `gcp-organization-admins`) | `________` | 0 | `groups.gcp-organization-admins` |
 | 15 | **Group: Security Admins** (e.g. `gcp-security-admins`) | `________` | 0 | `groups.gcp-security-admins` |
 | 16 | **Environments** — `Prod` only, or `Prod + Int + Test`? | `________` | 1 | `envs_folders` |
-| 17 | **On-prem IP ranges to avoid?** (N = use defaults `10.64.0.0/12`, `10.80.0.0/12`) | `________` | 2 | `data/cidrs.yaml` |
+| 17 | **Networking topology** — `NCC` (simple, recommended) or `NVA` (centralized traffic inspection for IL5/FedRAMP High) | `NCC` | 2 | Stage 2 dataset choice |
+| 18 | **On-prem connectivity?** (N, or VPN/Interconnect) | `N` | 2 | VPN/VLAN config in dataset |
 
 ---
 
@@ -94,14 +95,14 @@ graph TB
     CS --> P2["📦 PREFIX-prod-audit-logs-0<br/><i>⏳ Audit Logging</i>"]
     CS --> P3["📦 PREFIX-prod-billing-exp-0<br/><i>⏳ Billing Export</i>"]
 
-    NET --> P4["📦 PREFIX-net-vdss-host<br/><i>⏳ Hub VPC + NVAs + Cloud NAT</i>"]
-    NET --> P5["📦 PREFIX-prod-net-host<br/><i>⏳ Prod Spoke Shared VPC</i>"]
+    NET --> P4["📦 PREFIX-net-core-0<br/><i>⏳ Hub VPC + NCC Hub + Cloud NAT</i>"]
+    NET --> P5["📦 PREFIX-net-prod-0<br/><i>⏳ Prod Spoke VPC + Cloud NAT</i>"]
 
     SEC --> P8["📦 PREFIX-dev-sec-core-0<br/><i>⏳ Dev KMS</i>"]
     SEC --> P9["📦 PREFIX-prod-sec-core-0<br/><i>⏳ Prod KMS</i>"]
 
     PROD --> L1["📁 Researcher Projects<br/><i>⏳ Planned — L1 Project Factory</i>"]
-    L1 --> RP["📦 PREFIX-dept-researcher<br/><i>⏳ 24 APIs, SA, Shared VPC, logging</i>"]
+    L1 --> RP["📦 PREFIX-dept-researcher<br/><i>⏳ 24 APIs, SA, VPC, Cloud NAT</i>"]
 
     style ORG fill:#fff,stroke:#333,stroke-width:2px
     style AW stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
@@ -433,101 +434,88 @@ terraform apply
 
 ## Stage 2: Networking
 
-**Directory:** Choose one:
-- `fast/stages-aw/2-networking-a-fedramp-high/` — FedRAMP High compliant
-- `fast/stages-aw/2-networking-b-il5-ngfw/` — IL5 with Palo Alto NGFW
+**Choose your topology** (from questionnaire Q17):
 
-**What it creates:** Hub VPC (VDSS) host project, per-environment spoke VPC host projects, VPC peering, firewall rules, Cloud NAT, DNS zones.
+### Option A: NCC Hub-and-Spoke (Default — Recommended)
+
+**Best for:** Most research universities, non-compliance workloads, rapid researcher onboarding.
+
+[Network Connectivity Center (NCC)](https://cloud.google.com/network-connectivity/docs/network-connectivity-center) provides a managed hub-and-spoke topology where each spoke VPC has its own Cloud NAT for internet egress. No NVAs, no complex cross-project agent IAM — researchers can `pip install`, download datasets, and pull models without any special networking config.
 
 ```mermaid
 graph TB
-    subgraph HUB["Hub — VDSS Host Project"]
-        direction TB
-        subgraph PRIMARY_REGION["Primary Region"]
-            DMZ1["DMZ VPC subnet<br/>Cloud NAT"]
-            NVA1["NVA MIG (2x COS)<br/>dual-NIC, masquerade"]
-            LAND1["Landing VPC subnet"]
-            DMZ1 <--> NVA1 <--> LAND1
-        end
-        subgraph SECONDARY_REGION["Secondary Region (optional)"]
-            DMZ2["DMZ VPC subnet<br/>Cloud NAT"]
-            NVA2["NVA MIG (2x COS)<br/>dual-NIC, masquerade"]
-            LAND2["Landing VPC subnet"]
-            DMZ2 <--> NVA2 <--> LAND2
-        end
-        DNS["DNS Response Policies + Private Google Access"]
-        KMS["KMS Keyring (HSM-backed)"]
+    subgraph HUB["Hub Project — NCC Hub"]
+        HUB_VPC["Hub VPC<br/>Cloud NAT + DNS"]
+        NCC["NCC Hub<br/><i>managed control plane</i>"]
     end
 
-    subgraph PROD_SPOKE["Prod Spoke — Shared VPC Host"]
-        PVPC1["Primary subnet"]
-        PVPC2["Secondary subnet"]
+    subgraph PROD["Prod Spoke Project"]
+        PVPC["Prod VPC<br/>Cloud NAT<br/>Subnets per region"]
     end
 
-    LAND1 <-->|"VPC Peering<br/>0.0.0.0/0 routes"| PVPC1
-    LAND2 <-->|"VPC Peering<br/>0.0.0.0/0 routes"| PVPC2
+    HUB_VPC ---|"NCC Spoke"| NCC
+    PVPC ---|"NCC Spoke"| NCC
 
-    PVPC1 -->|"Shared VPC"| RESEARCHER["Researcher Project<br/>(created by L1)"]
-    PVPC2 -->|"Shared VPC"| RESEARCHER
+    PVPC --> RESEARCHER["📦 Researcher Project<br/>(created by L1, own VPC + NAT)"]
 
     style HUB fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style PROD_SPOKE fill:#e8f5e9,stroke:#2e7d32
-    style PRIMARY_REGION fill:#fff8e1,stroke:#f57f17
-    style SECONDARY_REGION fill:#fff8e1,stroke:#f57f17,stroke-dasharray: 5 5
+    style PROD fill:#e8f5e9,stroke:#2e7d32
+    style NCC fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
 ```
 
-### Step 1 — Link outputs from previous stages
+**What it creates:** Hub project with NCC hub + Cloud NAT, per-environment spoke projects with their own VPCs and Cloud NAT, NCC full-mesh connectivity, DNS zones, hierarchical firewall policies.
+
+**Internet egress:** Each spoke VPC has its own Cloud NAT → `pip install`, HuggingFace, Zenodo, nf-core all work directly. No central bottleneck.
+
+**How it works:**
+- NCC hub acts as a managed control plane for route exchange between spokes
+- L1 researcher projects connect to the spoke VPC for networking (Cloud NAT handles internet)
+- Cloud NAT per spoke provides independent internet egress
+- DNS centralized in hub with peering zones in spokes
+- Transitive routing between spokes via NCC (if needed)
+
+### Option B: NVA with Traffic Inspection (IL5/FedRAMP High)
+
+**Best for:** IL5 military research, FedRAMP High compliance requiring centralized traffic inspection.
+
+Uses Network Virtual Appliances (NVAs) to inspect all traffic between spokes and before internet egress. More complex but provides deep packet inspection.
+
+**Directory:** `fast/stages-aw/2-networking-a-fedramp-high/` or `fast/stages-aw/2-networking-b-il5-ngfw/`
+
+See the [NVA networking documentation](fast/stages-aw/2-networking-a-fedramp-high/README.md) for the full hub-and-spoke-with-NVA architecture.
+
+### Steps (both topologies)
+
+#### Step 1 — Link outputs from previous stages
 
 ```bash
-cd fast/stages-aw/2-networking-a-fedramp-high  # or 2-networking-b-il5-ngfw
+# NCC topology (default):
+cd fast/stages/2-networking
+# OR NVA topology (IL5):
+cd fast/stages-aw/2-networking-a-fedramp-high
+
 ../../stage-links.sh ~/fast-config
 # Copy and paste the output commands
 ```
 
-### Step 2 — Customize network data files
+#### Step 2 — Customize network data files
 
 Edit the YAML factory files in `data/`:
 
 | File | What You Set |
 |------|-------------|
-| `data/cidrs.yaml` | IP address ranges |
-| `data/subnets/<env>/*.yaml` | Subnet definitions per environment |
-| `data/firewall-rules/<env>/rules.yaml` | Firewall rules per VPC |
-| `data/dns-policy-rules.yaml` | DNS response policy rules |
+| `data/vpcs/*/` | VPC configs, subnets, NAT |
+| `data/ncc-hubs/` | NCC hub config (NCC only) |
+| `data/firewall-policies/` | Hierarchical firewall rules |
+| `data/dns/` | DNS zones and response policies |
 
-### Step 3 — Apply
+#### Step 3 — Apply
 
 ```bash
 terraform init
 terraform plan
 terraform apply
 ```
-
-### Multi-Region NVA (Optional)
-
-If you set `secondary` in your `regions` variable (`terraform.tfvars` in Stage 0), Stage 2 automatically deploys a full NVA stack in both regions:
-
-| Component | Primary | Secondary |
-|-----------|---------|-----------|
-| NVA MIG (2x COS VMs) | `nva-primary` | `nva-secondary` |
-| Landing ILB | `nva-vdss-primary` | `nva-vdss-secondary` |
-| DMZ ILB | `nva-dmz-primary` | `nva-dmz-secondary` |
-| Cloud NAT | `nat-<primary-region>` | `nat-<secondary-region>` |
-| Default route | `default-route-nva-primary` | `default-route-nva-secondary` |
-
-**Traffic flow:** Spoke VM &rarr; VPC peering &rarr; Landing VPC &rarr; NVA ILB &rarr; NVA (masquerade) &rarr; DMZ VPC &rarr; Cloud NAT &rarr; Internet.
-
-**Subnet YAML files required per region** (see `data/subnets/` for examples):
-
-| Folder | File | Purpose |
-|--------|------|---------|
-| `data/subnets/dmz/` | `dmz-secondary.yaml` | DMZ VPC subnet for NVA eth0 |
-| `data/subnets/landing/` | `vdss-shared-default-secondary.yaml` | Landing VPC subnet for NVA eth1 |
-| `data/subnets/<env>/` | `prod-default-secondary.yaml` | Spoke workload subnet |
-
-Each uses `region: secondary` which the factory resolves via `var.regions`.
-
-**ECMP note:** Both regions' `0.0.0.0/0` routes have equal priority (100). GCP uses ECMP hash-based selection for cross-VPC peering traffic, so a given flow may traverse either region's NVA regardless of the VM's location. Both NVAs have return routes for all spoke subnets, so this works correctly — the only effect is potential cross-region latency (~30-40ms) for some flows.
 
 > **📋 Update Deployment Map:** Stage 2 is complete. In the Deployment Map diagram above, change nodes **P4** and **P5** from `⏳ Planned` to `✅ Deployed`. Change their styles from dashed gray to solid: P4/P5 → `fill:#fff3e0,stroke:#e65100`.
 
@@ -637,7 +625,7 @@ Once all 4 stages complete successfully, your landing zone is ready.
 ✅ L0 Complete — Your GCP organization has:
    • Folder hierarchy with compliance boundary
    • Automation project with Terraform service accounts
-   • Hub-and-spoke networking with NVAs and centralized NAT
+   • Hub-and-spoke networking (NCC default, NVA for IL5) with Cloud NAT
    • KMS encryption keys (HSM-backed)
    • Org policies and audit logging
    • Project factory SAs and state buckets (if enabled)
