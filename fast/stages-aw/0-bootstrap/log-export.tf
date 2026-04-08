@@ -39,6 +39,7 @@ locals {
 module "log-export-project" {
   source = "../../../modules/project"
   name   = "audit-logs-0"
+  lien_reason     = "Protected by default as a core project."
   parent = coalesce(
     var.project_parent_ids.logging, module.branch-common-services-folder.folder.name
   )
@@ -61,7 +62,8 @@ module "log-export-project" {
     "storage.googleapis.com",
     "stackdriver.googleapis.com",
     "cloudkms.googleapis.com",
-    "pubsub.googleapis.com"
+    "pubsub.googleapis.com",
+    "compute.googleapis.com"
   ]
 }
 
@@ -94,6 +96,7 @@ module "log-export-gcs" {
   prefix         = local.prefix
   location       = local.locations.gcs
   storage_class  = local.gcs_storage_class
+  force_destroy  = true
   encryption_key = try(var.logging_kms_key, module.logging-kms.keys["log-sink"])
 }
 

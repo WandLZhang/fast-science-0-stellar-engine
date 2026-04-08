@@ -25,6 +25,7 @@ module "automation-project" {
   source          = "../../../modules/project"
   billing_account = var.billing_account.id
   name            = "iac-core-0"
+  lien_reason     = "Protected by default as a core project."
   parent = coalesce(
     var.project_parent_ids.automation, module.branch-common-services-folder.folder.name
   )
@@ -50,9 +51,10 @@ module "automation-project" {
     "roles/browser" = [
       module.automation-tf-resman-r-sa.iam_email
     ]
-    "roles/owner" = [
-      module.automation-tf-bootstrap-sa.iam_email
-    ]
+    "roles/owner" = compact([
+      module.automation-tf-bootstrap-sa.iam_email,
+      var.bootstrap_user != null ? "user:${var.bootstrap_user}" : null
+    ])
     "roles/cloudbuild.builds.editor" = [
       module.automation-tf-resman-sa.iam_email
     ]
@@ -176,6 +178,7 @@ module "automation-tf-output-gcs" {
   location       = local.locations.gcs
   storage_class  = local.gcs_storage_class
   versioning     = true
+  force_destroy  = true
   depends_on     = [module.organization, module.gcs-kms]
   encryption_key = module.gcs-kms.keys.gcs.id
 }
@@ -190,6 +193,7 @@ module "automation-tf-bootstrap-gcs" {
   location       = local.locations.gcs
   storage_class  = local.gcs_storage_class
   versioning     = true
+  force_destroy  = true
   depends_on     = [module.organization]
   encryption_key = module.gcs-kms.keys.gcs.id
 }
@@ -246,6 +250,8 @@ module "automation-tf-resman-gcs" {
   location      = local.locations.gcs
   storage_class = local.gcs_storage_class
   versioning    = true
+  force_destroy = true
+
   iam = {
     "roles/storage.objectAdmin"  = [module.automation-tf-resman-sa.iam_email]
     "roles/storage.objectViewer" = [module.automation-tf-resman-r-sa.iam_email]
