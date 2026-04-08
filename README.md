@@ -46,43 +46,78 @@ graph TB
 | **L1** | [`fast-science-1-researcher-lab`](https://github.com/WandLZhang/fast-science-1-researcher-lab) | Central IT | Provision researcher projects via project factory YAML |
 | **L2** | Workload repos | Researchers | Science workloads — Nextflow, MedSigLIP, Toxicology, etc. |
 
+
 ---
 
-## What L0 Creates
+## Deployment Questionnaire
 
-Running all 4 stages produces this GCP resource hierarchy:
+Fill in your values before starting. Every answer maps directly to a `terraform.tfvars` field.
+
+| # | Question | Your Value | Stage | `terraform.tfvars` Field |
+|---|----------|-----------|-------|--------------------------|
+| 1 | **Prefix** (≤7 chars, alphanumeric only, e.g. `univ`) | `________` | 0 | `prefix` |
+| 2 | **Organization ID** — run `gcloud organizations list` | `________` | 0 | `organization.id` |
+| 3 | **Domain** (e.g. `university.edu`) | `________` | 0 | `organization.domain` |
+| 4 | **Customer ID** — from `gcloud organizations list` | `________` | 0 | `organization.customer_id` |
+| 5 | **Billing Account ID** — run `gcloud beta billing accounts list` | `________` | 0 | `billing_account.id` |
+| 6 | **Primary Region** (e.g. `us-east4`) | `________` | 0 | `regions.primary` |
+| 7 | **Secondary Region** (optional, e.g. `us-west1`) | `________` | 0 | `regions.secondary` |
+| 8 | **Alert Email** (who gets ops alerts) | `________` | 0 | `alert_email` |
+| 9 | **Compliance Regime** — `FEDRAMP_HIGH`, `IL5`, `IL4`, or `COMPLIANCE_REGIME_UNSPECIFIED` | `________` | 0 | `assured_workloads.regime` |
+| 10 | **Bootstrap Project ID** (you'll create this in Prerequisites) | `________` | 0 | `bootstrap_project` |
+| 11 | **Group: Billing Admins** (e.g. `gcp-billing-admins`) | `________` | 0 | `groups.gcp-billing-admins` |
+| 12 | **Group: DevOps** (e.g. `gcp-devops`) | `________` | 0 | `groups.gcp-devops` |
+| 13 | **Group: Network Admins** (e.g. `gcp-vpc-network-admins`) | `________` | 0 | `groups.gcp-vpc-network-admins` |
+| 14 | **Group: Org Admins** (e.g. `gcp-organization-admins`) | `________` | 0 | `groups.gcp-organization-admins` |
+| 15 | **Group: Security Admins** (e.g. `gcp-security-admins`) | `________` | 0 | `groups.gcp-security-admins` |
+| 16 | **Environments** — `Prod` only, or `Prod + Int + Test`? | `________` | 1 | `envs_folders` |
+| 17 | **On-prem IP ranges to avoid?** (N = use defaults `10.64.0.0/12`, `10.80.0.0/12`) | `________` | 2 | `data/cidrs.yaml` |
+
+---
+
+## Deployment Map
+
+This diagram tracks your deployment progress. All nodes start as **⏳ Planned** (dashed gray). After each stage, update them to **✅ Deployed** (solid colored).
 
 ```mermaid
 graph TB
-    ORG["🏢 GCP Organization"]
+    ORG["🏢 GCP Organization<br/><i>your-domain.edu</i>"]
 
-    ORG --> AW["📁 StellarEngine-prefix<br/><i>Assured Workloads folder</i>"]
+    ORG --> AW["📁 StellarEngine-PREFIX<br/><i>⏳ Planned — Stage 0</i>"]
 
-    AW --> CS["📁 Common Services"]
-    AW --> NET["📁 Networking"]
-    AW --> SEC["📁 Security"]
-    AW --> PROD["📁 Prod"]
+    AW --> CS["📁 Common Services<br/><i>⏳ Planned — Stage 0</i>"]
+    AW --> NET["📁 Networking<br/><i>⏳ Planned — Stage 1</i>"]
+    AW --> SEC["📁 Security<br/><i>⏳ Planned — Stage 3</i>"]
+    AW --> PROD["📁 Prod<br/><i>⏳ Planned — Stage 1</i>"]
 
-    CS --> P1["📦 prefix-prod-iac-core-0<br/><i>Automation + State Buckets</i>"]
-    CS --> P2["📦 prefix-prod-audit-logs-0<br/><i>Audit Logging</i>"]
-    CS --> P3["📦 prefix-prod-billing-exp-0<br/><i>Billing Export</i>"]
+    CS --> P1["📦 PREFIX-prod-iac-core-0<br/><i>⏳ Automation + State Buckets</i>"]
+    CS --> P2["📦 PREFIX-prod-audit-logs-0<br/><i>⏳ Audit Logging</i>"]
+    CS --> P3["📦 PREFIX-prod-billing-exp-0<br/><i>⏳ Billing Export</i>"]
 
-    NET --> P4["📦 prefix-net-vdss-host<br/><i>Hub: DMZ VPC + Landing VPC + NVAs + Cloud NAT</i>"]
-    NET --> P5["📦 prefix-prod-net-host<br/><i>Prod Spoke: Shared VPC + Subnet</i>"]
+    NET --> P4["📦 PREFIX-net-vdss-host<br/><i>⏳ Hub VPC + NVAs + Cloud NAT</i>"]
+    NET --> P5["📦 PREFIX-prod-net-host<br/><i>⏳ Prod Spoke Shared VPC</i>"]
 
-    SEC --> P8["📦 prefix-dev-sec-core-0<br/><i>Dev KMS</i>"]
-    SEC --> P9["📦 prefix-prod-sec-core-0<br/><i>Prod KMS</i>"]
+    SEC --> P8["📦 PREFIX-dev-sec-core-0<br/><i>⏳ Dev KMS</i>"]
+    SEC --> P9["📦 PREFIX-prod-sec-core-0<br/><i>⏳ Prod KMS</i>"]
 
-    PROD --> L1["📁 Researcher projects<br/><i>(created by L1 project factory)</i>"]
-    L1 --> RP["📦 prefix-dept-researcher<br/><i>24 APIs, SA, Shared VPC, logging</i>"]
+    PROD --> L1["📁 Researcher Projects<br/><i>⏳ Planned — L1 Project Factory</i>"]
+    L1 --> RP["📦 PREFIX-dept-researcher<br/><i>⏳ 24 APIs, SA, Shared VPC, logging</i>"]
 
     style ORG fill:#fff,stroke:#333,stroke-width:2px
-    style AW fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    style CS fill:#e8f5e9,stroke:#2e7d32
-    style NET fill:#fff3e0,stroke:#e65100
-    style SEC fill:#fce4ec,stroke:#c62828
-    style PROD fill:#f3e5f5,stroke:#6a1b9a
-    style L1 fill:#f3e5f5,stroke:#6a1b9a
+    style AW stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style CS stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style NET stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style SEC stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style PROD stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P1 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P2 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P3 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P4 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P5 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P8 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style P9 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style L1 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style RP stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
 ```
 
 
@@ -344,6 +379,8 @@ terraform output assured_workload
 
 Stage 0 outputs are automatically written to `~/fast-config/` (or GCS bucket) for Stage 1 to consume.
 
+> **📋 Update Deployment Map:** Stage 0 is complete. In the Deployment Map diagram above, change nodes **AW**, **CS**, **P1**, **P2**, **P3** from `⏳ Planned` to `✅ Deployed`. Replace `PREFIX` with your actual prefix from the questionnaire. Change their styles from dashed gray to solid: AW → `fill:#e3f2fd,stroke:#1565c0,stroke-width:2px`, CS/P1/P2/P3 → `fill:#e8f5e9,stroke:#2e7d32`.
+
 ---
 
 ## Stage 1: Resource Management
@@ -389,6 +426,8 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+> **📋 Update Deployment Map:** Stage 1 is complete. In the Deployment Map diagram above, change nodes **NET** and **PROD** from `⏳ Planned` to `✅ Deployed`. Change their styles from dashed gray to solid: NET → `fill:#fff3e0,stroke:#e65100`, PROD → `fill:#f3e5f5,stroke:#6a1b9a`.
 
 ---
 
@@ -490,6 +529,8 @@ Each uses `region: secondary` which the factory resolves via `var.regions`.
 
 **ECMP note:** Both regions' `0.0.0.0/0` routes have equal priority (100). GCP uses ECMP hash-based selection for cross-VPC peering traffic, so a given flow may traverse either region's NVA regardless of the VM's location. Both NVAs have return routes for all spoke subnets, so this works correctly — the only effect is potential cross-region latency (~30-40ms) for some flows.
 
+> **📋 Update Deployment Map:** Stage 2 is complete. In the Deployment Map diagram above, change nodes **P4** and **P5** from `⏳ Planned` to `✅ Deployed`. Change their styles from dashed gray to solid: P4/P5 → `fill:#fff3e0,stroke:#e65100`.
+
 ---
 
 ## Stage 3: Security
@@ -529,6 +570,8 @@ chmod +x sa_lockdown.sh
 chmod +x delete_gcp_project.sh
 ./delete_gcp_project.sh --project-id=${PREFIX}-bootstrap
 ```
+
+> **📋 Update Deployment Map:** Stage 3 is complete. In the Deployment Map diagram above, change nodes **SEC**, **P8**, **P9** from `⏳ Planned` to `✅ Deployed`. Change their styles from dashed gray to solid: SEC/P8/P9 → `fill:#fce4ec,stroke:#c62828`. All L0 infrastructure is now deployed! Proceed to the [L1 Researcher Labs](https://github.com/WandLZhang/fast-science-1-researcher-lab) repo for researcher project provisioning.
 
 ---
 
