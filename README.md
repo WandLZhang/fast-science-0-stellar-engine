@@ -71,7 +71,7 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 | 14 | **Group: Org Admins** (e.g. `gcp-organization-admins`) | `________` | 0 | `groups.gcp-organization-admins` |
 | 15 | **Group: Security Admins** (e.g. `gcp-security-admins`) | `________` | 0 | `groups.gcp-security-admins` |
 | 16 | **Environments** — `Prod` only, or `Prod + Int + Test`? | `________` | 1 | `envs_folders` |
-| 17 | **Networking topology** — `NCC` (simple, recommended) or `NVA` (centralized traffic inspection for IL5/FedRAMP High) | `NCC` | 2 | Stage 2 dataset choice |
+| 17 | **Networking topology** — `NCC` (recommended) or `NVA` (only if you require L7 inspection / IPS for N-S or E-W traffic) | `NCC` | 2 | Stage 2 dataset choice |
 | 18 | **On-prem connectivity?** (N, or VPN/Interconnect) | `N` | 2 | VPN/VLAN config in dataset |
 
 ---
@@ -474,15 +474,17 @@ graph TB
 - DNS centralized in hub with peering zones in spokes
 - Transitive routing between spokes via NCC (if needed)
 
-### Option B: NVA with Traffic Inspection (IL5/FedRAMP High)
+### Option B: NVA with Traffic Inspection
 
-**Best for:** IL5 military research, FedRAMP High compliance requiring centralized traffic inspection.
+**Best for:** Deployments that require Layer 7 inspection / IPS for North-South or East-West traffic — regardless of compliance regime. If your ATO or security team does not mandate inline L7 inspection, use NCC instead.
 
-Uses Network Virtual Appliances (NVAs) to inspect all traffic between spokes and before internet egress. More complex but provides deep packet inspection.
-
-**Directory:** `fast/stages-aw/2-networking-a-fedramp-high/` or `fast/stages-aw/2-networking-b-il5-ngfw/`
+Uses Network Virtual Appliances (NVAs) to inspect all traffic between spokes and before internet egress. Two sub-options:
+- **Linux NVA** (`2-networking-a-fedramp-high/`): COS-based iptables router — forwards and masquerades traffic but provides no inspection. Use as a starting point or replace with a commercial appliance.
+- **Palo Alto NGFW** (`2-networking-b-il5-ngfw/`): Deploys VM-Series instances with a minimal bootstrap config (allow-all-outbound, one NAT rule). No Panorama/SCM connection is configured.
 
 See the [NVA networking documentation](fast/stages-aw/2-networking-a-fedramp-high/README.md) for the full hub-and-spoke-with-NVA architecture.
+
+> **Day 2 (NVA only):** Terraform deploys the NVA infrastructure but not production firewall policy. After `terraform apply`, you must connect to your management plane (Panorama, Strata Cloud Manager, or equivalent) to push security profiles, replace the allow-all rule, configure threat prevention / URL filtering / decryption, add license auth codes, and set up log forwarding.
 
 ### Steps (both topologies)
 
