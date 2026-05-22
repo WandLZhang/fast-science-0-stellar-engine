@@ -73,7 +73,8 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 | 16 | **Environments** — `Prod` only, or `Prod + Int + Test`? | `________` | 1 | `envs_folders` |
 | 17 | **Networking topology** — `NCC` (recommended) or `NVA` (only if you require L7 inspection / IPS for N-S or E-W traffic) | `NCC` | 2 | Stage 2 dataset choice |
 | 18 | **On-prem connectivity?** (N, or VPN/Interconnect) | `N` | 2 | VPN/VLAN config in dataset |
-| 19 | **Managed folder name** (optional override for the top-level AW folder; ignored when regime is unspecified — see Stage 0 below) | `________` | 0 | `managed_folder_name` |
+| 19 | **Managed folder name** (optional override; default `it-services` for unspecified regime, regime short code for compliance) | `________` | 0 | `managed_folder_name` |
+| 20 | **Department tag key name** (optional override; default `department` — used by L1 to scope per-department org-policy delegation via IAM conditions) | `________` | 0 | `department_tag_key_name` |
 
 ---
 
@@ -81,19 +82,21 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 
 This diagram tracks your deployment progress. All nodes start as **⏳ Planned** (dashed gray). After each stage, update them to **✅ Deployed** (solid colored).
 
-**Unspecified regime** (default L0 deployment) — bootstrap projects nest directly under the organization root; no managed wrapper folder. Compliance regimes (IL5, FedRAMP High, etc.) appear later as separate top-level folders, each containing their own L0 bootstrap projects and downstream stages.
+**Unspecified regime** (default L0 deployment) — bootstrap projects + Networking + Security nest inside an `it-services` wrapper folder. Department folders (added by L1) sit as **siblings to `it-services` at the org root**. Compliance regimes (IL5, FedRAMP High, etc.) appear later as separate top-level Assured Workloads folders, each containing their own bootstrap stack + department folders inside.
 
 ```mermaid
 graph TB
     ORG["🏢 GCP Organization<br/><i>your-domain.edu</i>"]
+    TAG["🏷️ Tag key: department<br/><i>⏳ Stage 0 — org-level tag</i>"]
 
-    ORG --> P1["📦 PREFIX-prod-iac-core-0<br/><i>⏳ Stage 0 — Automation + State Buckets</i>"]
-    ORG --> P2["📦 PREFIX-prod-audit-logs-0<br/><i>⏳ Stage 0 — Audit Logging</i>"]
-    ORG --> P3["📦 PREFIX-prod-billing-exp-0<br/><i>⏳ Stage 0 — Billing Export</i>"]
+    ORG --> TAG
+    ORG --> IT["📁 it-services<br/><i>⏳ Stage 0 — managed folder (configurable name)</i>"]
 
-    ORG --> NET["📁 Networking<br/><i>⏳ Stage 1</i>"]
-    ORG --> SEC["📁 Security<br/><i>⏳ Stage 1</i>"]
-    ORG --> PROD["📁 Prod (env)<br/><i>⏳ Stage 1</i>"]
+    IT --> P1["📦 PREFIX-prod-iac-core-0<br/><i>⏳ Stage 0 — Automation + State</i>"]
+    IT --> P2["📦 PREFIX-prod-audit-logs-0<br/><i>⏳ Stage 0 — Audit Logging</i>"]
+    IT --> P3["📦 PREFIX-prod-billing-exp-0<br/><i>⏳ Stage 0 — Billing Export</i>"]
+    IT --> NET["📁 Networking<br/><i>⏳ Stage 1</i>"]
+    IT --> SEC["📁 Security<br/><i>⏳ Stage 1</i>"]
 
     NET --> P4["📦 PREFIX-net-core-0<br/><i>⏳ Stage 2 — Hub VPC + NCC Hub + Cloud NAT</i>"]
     NET --> P5["📦 PREFIX-net-prod-0<br/><i>⏳ Stage 2 — Prod Spoke VPC + Cloud NAT</i>"]
@@ -101,15 +104,18 @@ graph TB
     SEC --> P8["📦 PREFIX-dev-sec-core-0<br/><i>⏳ Stage 3 — Dev KMS</i>"]
     SEC --> P9["📦 PREFIX-prod-sec-core-0<br/><i>⏳ Stage 3 — Prod KMS</i>"]
 
-    PROD --> L1["📁 Researcher Projects<br/><i>⏳ L1 Project Factory</i>"]
-    L1 --> RP["📦 PREFIX-dept-researcher<br/><i>⏳ 24 APIs, SA, VPC, Cloud NAT</i>"]
+    ORG --> DEPT["📁 engineering / medicine / ...<br/><i>⏳ L1 — department folders (siblings to it-services)</i>"]
+    DEPT --> DEV["📁 Development<br/><i>⏳ L1 — sandbox preset</i>"]
+    DEPT --> PROD["📁 Production<br/><i>⏳ L1 — hardened preset</i>"]
+    DEV --> RP["📦 researcher projects<br/><i>⏳ created by IT (via L1 PF) or by PIs (via Console)</i>"]
 
     ORG --> CR["📁 (later) il5 / frh / il4<br/><i>compliance regimes — separate L0 deployments</i>"]
 
     style ORG fill:#fff,stroke:#333,stroke-width:2px
+    style TAG stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style IT stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style NET stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style SEC stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
-    style PROD stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style P1 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style P2 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style P3 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
@@ -117,7 +123,9 @@ graph TB
     style P5 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style P8 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style P9 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
-    style L1 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style DEPT stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style DEV stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style PROD stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style RP stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style CR stroke-dasharray: 5 5,stroke:#bdbdbd,fill:#f5f5f5
 ```
@@ -264,7 +272,7 @@ This grants the 13 org-level roles needed to run Stage 0 (logging admin, org adm
 ## Stage 0: Bootstrap
 
 **Directory:** `fast/stages-aw/0-bootstrap/`  
-**What it creates:** Automation project (Terraform state buckets + SAs), audit logs project, billing export project, org policies, custom roles, KMS keys. For `COMPLIANCE_REGIME_UNSPECIFIED`, these projects nest directly under the organization root with no wrapper folder. For a compliance regime (`IL5`, `FEDRAMP_HIGH`, etc.), they nest inside an Assured Workloads folder named after the regime short code (e.g., `il5`, `frh`) — override with `var.managed_folder_name`.
+**What it creates:** A managed wrapper folder (default name `it-services` for unspecified regime; an Assured Workloads folder named after the regime short code like `il5` / `frh` for compliance) that contains the automation project (Terraform state buckets + SAs), audit logs project, billing export project. Also creates org policies, custom roles, KMS keys, and an **org-level tag key `department`** used by L1 to scope folder-level org-policy admin delegation via IAM conditions. Override the wrapper folder name with `var.managed_folder_name`; override the tag key name with `var.department_tag_key_name`.
 
 ### Step 1 — Configure variables
 
@@ -381,7 +389,7 @@ terraform output assured_workload
 
 Stage 0 outputs are automatically written to `~/fast-config/` (or GCS bucket) for Stage 1 to consume.
 
-> **📋 Update Deployment Map:** Stage 0 is complete. In the Deployment Map diagram above, change nodes **P1**, **P2**, **P3** from `⏳ Planned` to `✅ Deployed`. Replace `PREFIX` with your actual prefix from the questionnaire. Change their styles from dashed gray to solid: P1/P2/P3 → `fill:#e8f5e9,stroke:#2e7d32`.
+> **📋 Update Deployment Map:** Stage 0 is complete. In the Deployment Map diagram above, change nodes **TAG**, **IT**, **P1**, **P2**, **P3** from `⏳ Planned` to `✅ Deployed`. Replace `PREFIX` with your actual prefix from the questionnaire. Change their styles from dashed gray to solid: TAG → `fill:#fff3e0,stroke:#e65100`, IT → `fill:#e3f2fd,stroke:#1565c0,stroke-width:2px`, P1/P2/P3 → `fill:#e8f5e9,stroke:#2e7d32`.
 
 ---
 

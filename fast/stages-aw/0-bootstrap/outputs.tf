@@ -103,7 +103,14 @@ locals {
     }
     assured_workloads      = merge(var.assured_workloads, { "folder" = local.managed_folder_id })
     common_services_folder = local.managed_folder_id
+    dept_folder_parent     = local.dept_folder_parent
     regions                = var.regions
+    department_tag = {
+      key_id         = google_tags_tag_key.department.id
+      key_short_name = google_tags_tag_key.department.short_name
+      key_namespaced = google_tags_tag_key.department.namespaced_name
+      org_id         = var.organization.id
+    }
   }
 
   tfvars_globals = {

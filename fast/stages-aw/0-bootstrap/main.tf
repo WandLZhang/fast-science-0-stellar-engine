@@ -43,11 +43,16 @@ locals {
   }
   # naming: environment used in most resource names
   prefix = join("-", compact([var.prefix, "prod"]))
-  # Top-level managed folder name. Only used when assured_workloads.regime is
-  # set; when unspecified, bootstrap projects nest directly under the org root
-  # (no wrapper folder — avoids awkward "CRU"/"no-compliance" folder names).
+  # Top-level managed folder name. Used both for the AW workload display
+  # name (compliance regimes) and for the regular wrapper folder created at
+  # the org root (unspecified regime). Default:
+  #   - unspecified regime: "it-services" (IT-group convention)
+  #   - compliance regime: regime short code from regime_mapping (e.g., "il5")
+  # Override per deployment via var.managed_folder_name.
   managed_folder_name = coalesce(
     var.managed_folder_name,
-    lower(lookup(var.regime_mapping, var.assured_workloads.regime, "managed"))
+    var.assured_workloads.regime == "COMPLIANCE_REGIME_UNSPECIFIED"
+    ? "it-services"
+    : lower(lookup(var.regime_mapping, var.assured_workloads.regime, "managed"))
   )
 }

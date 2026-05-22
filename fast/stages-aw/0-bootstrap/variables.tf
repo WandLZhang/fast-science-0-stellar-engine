@@ -184,9 +184,15 @@ variable "iam_by_principals" {
 }
 
 variable "managed_folder_name" {
-  description = "Display name for the top-level Assured Workloads folder when assured_workloads.regime is set. Defaults to the lowercased regime short code (e.g., \"il5\", \"frh\") via regime_mapping. Ignored when regime is COMPLIANCE_REGIME_UNSPECIFIED — in that case there is no wrapper folder; bootstrap projects nest directly under the organization root."
+  description = "Display name for the top-level managed folder. Defaults: \"it-services\" for COMPLIANCE_REGIME_UNSPECIFIED (regular folder at org root); regime short code (\"il5\", \"frh\") for compliance regimes (the AW workload folder itself). Override to rename — note that changing this after deployment renames the GCP folder but never forces recreation (display_name is in lifecycle.ignore_changes for the AW workload)."
   type        = string
   default     = null
+}
+
+variable "department_tag_key_name" {
+  description = "Short name of the org-level tag key used by L1 to scope folder-level org-policy admin delegation. Default \"department\" covers university schools/departments, federal-agency centers (e.g., CDER, NCTR at FDA), and corporate divisions. Each L1 team_folders entry creates a tag value (= the entry's map key) under this key and binds it to the department folder; the department's admin group gets roles/orgpolicy.policyAdmin at org level with IAM condition resource.matchTag(\"<ORG>/<key>\", \"<value>\"), giving them folder-scoped org-policy authority."
+  type        = string
+  default     = "department"
 }
 
 variable "locations" {

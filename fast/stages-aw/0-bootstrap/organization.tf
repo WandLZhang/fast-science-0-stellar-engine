@@ -206,31 +206,65 @@ resource "google_assured_workloads_workload" "primary" {
   }
 }
 
-# Resolved parent for all bootstrap projects (iac-core, audit-logs, billing-exp)
-# and for L1's downstream folders (dept folders, security, networking):
-# - With a compliance regime: the AW workload folder (regime-bound)
-# - Without (COMPLIANCE_REGIME_UNSPECIFIED): the organization root itself
-#   (no wrapper folder — avoids the awkward legacy "StellarEngine-PREFIX /
-#   CRU Common Services" double-wrapping for unrestricted deployments).
+# Top-level wrapper folder for unspecified-regime deployments.
+# - With a compliance regime: NOT created — the AW workload folder above is
+#   the regime-bound wrapper.
+# - Without a regime: a regular folder at the org root (default name
+#   "it-services" per local.managed_folder_name in main.tf), which holds
+#   the L0 bootstrap projects, L1 school folders, networking, security, etc.
+module "managed-folder" {
+  count  = var.assured_workloads.regime == "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
+  source = "../../../modules/folder"
+  parent = "organizations/${var.organization.id}"
+  name   = local.managed_folder_name
+}
+
+# Resolved IDs:
+# - managed_folder_id: where IT-managed infrastructure goes
+#   (bootstrap projects, Networking, Security). For unspecified regime:
+#   the it-services wrapper folder. For compliance: the AW workload folder.
+# - dept_folder_parent: where L1 department folders go.
+#   For unspecified regime: the ORGANIZATION ROOT (siblings to it-services).
+#   For compliance: the AW workload folder (so dept folders inherit the
+#   regime). The two are intentionally different for unspecified — IT stuff
+#   wraps under it-services for cleanliness; dept folders sit at the org
+#   root so each department is a visible top-level entity.
 locals {
   managed_folder_id = (
+    var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED"
+    ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}"
+    : module.managed-folder[0].folder.name
+  )
+  dept_folder_parent = (
     var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED"
     ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}"
     : "organizations/${var.organization.id}"
   )
 }
 
-# Backwards-compat migration for deployments that previously had the
-# nested no-compliance-folder + branch-common-services-folder wrappers.
-# Removes those modules from terraform state on next apply; the empty
-# folders are left in GCP for manual cleanup via:
-#   gcloud resource-manager folders delete <FOLDER_ID>
-removed {
-  from = module.no-compliance-folder
-  lifecycle {
-    destroy = false
-  }
+# Org-level tag key used by L1 to scope folder-level org-policy delegation.
+# Each L1 department folder gets a tag value under this key (= the team_folders
+# map entry's name, e.g., "engineering"), bound to the folder, and a
+# conditional org-level grant of roles/orgpolicy.policyAdmin to the
+# department's admin group with the IAM condition resource.matchTag(...).
+#
+# Per https://cloud.google.com/iam/docs/conditions-overview — the only
+# supported way to give folder-scoped org-policy authority since the
+# predefined orgpolicy.policyAdmin is org-scope only and the underlying
+# write permissions cannot be put in custom roles (verified empirically
+# by spot-test on 2026-05-22 against folders 968193040793 vs 63370343153).
+resource "google_tags_tag_key" "department" {
+  parent      = "organizations/${var.organization.id}"
+  short_name  = var.department_tag_key_name
+  description = "Tag key used by L1 (resman) to scope folder-level org-policy admin delegation via IAM conditions. Tag values = team_folders map keys (e.g., 'engineering', 'medicine', 'cder', 'nctr')."
 }
+
+# Backwards-compat migration for deployments that previously had the
+# nested branch-common-services-folder wrapper (removed in 501c98580 and
+# the no-compliance-folder removed there too — but the no-compliance-folder
+# concept is being RE-ADDED as module.managed-folder above, so its removed{}
+# block must be deleted to avoid resurrecting a phantom delete).
+# branch-common-services-folder stays gone permanently.
 removed {
   from = module.branch-common-services-folder
   lifecycle {
