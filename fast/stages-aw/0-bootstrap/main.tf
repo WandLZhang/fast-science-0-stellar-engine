@@ -27,12 +27,15 @@ locals {
       : "group:${v}@${var.organization.domain}"
     )
   }
+  # Upstream: all locations were hardcoded to var.regions.primary.
+  # Changed to use var.locations (defaults to US multi-region) so storage/BQ
+  # aren't locked to a single region while compute stays in regions.primary.
   locations = {
-    bq      = var.regions.primary
-    gcs     = var.regions.primary
-    logging = coalesce(try(local.checklist.location, null), var.regions.primary)
-    pubsub  = [var.regions.primary]
-    kms     = var.regions.primary
+    bq      = var.locations.bq
+    gcs     = var.locations.gcs
+    logging = coalesce(try(local.checklist.location, null), var.locations.logging != "global" ? var.locations.logging : var.regions.primary)
+    pubsub  = length(var.locations.pubsub) > 0 ? var.locations.pubsub : [var.regions.primary]
+    kms     = var.locations.kms
   }
   # naming: environment used in most resource names
   prefix = join("-", compact([var.prefix, "prod"]))
