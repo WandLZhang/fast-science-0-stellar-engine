@@ -28,14 +28,18 @@ locals {
     )
   }
   # Upstream: all locations were hardcoded to var.regions.primary.
-  # Changed to use var.locations (defaults to US multi-region) so storage/BQ
-  # aren't locked to a single region while compute stays in regions.primary.
+  # Changed to use var.locations (defaults to US multi-region for GCS/BQ) so
+  # storage/BQ aren't locked to a single region while compute stays in
+  # regions.primary. Sentinel defaults ("global" for logging, null for kms)
+  # fall back to var.regions.primary so the keyring stays regional (Cloud KMS
+  # requires either a region or a lowercase multi-region like "us"/"europe",
+  # not the uppercase "US" used by GCS/BQ).
   locations = {
     bq      = var.locations.bq
     gcs     = var.locations.gcs
     logging = coalesce(try(local.checklist.location, null), var.locations.logging != "global" ? var.locations.logging : var.regions.primary)
     pubsub  = length(var.locations.pubsub) > 0 ? var.locations.pubsub : [var.regions.primary]
-    kms     = var.locations.kms
+    kms     = coalesce(var.locations.kms, var.regions.primary)
   }
   # naming: environment used in most resource names
   prefix = join("-", compact([var.prefix, "prod"]))

@@ -4,11 +4,24 @@ billing_account = {
   id = "012345-67890A-BCDEF0"
 }
 
-# region configuration - this will automatically populate locations for GCS, BigQuery, KMS, and logging buckets
-# Default to us-east4 for IL5/FedRAMP compliance - adjust as needed
+# Compute region. Drives KMS keyring location and log sink location by default.
+# Default to us-east4 for IL5/FedRAMP compliance — adjust as needed.
 regions = {
-  primary = "us-east4"  # Change to your preferred region - this will be used for all bootstrap resources
+  primary = "us-east4"  # Change to your preferred region
 }
+
+# Optional override for bucket / dataset / keyring locations.
+# Defaults: GCS=US, BQ=US (multi-region); logging=global → falls back to regions.primary;
+# KMS=null → falls back to regions.primary (KMS requires a regional location or a
+# lowercase multi-region like "us"/"europe", NOT the uppercase "US" used by GCS/BQ).
+# Uncomment to override:
+# locations = {
+#   bq      = "US"
+#   gcs     = "US"
+#   logging = "global"
+#   pubsub  = []
+#   kms     = "us-east4"   # or "us" for multi-region; do NOT use "US"
+# }
 
 # use `gcloud organizations list`
 organization = {

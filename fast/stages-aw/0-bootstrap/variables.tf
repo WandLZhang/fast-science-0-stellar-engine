@@ -184,13 +184,13 @@ variable "iam_by_principals" {
 }
 
 variable "locations" {
-  description = "Optional locations for GCS, BigQuery, and logging buckets created here."
+  description = "Optional locations for GCS, BigQuery, logging buckets, and KMS keyrings. KMS defaults to var.regions.primary (regional) for backwards compatibility — set explicitly to a multi-region (lowercase, e.g. \"us\", \"europe\") only if your GCS/BQ resources are also multi-region and need a multi-region key."
   type = object({
     bq      = optional(string, "US")
     gcs     = optional(string, "US")
     logging = optional(string, "global")
     pubsub  = optional(list(string), [])
-    kms     = optional(string, "US")
+    kms     = optional(string)
   })
   nullable = false
   default  = {}
