@@ -187,34 +187,55 @@ module "organization-logging" {
 resource "google_assured_workloads_workload" "primary" {
   count                        = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
   compliance_regime            = var.assured_workloads.regime
-  display_name                 = "StellarEngine-${var.prefix}"
+  display_name                 = local.managed_folder_name
   location                     = var.assured_workloads.location
   organization                 = var.organization.id
   billing_account              = var.billing_account.id != null && var.billing_account.id != "" ? "billingAccounts/${var.billing_account.id}" : null
   provisioned_resources_parent = ""
   resource_settings {
-    display_name  = "StellarEngine-${var.prefix}"
+    display_name  = local.managed_folder_name
     resource_type = "CONSUMER_FOLDER"
   }
 
   violation_notifications_enabled = true
   lifecycle {
     create_before_destroy = true
-    ignore_changes        = [billing_account]
+    # Renames in code do NOT force AW folder recreation. The folder in GCP
+    # keeps its original display_name. Existing deployments stay stable.
+    ignore_changes = [billing_account, display_name, resource_settings]
   }
 }
 
-module "no-compliance-folder" {
-  count  = var.assured_workloads.regime == "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
-  source = "../../../modules/folder"
-  parent = "organizations/${var.organization.id}"
-  name   = "StellarEngine-${var.prefix}"
+# Resolved parent for all bootstrap projects (iac-core, audit-logs, billing-exp)
+# and for L1's downstream folders (dept folders, security, networking):
+# - With a compliance regime: the AW workload folder (regime-bound)
+# - Without (COMPLIANCE_REGIME_UNSPECIFIED): the organization root itself
+#   (no wrapper folder — avoids the awkward legacy "StellarEngine-PREFIX /
+#   CRU Common Services" double-wrapping for unrestricted deployments).
+locals {
+  managed_folder_id = (
+    var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED"
+    ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}"
+    : "organizations/${var.organization.id}"
+  )
 }
 
-module "branch-common-services-folder" {
-  source = "../../../modules/folder"
-  parent = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}"
-  name   = "${lookup(var.regime_mapping, var.assured_workloads.regime, var.assured_workloads.regime)} Common Services"
+# Backwards-compat migration for deployments that previously had the
+# nested no-compliance-folder + branch-common-services-folder wrappers.
+# Removes those modules from terraform state on next apply; the empty
+# folders are left in GCP for manual cleanup via:
+#   gcloud resource-manager folders delete <FOLDER_ID>
+removed {
+  from = module.no-compliance-folder
+  lifecycle {
+    destroy = false
+  }
+}
+removed {
+  from = module.branch-common-services-folder
+  lifecycle {
+    destroy = false
+  }
 }
 
 

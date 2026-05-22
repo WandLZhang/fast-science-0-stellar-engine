@@ -101,8 +101,8 @@ locals {
       project_number    = module.log-export-project.number
       writer_identities = module.organization.sink_writer_identities
     }
-    assured_workloads      = merge(var.assured_workloads, { "folder" = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "${module.no-compliance-folder[0].folder.id}" })
-    common_services_folder = module.branch-common-services-folder.folder.name
+    assured_workloads      = merge(var.assured_workloads, { "folder" = local.managed_folder_id })
+    common_services_folder = local.managed_folder_id
     regions                = var.regions
   }
 
@@ -122,8 +122,8 @@ output "alert_email" {
 }
 
 output "assured_workload" {
-  description = "Assured Workload folder for the deployment."
-  value       = var.assured_workloads.regime != "COMPLIANCE_REGIME_UNSPECIFIED" ? "folders/${google_assured_workloads_workload.primary[0].resources[0].resource_id}" : "folders/${module.no-compliance-folder[0].folder.id}"
+  description = "Assured Workload folder for the deployment when a compliance regime is set; the organization root otherwise (no wrapper folder is created for unspecified-regime deployments)."
+  value       = local.managed_folder_id
 }
 
 output "automation" {
@@ -149,8 +149,8 @@ output "cicd_repositories" {
 }
 
 output "common_services_folder" {
-  description = "Common services folder where non-tenant related resources should be kept."
-  value       = module.branch-common-services-folder.folder.name
+  description = "Parent for downstream-stage folders (security, networking, dept). With a compliance regime, this is the AW workload folder; without, it is the organization root. Kept under the legacy 'common_services_folder' name for backwards compatibility with L1's tfvars schema."
+  value       = local.managed_folder_id
 }
 
 output "custom_roles" {

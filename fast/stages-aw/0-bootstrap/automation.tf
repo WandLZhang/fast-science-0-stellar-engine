@@ -27,7 +27,7 @@ module "automation-project" {
   name            = "iac-core-0"
   lien_reason     = "Protected by default as a core project."
   parent = coalesce(
-    var.project_parent_ids.automation, module.branch-common-services-folder.folder.name
+    var.project_parent_ids.automation, local.managed_folder_id
   )
   prefix = local.prefix
   contacts = (

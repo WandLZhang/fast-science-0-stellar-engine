@@ -43,4 +43,11 @@ locals {
   }
   # naming: environment used in most resource names
   prefix = join("-", compact([var.prefix, "prod"]))
+  # Top-level managed folder name. Only used when assured_workloads.regime is
+  # set; when unspecified, bootstrap projects nest directly under the org root
+  # (no wrapper folder — avoids awkward "CRU"/"no-compliance" folder names).
+  managed_folder_name = coalesce(
+    var.managed_folder_name,
+    lower(lookup(var.regime_mapping, var.assured_workloads.regime, "managed"))
+  )
 }

@@ -183,6 +183,12 @@ variable "iam_by_principals" {
   nullable    = false
 }
 
+variable "managed_folder_name" {
+  description = "Display name for the top-level Assured Workloads folder when assured_workloads.regime is set. Defaults to the lowercased regime short code (e.g., \"il5\", \"frh\") via regime_mapping. Ignored when regime is COMPLIANCE_REGIME_UNSPECIFIED — in that case there is no wrapper folder; bootstrap projects nest directly under the organization root."
+  type        = string
+  default     = null
+}
+
 variable "locations" {
   description = "Optional locations for GCS, BigQuery, logging buckets, and KMS keyrings. KMS defaults to var.regions.primary (regional) for backwards compatibility — set explicitly to a multi-region (lowercase, e.g. \"us\", \"europe\") only if your GCS/BQ resources are also multi-region and need a multi-region key."
   type = object({
