@@ -73,6 +73,7 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 | 16 | **Environments** — `Prod` only, or `Prod + Int + Test`? | `________` | 1 | `envs_folders` |
 | 17 | **Networking topology** — `NCC` (recommended) or `NVA` (only if you require L7 inspection / IPS for N-S or E-W traffic) | `NCC` | 2 | Stage 2 dataset choice |
 | 18 | **On-prem connectivity?** (N, or VPN/Interconnect) | `N` | 2 | VPN/VLAN config in dataset |
+| 19 | **Managed folder name** (optional override for the top-level AW folder; ignored when regime is unspecified — see Stage 0 below) | `________` | 0 | `managed_folder_name` |
 
 ---
 
@@ -80,33 +81,32 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 
 This diagram tracks your deployment progress. All nodes start as **⏳ Planned** (dashed gray). After each stage, update them to **✅ Deployed** (solid colored).
 
+**Unspecified regime** (default L0 deployment) — bootstrap projects nest directly under the organization root; no managed wrapper folder. Compliance regimes (IL5, FedRAMP High, etc.) appear later as separate top-level folders, each containing their own L0 bootstrap projects and downstream stages.
+
 ```mermaid
 graph TB
     ORG["🏢 GCP Organization<br/><i>your-domain.edu</i>"]
 
-    ORG --> AW["📁 StellarEngine-PREFIX<br/><i>⏳ Planned — Stage 0</i>"]
+    ORG --> P1["📦 PREFIX-prod-iac-core-0<br/><i>⏳ Stage 0 — Automation + State Buckets</i>"]
+    ORG --> P2["📦 PREFIX-prod-audit-logs-0<br/><i>⏳ Stage 0 — Audit Logging</i>"]
+    ORG --> P3["📦 PREFIX-prod-billing-exp-0<br/><i>⏳ Stage 0 — Billing Export</i>"]
 
-    AW --> CS["📁 Common Services<br/><i>⏳ Planned — Stage 0</i>"]
-    AW --> NET["📁 Networking<br/><i>⏳ Planned — Stage 1</i>"]
-    AW --> SEC["📁 Security<br/><i>⏳ Planned — Stage 3</i>"]
-    AW --> PROD["📁 Prod<br/><i>⏳ Planned — Stage 1</i>"]
+    ORG --> NET["📁 Networking<br/><i>⏳ Stage 1</i>"]
+    ORG --> SEC["📁 Security<br/><i>⏳ Stage 1</i>"]
+    ORG --> PROD["📁 Prod (env)<br/><i>⏳ Stage 1</i>"]
 
-    CS --> P1["📦 PREFIX-prod-iac-core-0<br/><i>⏳ Automation + State Buckets</i>"]
-    CS --> P2["📦 PREFIX-prod-audit-logs-0<br/><i>⏳ Audit Logging</i>"]
-    CS --> P3["📦 PREFIX-prod-billing-exp-0<br/><i>⏳ Billing Export</i>"]
+    NET --> P4["📦 PREFIX-net-core-0<br/><i>⏳ Stage 2 — Hub VPC + NCC Hub + Cloud NAT</i>"]
+    NET --> P5["📦 PREFIX-net-prod-0<br/><i>⏳ Stage 2 — Prod Spoke VPC + Cloud NAT</i>"]
 
-    NET --> P4["📦 PREFIX-net-core-0<br/><i>⏳ Hub VPC + NCC Hub + Cloud NAT</i>"]
-    NET --> P5["📦 PREFIX-net-prod-0<br/><i>⏳ Prod Spoke VPC + Cloud NAT</i>"]
+    SEC --> P8["📦 PREFIX-dev-sec-core-0<br/><i>⏳ Stage 3 — Dev KMS</i>"]
+    SEC --> P9["📦 PREFIX-prod-sec-core-0<br/><i>⏳ Stage 3 — Prod KMS</i>"]
 
-    SEC --> P8["📦 PREFIX-dev-sec-core-0<br/><i>⏳ Dev KMS</i>"]
-    SEC --> P9["📦 PREFIX-prod-sec-core-0<br/><i>⏳ Prod KMS</i>"]
-
-    PROD --> L1["📁 Researcher Projects<br/><i>⏳ Planned — L1 Project Factory</i>"]
+    PROD --> L1["📁 Researcher Projects<br/><i>⏳ L1 Project Factory</i>"]
     L1 --> RP["📦 PREFIX-dept-researcher<br/><i>⏳ 24 APIs, SA, VPC, Cloud NAT</i>"]
 
+    ORG --> CR["📁 (later) il5 / frh / il4<br/><i>compliance regimes — separate L0 deployments</i>"]
+
     style ORG fill:#fff,stroke:#333,stroke-width:2px
-    style AW stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
-    style CS stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style NET stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style SEC stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style PROD stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
@@ -119,6 +119,7 @@ graph TB
     style P9 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style L1 stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
     style RP stroke-dasharray: 5 5,stroke:#90a4ae,fill:#fafafa
+    style CR stroke-dasharray: 5 5,stroke:#bdbdbd,fill:#f5f5f5
 ```
 
 
@@ -263,7 +264,7 @@ This grants the 13 org-level roles needed to run Stage 0 (logging admin, org adm
 ## Stage 0: Bootstrap
 
 **Directory:** `fast/stages-aw/0-bootstrap/`  
-**What it creates:** Top-level folder, Common Services folder, automation project, audit logs project, billing export project, service accounts, GCS state buckets, org policies, custom roles.
+**What it creates:** Automation project (Terraform state buckets + SAs), audit logs project, billing export project, org policies, custom roles, KMS keys. For `COMPLIANCE_REGIME_UNSPECIFIED`, these projects nest directly under the organization root with no wrapper folder. For a compliance regime (`IL5`, `FEDRAMP_HIGH`, etc.), they nest inside an Assured Workloads folder named after the regime short code (e.g., `il5`, `frh`) — override with `var.managed_folder_name`.
 
 ### Step 1 — Configure variables
 
@@ -380,7 +381,7 @@ terraform output assured_workload
 
 Stage 0 outputs are automatically written to `~/fast-config/` (or GCS bucket) for Stage 1 to consume.
 
-> **📋 Update Deployment Map:** Stage 0 is complete. In the Deployment Map diagram above, change nodes **AW**, **CS**, **P1**, **P2**, **P3** from `⏳ Planned` to `✅ Deployed`. Replace `PREFIX` with your actual prefix from the questionnaire. Change their styles from dashed gray to solid: AW → `fill:#e3f2fd,stroke:#1565c0,stroke-width:2px`, CS/P1/P2/P3 → `fill:#e8f5e9,stroke:#2e7d32`.
+> **📋 Update Deployment Map:** Stage 0 is complete. In the Deployment Map diagram above, change nodes **P1**, **P2**, **P3** from `⏳ Planned` to `✅ Deployed`. Replace `PREFIX` with your actual prefix from the questionnaire. Change their styles from dashed gray to solid: P1/P2/P3 → `fill:#e8f5e9,stroke:#2e7d32`.
 
 ---
 
