@@ -129,10 +129,9 @@ variable "fast_features" {
     data_platform   = optional(bool, false)
     gcve            = optional(bool, false)
     gke             = optional(bool, false)
-    project_factory = optional(bool, false)
+    project_factory = optional(bool, true)
     sandbox         = optional(bool, false)
-    teams           = optional(bool, false)
-    envs            = optional(bool, false)
+    teams           = optional(bool, true)
   })
   default  = {}
   nullable = false

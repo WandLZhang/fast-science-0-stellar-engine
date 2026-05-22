@@ -70,7 +70,7 @@ Fill in your values before starting. Every answer maps directly to a `terraform.
 | 13 | **Group: Network Admins** (e.g. `gcp-vpc-network-admins`) | `________` | 0 | `groups.gcp-vpc-network-admins` |
 | 14 | **Group: Org Admins** (e.g. `gcp-organization-admins`) | `________` | 0 | `groups.gcp-organization-admins` |
 | 15 | **Group: Security Admins** (e.g. `gcp-security-admins`) | `________` | 0 | `groups.gcp-security-admins` |
-| 16 | **Environments** — `Prod` only, or `Prod + Int + Test`? | `________` | 1 | `envs_folders` |
+| 16 | *(deprecated)* — environment folders removed; each department has its own Dev/Prod subfolders (L1). | — | — | — |
 | 17 | **Networking topology** — `NCC` (recommended) or `NVA` (only if you require L7 inspection / IPS for N-S or E-W traffic) | `NCC` | 2 | Stage 2 dataset choice |
 | 18 | **On-prem connectivity?** (N, or VPN/Interconnect) | `N` | 2 | VPN/VLAN config in dataset |
 | 19 | **Managed folder name** (optional override; default `it-services` for unspecified regime, regime short code for compliance) | `________` | 0 | `managed_folder_name` |
@@ -330,8 +330,10 @@ org_policies_config = {
 }
 
 fast_features = {
-  envs            = true
-  project_factory = true   # Enable to use L1 project factory for researcher projects
+  # teams and project_factory default to true (the Fast Science L1 model
+  # needs both). Set to false only to opt out.
+  # teams           = true   # default — creates department folders + tag delegation
+  # project_factory = true   # default — IT can create projects in dept folders
 }
 
 log_sinks = {
@@ -396,7 +398,9 @@ Stage 0 outputs are automatically written to `~/fast-config/` (or GCS bucket) fo
 ## Stage 1: Resource Management
 
 **Directory:** `fast/stages-aw/1-resman/`  
-**What it creates:** The organizational folder structure — Networking, Security, and Environment folders. Also creates automation service accounts and state buckets for Stages 2-3. This stage does **not** create department or researcher projects — those are handled by L1 (researcher-lab).
+**What it creates:** The organizational folder structure for downstream stages — Networking and Security folders nested under the managed wrapper. This stage no longer creates env folders (Prod/Int/Test) — each department gets its own Development/Production subfolders via L1, so a separate top-level env wrapper is redundant.
+
+For department folder creation + IAM delegation + folder-level org policies + per-dept tag bindings, proceed to the **[L1 researcher-lab repo](https://github.com/WandLZhang/fast-science-1-researcher-lab)** after Stage 3.
 
 ### Step 1 — Link outputs from Stage 0
 
@@ -406,30 +410,9 @@ cd fast/stages-aw/1-resman
 # Copy and paste the output commands
 ```
 
-### Step 2 — Configure variables
+### Step 2 — Apply
 
-```bash
-cp terraform.tfvars.sample terraform.tfvars
-```
-
-Edit `terraform.tfvars`:
-
-```hcl
-# ─── Environment Folders ──────────────────────────────────────
-# Start with Prod only. Add Int/Test later as needed.
-envs_folders = {
-  Prod = { admin = "gcp-organization-admins@university.edu" }
-}
-
-# ─── Features ─────────────────────────────────────────────────
-fast_features = {
-  envs = true
-}
-
-# No tenant projects — department/researcher projects are created by L1 (researcher-lab)
-```
-
-### Step 3 — Apply
+No tfvars needed for L0's Stage 1 — defaults are correct (`fast_features.teams = true`, `fast_features.project_factory = true` enable L1's per-department resources when you deploy the L1 repo).
 
 ```bash
 terraform init
@@ -437,7 +420,7 @@ terraform plan
 terraform apply
 ```
 
-> **📋 Update Deployment Map:** Stage 1 is complete. In the Deployment Map diagram above, change nodes **NET** and **PROD** from `⏳ Planned` to `✅ Deployed`. Change their styles from dashed gray to solid: NET → `fill:#fff3e0,stroke:#e65100`, PROD → `fill:#f3e5f5,stroke:#6a1b9a`.
+> **📋 Update Deployment Map:** Stage 1 is complete. In the Deployment Map diagram above, no nodes change at this stage (the `NET` and `SEC` folder modules are created by 1-resman but rendered as already-deployed once Stage 2/3 fills them).
 
 ---
 
