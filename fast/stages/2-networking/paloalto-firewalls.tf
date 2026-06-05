@@ -20,7 +20,7 @@
 locals {
   pa_metadata = local.paloalto_enabled ? merge(
     {
-      vmseries-bootstrap-gce-storagebucket = ""
+      vmseries-bootstrap-gce-storagebucket = module.paloalto_bootstrap_bucket[0].name
       mgmt-interface-swap                  = "enable"
     },
     var.paloalto.ssh_public_key_file != null ? {
