@@ -470,13 +470,21 @@ graph TB
 
 **Best for:** Deployments that require Layer 7 inspection / IPS for North-South or East-West traffic — regardless of compliance regime. If your ATO or security team does not mandate inline L7 inspection, use NCC instead.
 
-Uses Network Virtual Appliances (NVAs) to inspect all traffic between spokes and before internet egress. Two sub-options:
-- **Linux NVA** (`2-networking-a-fedramp-high/`): COS-based iptables router — forwards and masquerades traffic but provides no inspection. Use as a starting point or replace with a commercial appliance.
-- **Palo Alto NGFW** (`2-networking-b-il5-ngfw/`): Deploys VM-Series instances with a minimal bootstrap config (allow-all-outbound, one NAT rule). No Panorama/SCM connection is configured.
+Uses Network Virtual Appliances (NVAs) to inspect traffic between spokes and before internet egress. The NVA path lives in the **same `fast/stages/2-networking/` stage** as NCC — you select it by pointing `factories_config.dataset` at `datasets/hub-and-spokes-nva`, and you choose the appliance behind the load balancers:
 
-See the [NVA networking documentation](fast/stages-aw/2-networking-a-fedramp-high/README.md) for the full hub-and-spoke-with-NVA architecture.
+- **Simple Linux NVA** (default for the NVA dataset): COS-based iptables router — forwards and masquerades traffic but provides no L7 inspection. A placeholder/starting point.
+- **Palo Alto NGFW (full)**: set `paloalto.enabled = true`. Deploys a production-grade **2-tier Palo Alto VM-Series** design (ported and generalized from a real NJ-OIT deployment):
+  - **E/W firewall** (mngt+trust NICs) and **N/S firewall** (mngt+trust+untrust NICs), each a stateful regional MIG with rolling updates.
+  - **NCC STAR topology** (trust/mngt as center spokes) with **policy-based routes** forcing east-west traffic through the E/W firewall.
+  - **Panorama auto-registration**: firewalls bootstrap from GCS and register with your Panorama by `panorama_server` IP; Panorama pushes the real policy (Day 2).
+  - **Session-affinity ILBs** (`CLIENT_IP_NO_DESTINATION`) for stateful-firewall flow symmetry, Cloud NAT on untrust, HA VPN to on-prem, and private-googleapis DNS on the trust VPC.
+  - Enable via `datasets/hub-and-spokes-nva/paloalto.auto.tfvars.sample` (panorama_server is required).
 
-> **Day 2 (NVA only):** Terraform deploys the NVA infrastructure but not production firewall policy. After `terraform apply`, you must connect to your management plane (Panorama, Strata Cloud Manager, or equivalent) to push security profiles, replace the allow-all rule, configure threat prevention / URL filtering / decryption, add license auth codes, and set up log forwarding.
+> **Day 2 (Palo Alto):** Terraform stands up the firewalls, networking, and Panorama *registration*. Your security team manages the actual policy (security profiles, threat prevention, URL filtering, decryption, BYOL license auth codes) from Panorama. The firewalls are stateless/cattle — they re-bootstrap and re-register on recreation.
+>
+> **Prerequisites:** a reachable Panorama, Palo Alto VM-Series BYOL licensing, and the `mngt`/`trust`/`untrust` VPCs (shipped in the `hub-and-spokes-nva` dataset). `terraform validate` confirms the wiring; full `apply` requires the license + Panorama.
+
+The legacy hand-built FedRAMP/IL5 NVA stages remain under `fast/stages-aw/2-networking-{a,b}` for reference, but the maintained NVA path is the dataset above.
 
 ### Steps (both topologies)
 
