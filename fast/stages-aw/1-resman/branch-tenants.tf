@@ -129,7 +129,7 @@ module "tenant-core-gcs" {
   name          = lower("tn-${each.key}-0")
   prefix        = var.prefix
   versioning    = true
-  force_destroy = true
+  force_destroy = var.force_destroy
   location      = local.gcs_locations[each.value.tenant]
   storage_class = (
     length(split("-", local.gcs_locations[each.value.tenant])) < 2
@@ -147,6 +147,10 @@ module "tenant-core-gcs" {
 module "tenant-self-iac-projects" {
   source   = "../../../modules/project"
   for_each = local.tenant_envs
+  providers = {
+    google      = google.billing
+    google-beta = google-beta.billing
+  }
   billing_account = (
     each.value.tenant_info.billing_account != null
     ? each.value.tenant_info.billing_account
@@ -163,6 +167,12 @@ module "tenant-self-iac-projects" {
     ]
   }
   iam = {
+    # Expected that the service account will have owner permissions on the project it
+    # creates this role will be removed during stage 3 when sa-lockdown-runs.
+    # This iam simply reaffirms the permissions resman should already have.
+    "roles/owner" = [
+      "serviceAccount:${var.automation.service_accounts.resman}"
+    ]
     (var.custom_roles.storage_viewer) = [
       "serviceAccount:${var.automation.service_accounts.resman-r}"
     ]
@@ -210,7 +220,7 @@ module "tenant-self-iac-gcs-outputs" {
   name          = "${each.key}-iac-outputs-0"
   prefix        = var.prefix
   versioning    = true
-  force_destroy = true
+  force_destroy = var.force_destroy
   iam = {
     "roles/storage.objectAdmin" = [module.tenant-core-sa[each.key].iam_email]
   }
@@ -232,7 +242,7 @@ module "tenant-self-iac-gcs-states" {
   name           = "${each.key}-iac-0"
   prefix         = var.prefix
   versioning     = true
-  force_destroy  = true
+  force_destroy  = var.force_destroy
   encryption_key = module.tenant-project-keys[each.key].key_ids["gcs"]
   depends_on     = [module.tenant-project-keys, google_kms_crypto_key_iam_member.tenant_kms]
 }
@@ -258,6 +268,10 @@ module "tenant-self-iac-sa" {
 module "tenant-self-main-projects" {
   source   = "../../../modules/project"
   for_each = local.tenant_envs
+  providers = {
+    google      = google.billing
+    google-beta = google-beta.billing
+  }
   billing_account = (
     each.value.tenant_info.billing_account != null
     ? each.value.tenant_info.billing_account
@@ -274,6 +288,12 @@ module "tenant-self-main-projects" {
     ]
   }
   iam = {
+    # Expected that the service account will have owner permissions on the project it
+    # creates this role will be removed during stage 3 when sa-lockdown-runs.
+    # This iam simply reaffirms the permissions resman should already have.
+    "roles/owner" = [
+      "serviceAccount:${var.automation.service_accounts.resman}"
+    ]
     (var.custom_roles.storage_viewer) = [
       "serviceAccount:${var.automation.service_accounts.resman-r}"
     ]
@@ -309,6 +329,16 @@ module "tenant-self-main-projects" {
     "storage-component.googleapis.com",
     "storage.googleapis.com",
     "sts.googleapis.com"
+  ]
+}
+
+#added for key and bucket provisioning
+resource "time_sleep" "tenant_project_iam_propagation_delay" {
+  create_duration = "30s"
+
+  depends_on = [
+    module.tenant-self-iac-projects,
+    module.tenant-self-main-projects
   ]
 }
 

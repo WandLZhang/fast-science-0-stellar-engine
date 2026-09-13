@@ -181,14 +181,16 @@ locals {
     "user:${var.bootstrap_user}" = {
       authoritative = [
         "roles/logging.admin",
-        "roles/iam.organizationRoleAdmin",
         "roles/resourcemanager.folderAdmin",
         "roles/resourcemanager.organizationAdmin",
         "roles/resourcemanager.projectCreator",
         "roles/resourcemanager.tagAdmin"
       ]
       # TODO: align additive roles with the README
-      additive = (
+      additive = concat(
+        [
+          "roles/iam.organizationRoleAdmin"
+        ],
         local.billing_mode != "org" ? [] : [
           "roles/billing.admin"
         ]

@@ -42,7 +42,8 @@ locals {
     kms     = coalesce(var.locations.kms, var.regions.primary)
   }
   # naming: environment used in most resource names
-  prefix = join("-", compact([var.prefix, "prod"]))
+  prefix               = join("-", compact([var.prefix, "prod"]))
+  kms_protection_level = coalesce(var.kms_protection_level, var.assured_workloads.regime == "FEDRAMP_MODERATE" ? "SOFTWARE" : "HSM")
   # Top-level managed folder name. Used both for the AW workload display
   # name (compliance regimes) and for the regular wrapper folder created at
   # the org root (unspecified regime). Default:

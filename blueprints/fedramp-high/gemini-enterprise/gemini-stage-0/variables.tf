@@ -24,15 +24,14 @@ variable "tenant" {
   type        = string
 }
 
-variable "kms_project_id" {
-  description = "The Project ID where CMEK keys are stored."
+variable "compliance_regime" {
+  description = "Compliance regime this environment is deployed in (e.g. FEDRAMP_HIGH, IL4, IL5, NONE)."
   type        = string
-}
-
-variable "us_keyring_name" {
-  description = "The name of the US Multi-Region KeyRing (if existing). If empty, one will be created."
-  type        = string
-  default     = ""
+  default     = "NONE"
+  validation {
+    condition     = contains(["FEDRAMP_HIGH", "IL4", "IL5", "NONE"], var.compliance_regime)
+    error_message = "Allowed values for compliance_regime are FEDRAMP_HIGH, IL4, IL5, and NONE."
+  }
 }
 
 variable "domain" {
@@ -61,9 +60,9 @@ variable "admin_group" {
   type        = string
 }
 
-variable "user_group" {
-  description = "The email address of the Gemini Enterprise users group."
-  type        = string
+variable "user_groups" {
+  description = "A list of email addresses or principal sets for the Gemini Enterprise users group."
+  type        = list(string)
 }
 
 variable "gemini_enterprise_gcs_bucket_name" {
@@ -102,15 +101,23 @@ variable "access_end_hour" {
 }
 
 variable "access_start_day" {
-  description = "The day of the week when access starts (1 for Monday, 7 for Sunday)."
+  description = "The day of the week when access starts, evaluated using CEL getDayOfWeek() where 0 is Sunday, 1 is Monday, ..., 6 is Saturday (0-6)."
   type        = number
   default     = 1
+  validation {
+    condition     = var.access_start_day >= 0 && var.access_start_day <= 6
+    error_message = "access_start_day must be an integer between 0 (Sunday) and 6 (Saturday)."
+  }
 }
 
 variable "access_end_day" {
-  description = "The day of the week when access ends (1 for Monday, 7 for Sunday)."
+  description = "The day of the week when access ends, evaluated using CEL getDayOfWeek() where 0 is Sunday, 1 is Monday, ..., 6 is Saturday (0-6)."
   type        = number
   default     = 5
+  validation {
+    condition     = var.access_end_day >= 0 && var.access_end_day <= 6
+    error_message = "access_end_day must be an integer between 0 (Sunday) and 6 (Saturday)."
+  }
 }
 
 variable "access_time_zone" {
@@ -132,13 +139,29 @@ variable "kms_key_id" {
 }
 
 variable "deployment_type" {
-  description = "Type of deployment: 'internal' or 'external'"
+  description = "Type of deployment: 'internal', 'external', or 'none'"
   type        = string
   default     = "external" # Default to external as per original design
   validation {
-    condition     = contains(["internal", "external"], var.deployment_type)
-    error_message = "Allowed values for deployment_type are 'internal' or 'external'."
+    condition     = contains(["internal", "external", "none"], var.deployment_type)
+    error_message = "Allowed values for deployment_type are 'internal', 'external', or 'none'."
   }
+}
+
+variable "cert_management_choice" {
+  description = "Certificate management choice for external deployments: 'google_managed' or 'self_managed'."
+  type        = string
+  default     = "self_managed"
+  validation {
+    condition     = contains(["google_managed", "self_managed"], var.cert_management_choice)
+    error_message = "Allowed values for cert_management_choice are 'google_managed' or 'self_managed'."
+  }
+}
+
+variable "custom_domain" {
+  description = "The fully qualified domain name (FQDN) to use for the Google-managed certificate."
+  type        = string
+  default     = ""
 }
 
 variable "create_ip_based_access" {
@@ -190,12 +213,12 @@ variable "create_data_stores" {
 }
 
 variable "acl_idp_type" {
-  description = "The Identity Provider type for Discovery Engine ACLs. Options: 'GSUITE', 'THIRD_PARTY'."
+  description = "The Identity Provider type for Discovery Engine ACLs. Options: 'GSUITE', 'THIRD_PARTY', 'GOOGLE_CLOUD_IDENTITY'."
   type        = string
-  default     = "GSUITE"
+  default     = "GOOGLE_CLOUD_IDENTITY"
   validation {
-    condition     = contains(["GSUITE", "THIRD_PARTY"], var.acl_idp_type)
-    error_message = "The acl_idp_type value must be either 'GSUITE' or 'THIRD_PARTY'."
+    condition     = contains(["GSUITE", "THIRD_PARTY", "GOOGLE_CLOUD_IDENTITY"], var.acl_idp_type)
+    error_message = "The acl_idp_type value must be either 'GSUITE', 'THIRD_PARTY', or 'GOOGLE_CLOUD_IDENTITY'."
   }
 }
 
@@ -253,20 +276,26 @@ variable "shared_vpc_proxy_subnet_name" {
   default     = ""
 }
 
-variable "gcs_data_store_names" {
-  description = "A list of names to use for creating GCS buckets and associated Discovery Engine Data Stores."
-  type        = list(string)
-  default     = []
+variable "gcs_data_store_configs" {
+  description = "A map of configurations for Google Cloud Storage (GCS) Data Stores. If create_bucket is true, the script will create the bucket."
+  type = map(object({
+    name          = string
+    create_bucket = bool
+    display_name  = optional(string)
+  }))
+  default = {}
 }
 
 variable "bq_data_store_configs" {
-  description = "A list of objects defining BigQuery datasets and tables to create and connect to Discovery Engine. Each object should have 'dataset_id' and 'table_id'."
-  type = list(object({
-    dataset_id = string
-    table_id   = string
-
+  description = "A map of configurations for BigQuery Data Stores. If create_dataset is true, it creates the dataset. Schema provides the structure for the data."
+  type = map(object({
+    dataset_id     = string
+    table_id       = string
+    create_dataset = bool
+    schema         = optional(string)
+    display_name   = optional(string)
   }))
-  default = []
+  default = {}
 }
 
 
@@ -286,4 +315,32 @@ variable "moderate_device_access_levels" {
   description = "List of Access Levels to include in the Moderate Device Policy."
   type        = list(string)
   default     = []
+}
+
+variable "enable_data_store_cmek" {
+  description = "Whether to encrypt Data Stores with CMEK. If false, Google-managed keys will be used."
+  type        = bool
+  default     = true
+}
+
+variable "enable_analytics" {
+  description = "Enable analytics for Gemini Enterprise via Discovery Engine Audit Logs."
+  type        = bool
+  default     = false
+}
+
+variable "gemini_apps" {
+  description = "A map of Gemini Enterprise Search Application configurations."
+  type = map(object({
+    display_name                          = string
+    company_name                          = string
+    gcs_data_store_keys                   = optional(list(string), [])
+    bq_data_store_keys                    = optional(list(string), [])
+    external_data_store_ids               = optional(list(string), [])
+    enable_agent_sharing                  = optional(bool, false)
+    enable_agent_sharing_without_approval = optional(bool, true)
+    enable_audit_logs                     = optional(bool, false)
+    enable_model_armor                    = optional(bool, false)
+  }))
+  default = {}
 }

@@ -1,3 +1,17 @@
+# Copyright 2026 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import click
 import json
 from googleapiclient.errors import HttpError
@@ -5,7 +19,6 @@ from googleapiclient.discovery import build
 from google.api_core.client_options import ClientOptions
 import random
 import string
-import json
 
 def generate_id(prefix):
     """Generates a random 6-character alphanumeric string."""
@@ -293,7 +306,7 @@ def create_data_store_schema(credentials, project_id, data_store_id, schema):
     )
 
     try:
-        response = request.execute()
+        request.execute()
         click.echo(f"Default schema for data store {data_store_id} successfully patched")
     except Exception as e:
         click.echo(click.style(f"An error occurred while patching the default schema: {parse_http_error(e)}", fg=(255,165,0)))
