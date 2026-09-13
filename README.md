@@ -1,16 +1,16 @@
 # Fast Science — GCP Landing Zone Foundation (L0)
 
-An implementation of [Stellar Engine](https://github.com/gcp-stellar-engine/stellar-engine) for research institutions. This repo deploys a production-ready GCP Organization landing zone using Terraform — the folders, projects, IAM, networking, and security controls that must exist before researchers can run workloads. Built on Stellar Engine's IaC with compliance overlays (FedRAMP High, IL4, IL5) available when needed.
+An implementation of [Stellar Engine](https://github.com/google/stellar-engine) for research institutions. This repo deploys a production-ready GCP Organization landing zone using Terraform — the folders, projects, IAM, networking, and security controls that must exist before researchers can run workloads. Built on Stellar Engine's IaC with compliance overlays (FedRAMP High, IL4, IL5) available when needed.
 
 ---
 
 ## Architecture Overview
 
-Stellar Engine is **Layer 0** (L0) of a three-tier "Fast Science" architecture:
+This repo is **Layer 0** (L0) of a three-tier "Fast Science" architecture:
 
 ```mermaid
 graph TB
-    subgraph L0["L0 — stellar-engine (Central IT)"]
+    subgraph L0["L0 — landing zone (Central IT)"]
         direction TB
         S0["Stage 0: Bootstrap<br/>Org, IAM, Automation, Org Policies"]
         S1["Stage 1: Resource Mgmt<br/>Folders, SAs, State Buckets"]
@@ -185,7 +185,7 @@ Pick a prefix of **≤7 characters** using **only alphanumeric characters** (no 
 
 ### 5. Bootstrap Project
 
-Create a "seed" project. This is the first GCP project in your org — Stellar Engine uses it to bootstrap automation:
+Create a "seed" project. This is the first GCP project in your org — Stage 0 uses it to bootstrap automation:
 
 ```bash
 export PREFIX="univ"                        # Your chosen prefix
@@ -216,7 +216,7 @@ This enables: IAM, Cloud KMS, Pub/Sub, Service Usage, Resource Manager, BigQuery
 
 ### 7. Google Groups
 
-Stellar Engine uses groups (from the [GCP Enterprise Setup Checklist](https://cloud.google.com/docs/enterprise/setup-checklist)) for all org-level IAM bindings. Create these 5 groups using whichever method matches your identity setup:
+The landing zone uses groups (from the [GCP Enterprise Setup Checklist](https://cloud.google.com/docs/enterprise/setup-checklist)) for all org-level IAM bindings. Create these 5 groups using whichever method matches your identity setup:
 
 | Group | Purpose |
 |-------|---------|
@@ -249,11 +249,11 @@ for GROUP in gcp-billing-admins gcp-devops gcp-vpc-network-admins gcp-organizati
   gcloud identity groups create "${GROUP}@${DOMAIN}" \
     --organization="${ORG_ID}" \
     --display-name="${GROUP}" \
-    --description="Stellar Engine ${GROUP} group"
+    --description="Landing zone ${GROUP} group"
 done
 ```
 
-These Cloud Identity groups work with Workforce Identity Federation — your external IdP maps federated identities into these GCP groups, which then receive IAM bindings from Stellar Engine.
+These Cloud Identity groups work with Workforce Identity Federation — your external IdP maps federated identities into these GCP groups, which then receive IAM bindings from the landing zone.
 
 </details>
 
@@ -636,7 +636,7 @@ Once all 4 stages complete successfully, your landing zone is ready.
 → Then: Researchers deploy L2 workloads in their projects
 ```
 
-Proceed to the [L1 Researcher Labs](https://github.com/WandLZhang/fast-science-1-researcher-lab) repo to create researcher projects using Stellar Engine's project factory module. Each researcher gets a YAML file → a GCP project with 24 APIs, SA, billing, logging, and monitoring pre-configured.
+Proceed to the [L1 Researcher Labs](https://github.com/WandLZhang/fast-science-1-researcher-lab) repo to create researcher projects using the project factory module. Each researcher gets a YAML file → a GCP project with 24 APIs, SA, billing, logging, and monitoring pre-configured.
 
 ---
 
@@ -678,9 +678,11 @@ Google Cloud Assured Workloads simplifies creating compliant environments (FedRA
 <details>
 <summary><b>🤝 Contributing</b></summary>
 
-- **View access:** Fill out this [form](https://docs.google.com/forms/d/e/1FAIpQLScetWXBErWaopYrGa8qKz6vFZOz1-_O0o_HAU4tr4vdhMzWpQ/viewform) for [GitHub](https://github.com/gcp-stellar-engine/stellar-engine) access
-- **Issues:** Create an issue on GitHub and email [stellar-engine@google.com](mailto:stellar-engine@google.com)
-- **Code contributions:** Email [stellar-engine@google.com](mailto:stellar-engine@google.com) for developer access
+Upstream is [google/stellar-engine](https://github.com/google/stellar-engine), public under Apache 2.0.
+
+- **Issues:** [File upstream](https://github.com/google/stellar-engine/issues) for framework bugs, here for the research layers.
+- **Code:** Upstream takes pull requests. You need a signed [Google CLA](https://cla.developers.google.com/).
+- **Releases:** Minor versions tag on the last Friday of each month. Sync to a tag, not `main`.
 
 </details>
 
