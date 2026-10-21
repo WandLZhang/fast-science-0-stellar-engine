@@ -169,7 +169,8 @@ locals {
     {
       for k, v in module.branch-teams-team-prod-folder :
       "team-${k}-prod" => v.id
-    }
+    },
+    local.edu_folder_ids
   )
   providers_raw = merge(
     {
@@ -309,7 +310,8 @@ locals {
           sa     = v.email
         }
       }
-    )
+    ),
+    local.edu_providers_raw
   )
   providers = {
     for k, v in local.providers_raw : k => templatefile(local._tpl_providers, merge(
@@ -348,6 +350,7 @@ locals {
     {
       for k, v in module.branch-teams-team-sa : "team-${k}" => v.email
     },
+    local.edu_service_accounts,
   )
   team_cicd_workflows = {
     for k, v in local.team_cicd_repositories : k => templatefile(
