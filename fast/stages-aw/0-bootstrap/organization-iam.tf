@@ -59,8 +59,6 @@ locals {
           "roles/axt.admin",
           "roles/cloudasset.owner",
           "roles/cloudsupport.admin",
-          "roles/compute.osAdminLogin",
-          "roles/compute.osLoginExternalUser",
           "roles/iam.organizationRoleAdmin",
           "roles/resourcemanager.folderAdmin",
           "roles/resourcemanager.organizationAdmin",

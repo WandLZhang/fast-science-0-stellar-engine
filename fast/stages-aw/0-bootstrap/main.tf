@@ -37,13 +37,12 @@ locals {
   locations = {
     bq      = var.locations.bq
     gcs     = var.locations.gcs
-    logging = coalesce(try(local.checklist.location, null), var.locations.logging != "global" ? var.locations.logging : var.regions.primary)
+    logging = var.locations.logging != "global" ? var.locations.logging : var.regions.primary
     pubsub  = length(var.locations.pubsub) > 0 ? var.locations.pubsub : [var.regions.primary]
     kms     = coalesce(var.locations.kms, var.regions.primary)
   }
   # naming: environment used in most resource names
-  prefix               = join("-", compact([var.prefix, "prod"]))
-  kms_protection_level = coalesce(var.kms_protection_level, var.assured_workloads.regime == "FEDRAMP_MODERATE" ? "SOFTWARE" : "HSM")
+  prefix = join("-", compact([var.prefix, "prod"]))
   # Top-level managed folder name. Used both for the AW workload display
   # name (compliance regimes) and for the regular wrapper folder created at
   # the org root (unspecified regime). Default:

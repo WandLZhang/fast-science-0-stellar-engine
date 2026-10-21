@@ -109,6 +109,7 @@ locals {
     assured_workloads      = merge(var.assured_workloads, { "folder" = local.managed_folder_id })
     common_services_folder = local.managed_folder_id
     dept_folder_parent     = local.dept_folder_parent
+    kms_protection_level   = local.kms_protection_level
     regions                = var.regions
     department_tag = {
       key_id         = google_tags_tag_key.department.id
@@ -172,7 +173,7 @@ output "custom_roles" {
 
 output "kms_protection_level" {
   description = "KMS protection level."
-  value       = var.kms_protection_level
+  value       = local.kms_protection_level
 }
 
 output "outputs_bucket" {

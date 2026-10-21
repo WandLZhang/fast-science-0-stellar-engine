@@ -135,14 +135,18 @@ locals {
             all    = try(r.deny.all, null)
             values = try(r.deny.values, null)
           } : null
-          enforce    = try(r.enforce, null)
-          parameters = try(jsonencode(r.parameters), null)
-          condition = {
+          enforce = try(r.enforce, null)
+          parameters = (
+            try(r.parameters, null) != null
+            ? try(tostring(r.parameters), jsonencode(r.parameters))
+            : null
+          )
+          condition = can(r.condition) ? {
             description = try(r.condition.description, null)
             expression  = try(r.condition.expression, null)
             location    = try(r.condition.location, null)
             title       = try(r.condition.title, null)
-          }
+          } : null
         }
       ]
     }
@@ -200,6 +204,7 @@ resource "google_assured_workloads_workload" "primary" {
   }
 
   violation_notifications_enabled = true
+  depends_on                      = [module.organization-logging]
   lifecycle {
     create_before_destroy = true
     # Renames in code do NOT force AW folder recreation. The folder in GCP
@@ -215,10 +220,14 @@ resource "google_assured_workloads_workload" "primary" {
 #   "it-services" per local.managed_folder_name in main.tf), which holds
 #   the L0 bootstrap projects, L1 school folders, networking, security, etc.
 module "managed-folder" {
-  count  = var.assured_workloads.regime == "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
-  source = "../../../modules/folder"
-  parent = "organizations/${var.organization.id}"
-  name   = local.managed_folder_name
+  count      = var.assured_workloads.regime == "COMPLIANCE_REGIME_UNSPECIFIED" ? 1 : 0
+  source     = "../../../modules/folder"
+  parent     = module.organization-logging.id
+  name       = local.managed_folder_name
+  depends_on = [module.organization-logging]
+  logging_settings = {
+    storage_location = local.locations.logging
+  }
 }
 
 # Resolved IDs:
@@ -322,7 +331,7 @@ module "organization" {
         role    = module.organization.custom_role_id["organization_iam_admin"]
         condition = {
           expression = format(
-            "api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).hasOnly([%s])",
+            "api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).size() > 0 && api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).hasOnly([%s])",
             join(",", formatlist("'%s'", [
               "roles/accesscontextmanager.policyAdmin",
               "roles/cloudasset.viewer",
@@ -345,7 +354,7 @@ module "organization" {
         role    = module.organization.custom_role_id["organization_iam_admin"]
         condition = {
           expression = format(
-            "api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).hasOnly([%s])",
+            "api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).size() > 0 && api.getAttribute('iam.googleapis.com/modifiedGrantsByRole', []).hasOnly([%s])",
             join(",", formatlist("'%s'", [
               "roles/billing.admin",
               "roles/billing.costsManager",

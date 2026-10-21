@@ -27,12 +27,11 @@ locals {
     },
     {
       name = "landing"
-      # Upstream hardcoded primary-only: module.env-spoke-vpc[k].subnets["primary/..."]
-      # Changed to collect ALL spoke subnets so NVA return routes work for any region
       routes = flatten([
         for k, v in var.envs_folders : [
-          for subnet_key, subnet in module.env-spoke-vpc[k].subnets :
-          subnet.ip_cidr_range
+          for s in try(var.subnets[lower(k)], []) :
+          module.env-spoke-vpc[k].subnets["${s.region}/${s.name}"].ip_cidr_range
+          if s.tenant != null
         ]
       ])
     },
@@ -88,8 +87,8 @@ module "nva-template" {
   options = {
     allow_stopping_for_update = true
     deletion_protection       = false
-    spot                      = true
-    termination_action        = "STOP"
+    spot                      = var.nva_spot_vms
+    termination_action        = var.nva_spot_vms ? "STOP" : null
   }
   metadata = {
     user-data              = module.nva-cloud-config.cloud_config
@@ -218,7 +217,6 @@ module "kms" {
 
   iam = {
     "roles/cloudkms.cryptoKeyEncrypterDecrypter" = [
-      google_service_account.compute.member,
       module.vdss-host-project.service_agents.compute.iam_email
     ]
   }
