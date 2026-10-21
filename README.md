@@ -135,7 +135,7 @@ graph TB
 
 ## Prerequisites
 
-This guide assumes you have already completed the [GCP Enterprise Setup Checklist](https://cloud.google.com/docs/enterprise/setup-checklist) — specifically, you have a verified domain, a Google Cloud Organization, and either Google Workspace or Cloud Identity configured.
+This guide assumes you have already completed [Google Cloud Setup](https://docs.cloud.google.com/docs/enterprise/cloud-setup) — specifically, you have a verified domain, a Google Cloud Organization, and either Google Workspace or Cloud Identity configured.
 
 ### 1. Install Tools
 
@@ -181,7 +181,7 @@ Note the `ACCOUNT_ID` value (format: `012345-67890A-BCDEF0`).
 
 ### 4. Choose Your Prefix
 
-Pick a prefix of **≤7 characters** using **only alphanumeric characters** (no hyphens or underscores). E.g.: `univ`. The prefix flows through every resource name automatically — see [naming convention](documentation/naming-convention.md).
+Pick a prefix of **≤7 characters** using **only alphanumeric characters** (no hyphens or underscores). E.g.: `univ`. The prefix flows through every resource name automatically — see [naming convention](docs/naming-convention.md).
 
 ### 5. Bootstrap Project
 
@@ -216,7 +216,7 @@ This enables: IAM, Cloud KMS, Pub/Sub, Service Usage, Resource Manager, BigQuery
 
 ### 7. Google Groups
 
-The landing zone uses groups (from the [GCP Enterprise Setup Checklist](https://cloud.google.com/docs/enterprise/setup-checklist)) for all org-level IAM bindings. Create these 5 groups using whichever method matches your identity setup:
+The landing zone uses groups (from [Google Cloud Setup](https://docs.cloud.google.com/docs/enterprise/cloud-setup)) for all org-level IAM bindings. Create these 5 groups using whichever method matches your identity setup:
 
 | Group | Purpose |
 |-------|---------|
@@ -494,7 +494,7 @@ The legacy hand-built FedRAMP/IL5 NVA stages remain under `fast/stages-aw/2-netw
 # NCC topology (default):
 cd fast/stages/2-networking
 # OR NVA topology (IL5):
-cd fast/stages-aw/2-networking-a-fedramp-high
+cd fast/stages-aw/2-networking-a-fedramp
 
 ../../stage-links.sh ~/fast-config
 # Copy and paste the output commands
@@ -502,14 +502,14 @@ cd fast/stages-aw/2-networking-a-fedramp-high
 
 #### Step 2 — Customize network data files
 
-Edit the YAML factory files in `data/`:
+Edit the YAML factory files in `datasets/<name>/`:
 
 | File | What You Set |
 |------|-------------|
-| `data/vpcs/*/` | VPC configs, subnets, NAT |
-| `data/ncc-hubs/` | NCC hub config (NCC only) |
-| `data/firewall-policies/` | Hierarchical firewall rules |
-| `data/dns/` | DNS zones and response policies |
+| `datasets/<name>/vpcs/*/` | VPC configs, subnets, NAT |
+| `datasets/<name>/ncc-hubs/` | NCC hub config (NCC only) |
+| `datasets/<name>/firewall-policies/` | Hierarchical firewall rules |
+| `datasets/<name>/dns/` | DNS zones and response policies |
 
 #### Step 3 — Apply
 
@@ -593,7 +593,7 @@ graph LR
 | **0-bootstrap** | `data/org-policies/*.yaml` — org policy rules | `variables.tf` — type definitions |
 | **0-bootstrap** | `data/custom-roles/*.yaml` — custom IAM roles | |
 | **1-resman** | `terraform.tfvars` — tenants, envs_folders, features | `branch-*.tf` — folder/SA creation logic |
-| **2-networking** | `data/cidrs.yaml`, `data/subnets/*.yaml`, `data/firewall-rules/*.yaml` | `main.tf` — network topology |
+| **2-networking** | `datasets/<name>/` YAML (NCC stage), `terraform.tfvars` (`stages-aw` NVA stages) | `main.tf` — network topology |
 | **3-security** | `terraform.tfvars` — kms_keys, vpc_sc | `core-dev.tf`, `core-prod.tf` — KMS project logic |
 | **3-security** | `data/vpc-sc/*.yaml` — VPC-SC perimeter definitions | |
 
@@ -615,7 +615,7 @@ automation.tf: module { name = "iac-core-0", prefix = "univ-prod" }
 GCP: project "univ-prod-iac-core-0" ✅
 ```
 
-See [naming convention documentation](documentation/naming-convention.md) for the full spec: `{base}-{regime}-{env}-{role}-{0-9}`.
+See [naming convention documentation](docs/naming-convention.md) for the full spec: `{base}-{regime}-{env}-{role}-{0-9}`.
 
 ---
 
@@ -655,19 +655,19 @@ Compliance-mapped blueprints for [FedRAMP High](./blueprints/fedramp-high/) and 
 
 ### Detailed Deployment Guide (DDG)
 
-Step-by-step deployment manual covering all stages, IAM prerequisites, and troubleshooting. [View DDG](https://docs.google.com/document/d/1UOaHefcxHCl2C4CbYsTl37ZRxB4xmDHbWmfLcF0VY70/edit?pli=1&tab=t.0#heading=h.7axmtvj2exmb) (requires access).
+Step-by-step deployment manual covering all stages, IAM prerequisites, and troubleshooting. [View DDG](docs/ddg.md).
 
 ### Technical Design Document (TDD)
 
-Architecture framework covering IAM, org hierarchy, hub-and-spoke networking, encryption, and compliance. [View TDD](https://docs.google.com/document/d/15WMwslyCrkmuI7EutGBd7YXH3K8P3KrwzLOGcv-W4t8/edit?resourcekey=0-mjoA_PGM2MkIMPpr75SQbQ&tab=t.0) (requires access).
+Architecture framework covering IAM, org hierarchy, hub-and-spoke networking, encryption, and compliance. [View TDD](docs/tdd.md).
 
 ### Security Best Practices Guide (SBPG)
 
-Security hardening framework with Mandiant pen-test recommendations. [View SBPG](https://docs.google.com/document/d/1uv62Fqg73r9oJNP-NPZebpzoBom8rOgLoHkiMZPutbo/edit?usp=sharing) (requires access).
+Security hardening framework with Mandiant pen-test recommendations. [View SBPG](docs/security-best-practices.md).
 
 ### Cybersecurity Documentation
 
-NIST 800-53r5 control mappings for FRH, IL4, IL5. [View docs](https://drive.google.com/drive/folders/1NeWZcOuxysi7kUNRCFDd8CeHnxF14ywp) • [Path to Authorization guide](https://docs.google.com/document/d/1vyrWgLIXWkZO3c5qkqLhltmo4LMrVfDHx0EQCuQMYac/edit?tab=t.0#heading=h.qyoze3epkux8) (requires access).
+NIST 800-53r5 control mappings for FRH, IL4, IL5. [Path to Authorization guide](docs/path-to-authorization.md).
 
 ### Assured Workloads
 
