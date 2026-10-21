@@ -21,7 +21,7 @@ regions = {
 
 # Optional override for the org-level tag key used by L1 for folder-scoped
 # org-policy admin delegation. Default "department" works for universities
-# (schools/departments), federal agencies (centers like CDER, NCTR), and
+# (schools/departments), federal agencies (centers), and
 # corporate divisions. L1 creates one tag value per team_folders entry and
 # binds it to the corresponding department folder.
 # department_tag_key_name = "department"

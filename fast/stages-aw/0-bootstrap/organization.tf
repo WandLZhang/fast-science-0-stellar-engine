@@ -277,11 +277,11 @@ locals {
 # supported way to give folder-scoped org-policy authority since the
 # predefined orgpolicy.policyAdmin is org-scope only and the underlying
 # write permissions cannot be put in custom roles (verified empirically
-# by spot-test on 2026-05-22 against folders 968193040793 vs 63370343153).
+# on 2026-05-22).
 resource "google_tags_tag_key" "department" {
   parent      = "organizations/${var.organization.id}"
   short_name  = var.department_tag_key_name
-  description = "Tag key used by L1 (resman) to scope folder-level org-policy admin delegation via IAM conditions. Tag values = team_folders map keys (e.g., 'engineering', 'medicine', 'cder', 'nctr')."
+  description = "Tag key used by L1 (resman) to scope folder-level org-policy admin delegation via IAM conditions. Tag values = team_folders map keys (e.g., 'engineering', 'medicine')."
 }
 
 # Backwards-compat migration for deployments that previously had the
