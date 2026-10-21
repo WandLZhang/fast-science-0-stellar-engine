@@ -155,10 +155,10 @@ locals {
 
 # TODO: add a check block to ensure our custom roles exist in the factory files
 
-# import org policy constraints enabled by default in new orgs since February 2024
-import {
-  for_each = (
-    var.org_policies_config.import_defaults && var.bootstrap_user == null
+locals {
+  # import org policy constraints enabled by default in new orgs since February 2024
+  _org_policies_import_defaults = (
+    var.org_policies_config.import_defaults
     ? toset([
       # source: https://cloud.google.com/resource-manager/docs/secure-by-default-organizations#organization_policies_enforced_on_organization_resources
       # listed in the order as on page
@@ -171,10 +171,36 @@ import {
       "storage.uniformBucketLevelAccess",
       # "compute.setNewProjectDefaultToZonalDNSOnly",
       "compute.managed.restrictProtocolForwardingCreationForTypes", # not confirmed that this is live, but listed on webpage
-    ]) : toset([])
+    ])
+    : toset([])
   )
-  id = "organizations/${var.organization.id}/policies/${each.key}"
-  to = module.organization.google_org_policy_policy.default[each.key]
+  # Brownfield orgs: policies that already exist (for example from Google
+  # Cloud Setup or Foundation Builder). Only constraints this stage manages
+  # can be imported; the check below warns about the rest.
+  _org_policies_import_existing = toset(var.org_policies_config.import_existing)
+  org_policies_import = (
+    var.bootstrap_user == null
+    ? setintersection(
+      setunion(local._org_policies_import_defaults, local._org_policies_import_existing),
+      toset(keys(local.org_policies))
+    )
+    : toset([])
+  )
+}
+
+check "org_policies_import_existing" {
+  assert {
+    condition = length(setsubtract(
+      local._org_policies_import_existing, toset(keys(local.org_policies))
+    )) == 0
+    error_message = "org_policies_config.import_existing lists constraints this stage doesn't manage, so they're skipped: ${join(", ", sort(tolist(setsubtract(local._org_policies_import_existing, toset(keys(local.org_policies))))))}."
+  }
+}
+
+import {
+  for_each = local.org_policies_import
+  id       = "organizations/${var.organization.id}/policies/${each.key}"
+  to       = module.organization.google_org_policy_policy.default[each.key]
 }
 
 module "organization-logging" {

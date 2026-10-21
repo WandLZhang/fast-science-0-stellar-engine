@@ -308,12 +308,13 @@ variable "logging_kms_key" {
 }
 
 variable "org_policies_config" {
-  description = "Organization policies customization."
+  description = "Organization policies customization. import_existing lists org policies that already exist on the organization (for example from Google Cloud Setup or Foundation Builder), so the stage imports them instead of failing with ALREADY_EXISTS."
   type = object({
     constraints = optional(object({
       allowed_policy_member_domains = optional(list(string), [])
     }), {})
     import_defaults = optional(bool, false)
+    import_existing = optional(list(string), [])
     tag_name        = optional(string, "org-policies")
     tag_values = optional(map(object({
       description = optional(string, "Managed by the Terraform organization module.")
