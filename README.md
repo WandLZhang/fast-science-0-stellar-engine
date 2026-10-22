@@ -334,9 +334,7 @@ org_policies_config = {
 }
 
 fast_features = {
-  # teams and project_factory default to true (the Fast Science L1 model
-  # needs both). Set to false only to opt out.
-  # teams           = true   # default — creates department folders + tag delegation
+  # project_factory defaults to true. Set it to false only to opt out.
   # project_factory = true   # default — IT can create projects in dept folders
 }
 
