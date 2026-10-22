@@ -98,16 +98,16 @@ graph TB
     IT --> NET["📁 Networking<br/><i>⏳ Stage 1</i>"]
     IT --> SEC["📁 Security<br/><i>⏳ Stage 1</i>"]
 
-    NET --> P4["📦 PREFIX-net-core-0<br/><i>⏳ Stage 2 — Hub VPC + NCC Hub + Cloud NAT</i>"]
-    NET --> P5["📦 PREFIX-net-prod-0<br/><i>⏳ Stage 2 — Prod Spoke VPC + Cloud NAT</i>"]
+    NET --> P4["📦 PREFIX-prod-net-core-0<br/><i>⏳ Stage 2 — Hub VPC + NCC Hub + Cloud NAT</i>"]
+    NET --> P5["📦 PREFIX-prod-net-spoke-0<br/><i>⏳ Stage 2 — Prod Spoke VPC + Cloud NAT</i>"]
 
     SEC --> P8["📦 PREFIX-dev-sec-core-0<br/><i>⏳ Stage 3 — Dev KMS</i>"]
     SEC --> P9["📦 PREFIX-prod-sec-core-0<br/><i>⏳ Stage 3 — Prod KMS</i>"]
 
-    ORG --> DEPT["📁 engineering / medicine / ...<br/><i>⏳ L1 — department folders (siblings to it-services)</i>"]
-    DEPT --> DEV["📁 Development<br/><i>⏳ L1 — sandbox preset</i>"]
-    DEPT --> PROD["📁 Production<br/><i>⏳ L1 — hardened preset</i>"]
-    DEV --> RP["📦 researcher projects<br/><i>⏳ created by IT (via L1 PF) or by PIs (via Console)</i>"]
+    ORG --> DEPT["📁 engineering / medicine / ...<br/><i>⏳ Stage 1 — department folders (siblings to it-services)</i>"]
+    DEPT --> DEV["📁 Development<br/><i>⏳ Stage 1 — sandbox preset</i>"]
+    DEPT --> PROD["📁 Production<br/><i>⏳ Stage 1 — hardened preset</i>"]
+    DEV --> RP["📦 researcher projects<br/><i>⏳ created by IT (via the PF stage) or by PIs (via Console)</i>"]
 
     ORG --> CR["📁 (later) il5 / frh / il4<br/><i>compliance regimes — separate L0 deployments</i>"]
 
