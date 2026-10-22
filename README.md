@@ -135,7 +135,11 @@ graph TB
 
 ## Prerequisites
 
-This guide assumes you have already completed [Google Cloud Setup](https://docs.cloud.google.com/docs/enterprise/cloud-setup) — specifically, you have a verified domain, a Google Cloud Organization, and either Google Workspace or Cloud Identity configured.
+This guide assumes you have a verified domain, a Google Cloud organization, and Google Workspace or Cloud Identity. [Google Cloud Setup](https://docs.cloud.google.com/docs/enterprise/cloud-setup) gets you there.
+
+For a standard foundation, use the console: Cloud Setup's production flow or Foundation Builder. Use this repo when you want the foundation in Terraform, NCC networking with Cloud NAT per spoke, department folders with delegated org policy, or a compliance overlay. If your org already ran one of them, see [Orgs that already ran Cloud Setup](#orgs-that-already-ran-cloud-setup).
+
+Never run Cloud Setup's deploy, Foundation Builder or Stage 0 against a shared org. They set org-wide policies, such as blocking external IPs on VMs, that can break other projects in it.
 
 ### 1. Install Tools
 
@@ -381,6 +385,18 @@ terraform plan
 terraform apply
 ```
 
+### Orgs that already ran Cloud Setup
+
+Cloud Setup and Foundation Builder set org policies that Stage 0 also manages, so Stage 0's second apply fails with `ALREADY_EXISTS`. List the existing policies first:
+
+```bash
+gcloud org-policies list --organization=<organization_id> --format='value(name.basename())'
+```
+
+Put the list in `org_policies_config.import_existing`. Stage 0 imports the constraints it manages, sets them to its own values, and warns about the rest. `terraform.tfvars.sample` has the Foundation Builder list as an example.
+
+Stage 0 adds its org-level IAM grants one member at a time, so it keeps the groups and users Cloud Setup granted. A deployment made before 2026-10-22 has to drop its old exact-member bindings from state once, before its next plan. The command is at the top of `fast/stages-aw/0-bootstrap/organization-iam.tf`.
+
 ### Step 4 — Verify outputs
 
 ```bash
@@ -398,9 +414,7 @@ Stage 0 outputs are automatically written to `~/fast-config/` (or GCS bucket) fo
 ## Stage 1: Resource Management
 
 **Directory:** `fast/stages-aw/1-resman/`  
-**What it creates:** The organizational folder structure for downstream stages — Networking and Security folders nested under the managed wrapper. This stage no longer creates env folders (Prod/Int/Test) — each department gets its own Development/Production subfolders via L1, so a separate top-level env wrapper is redundant.
-
-For department folder creation + IAM delegation + folder-level org policies + per-dept tag bindings, proceed to the **[L1 researcher-lab repo](https://github.com/WandLZhang/fast-science-1-researcher-lab)** after Stage 3.
+**What it creates:** Networking and Security folders under the managed folder, plus one folder per department you list in `departments`. Each department gets Development and Production folders, optional sandbox or hardened org policy presets, a `department=<key>` tag, and org policy admin rights for its admins over its own folders and projects. Example: `blueprints/research-delegation/departments/departments.example.tfvars`.
 
 ### Step 1 — Link outputs from Stage 0
 
@@ -412,7 +426,11 @@ cd fast/stages-aw/1-resman
 
 ### Step 2 — Apply
 
-No tfvars needed for L0's Stage 1 — defaults are correct (`fast_features.teams = true`, `fast_features.project_factory = true` enable L1's per-department resources when you deploy the L1 repo).
+Stage 1 needs `envs_folders`. Set it to `{}` unless you want environment folders. Add `departments` for department folders.
+
+```hcl
+envs_folders = {}
+```
 
 ```bash
 terraform init
@@ -636,7 +654,7 @@ Once all 4 stages complete successfully, your landing zone is ready.
 → Then: Researchers deploy L2 workloads in their projects
 ```
 
-Proceed to the [L1 Researcher Labs](https://github.com/WandLZhang/fast-science-1-researcher-lab) repo to create researcher projects using the project factory module. Each researcher gets a YAML file → a GCP project with 24 APIs, SA, billing, logging, and monitoring pre-configured.
+Create researcher projects with `fast/stages-aw/3-project-factory-prod`: one YAML file per researcher, each a project with 24 APIs, a service account, billing, logging and monitoring. To let departments create their own projects, use `blueprints/research-delegation`. The [L1 repo](https://github.com/WandLZhang/fast-science-1-researcher-lab) walks through both.
 
 ---
 
