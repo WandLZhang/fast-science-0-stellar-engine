@@ -698,7 +698,8 @@ Upstream is [google/stellar-engine](https://github.com/google/stellar-engine), p
 
 - **Issues:** [File upstream](https://github.com/google/stellar-engine/issues) for framework bugs, here for the research layers.
 - **Code:** Upstream takes pull requests. You need a signed [Google CLA](https://cla.developers.google.com/).
-- **Releases:** Minor versions tag on the last Friday of each month. Sync to a tag, not `main`.
+- **Releases:** Minor versions tag on the last Friday of each month. Sync to a tag, not `main`. This fork tracks v5.1.0.
+- **Upgrading from v4.2.0:** Run `terraform init` in each stage before the first plan. Upstream renamed resources and module calls, and its `moved` blocks carry the state. In `2-networking-b-il5-ngfw`, the plan deletes the local `id_rsa` and `id_rsa.pub` files. The same key now lives in Secret Manager, and the `ngfw_ssh_private_key_secret_id` output names the secret.
 
 </details>
 
